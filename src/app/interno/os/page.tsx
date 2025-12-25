@@ -68,7 +68,10 @@ export default function OSPage() {
   const router = useRouter();
   
   // OS Identification
-  const osNumber = "001/2025";
+  const osNumber = useMemo(() => {
+    const year = new Date().getFullYear();
+    return `001/${year}`;
+  }, []);
   
   // Customer State
   const [clientName, setClientName] = useState("");
@@ -264,17 +267,17 @@ export default function OSPage() {
               />
             </div>
             
-            <div className="space-y-1">
-              <Label htmlFor="clientPhone" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Telefone / WhatsApp *</Label>
-              <Input 
-                id="clientPhone"
-                placeholder="(00) 00000-0000" 
-                value={clientPhone}
-                onChange={(e) => setClientPhone(e.target.value)}
-                required
-                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-              />
-            </div>
+              <div className="space-y-1">
+                <Label htmlFor="clientPhone" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Telefone *</Label>
+                <Input 
+                  id="clientPhone"
+                  placeholder="DDD + Número" 
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  required
+                  className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
+                />
+              </div>
           </div>
         </section>
 
