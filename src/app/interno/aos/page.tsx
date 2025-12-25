@@ -10,12 +10,12 @@ import {
   CreditCard, 
   Wallet, 
   Banknote,
-  Info,
-  ChevronRight,
-  User,
   Smartphone,
   Calendar,
-  Package
+  Package,
+  User,
+  Search,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,13 @@ const SERVICES_CATALOG = [
   { id: "pintura", name: "Pintura", price: 80 },
   { id: "costura", name: "Costura", price: 40 },
   { id: "clareamento", name: "Clareamento", price: 50 },
+  { id: "outros", name: "Outros", price: 0 }, // Value defined by staff if needed or keep at 0
+];
+
+const MOCK_CUSTOMERS = [
+  { name: "João Silva", phone: "(82) 99999-9999", whatsapp: "(82) 99999-9999" },
+  { name: "Maria Oliveira", phone: "(82) 98888-8888", whatsapp: "(82) 98888-8888" },
+  { name: "Pedro Santos", phone: "(82) 97777-7777", whatsapp: "(82) 97777-7777" },
 ];
 
 const DISCOUNTS = [
@@ -59,32 +66,43 @@ interface Item {
 
 export default function AOSPage() {
   const router = useRouter();
+  
+  // OS Identification
+  const osNumber = "007/2025"; // Mocked incremental logic
+  
+  // Customer State
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientWhatsApp, setClientWhatsApp] = useState("");
+  const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  
+  // Items State
   const [items, setItems] = useState<Item[]>([
-    { id: "1", orderInOS: 1, services: [], observations: "", photos: [] }
+    { id: Math.random().toString(36).substr(2, 9), orderInOS: 1, services: [], observations: "", photos: [] }
   ]);
+  
+  // Extra Service State
   const [extraServiceName, setExtraServiceName] = useState("");
-  const [extraServiceValue, setExtraServiceValue] = useState<number>(0);
-  const [discount, setDiscount] = useState(0);
-  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [extraServiceValue, setExtraServiceValue] = useState<number | "">("");
+  
+  // Dates & Delivery
+  const [entryDate] = useState(new Date().toLocaleDateString('pt-BR'));
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [entryDate, setEntryDate] = useState("");
-
-  useEffect(() => {
-    setEntryDate(new Date().toISOString().split("T")[0]);
-  }, []);
+  const [deliveryFee, setDeliveryFee] = useState<number | "">("");
+  
+  // Financial & Payment State
+  const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Pix");
-  const [paymentStatus, setPaymentStatus] = useState("Pendente");
-  const [contractAccepted, setContractAccepted] = useState(false);
+  const [payOnEntry, setPayOnEntry] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Auto-fill phone mock
-  useEffect(() => {
-    if (clientName.toLowerCase() === "joao silva") {
-      setClientPhone("(82) 99999-9999");
-    }
-  }, [clientName]);
+  // Behavior: Select existing customer
+  const selectCustomer = (cust: typeof MOCK_CUSTOMERS[0]) => {
+    setClientName(cust.name);
+    setClientPhone(cust.phone);
+    setClientWhatsApp(cust.whatsapp);
+    setShowCustomerSearch(false);
+  };
 
   const addItem = () => {
     const nextOrder = items.length + 1;
@@ -122,7 +140,7 @@ export default function AOSPage() {
     setItems(items.map(item => item.id === itemId ? { ...item, observations: obs } : item));
   };
 
-  // Financial Summary Calculations
+  // Financial Calculations
   const servicesTotal = useMemo(() => {
     return items.reduce((acc, item) => {
       const itemTotal = item.services.reduce((sAcc, sId) => {
@@ -133,36 +151,40 @@ export default function AOSPage() {
     }, 0);
   }, [items]);
 
-  const subtotal = servicesTotal + extraServiceValue + deliveryFee;
+  const subtotal = servicesTotal + Number(extraServiceValue || 0) + Number(deliveryFee || 0);
   const discountAmount = subtotal * discount;
   const finalTotal = subtotal - discountAmount;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName || !clientPhone || !contractAccepted) {
-      alert("Por favor, preencha os dados do cliente e aceite o contrato.");
+    if (!clientName || !clientPhone) {
+      alert("Nome e Telefone são obrigatórios.");
       return;
     }
 
     setLoading(true);
-    // Simulate generation
+    // Simulate OS generation
     setTimeout(() => {
-      alert("Ordem de Serviço 006/2025 gerada com sucesso!");
+      alert(`Ordem de Serviço ${osNumber} gerada com sucesso!`);
       router.push("/interno/dashboard");
       setLoading(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-slate-50 pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-2">
           <Link href="/interno/dashboard">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="w-5 h-5" />
+            <Button variant="ghost" size="icon" className="rounded-full -ml-2">
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>
           </Link>
-          <h1 className="text-lg font-bold text-slate-900">Nova OS</h1>
+          <div className="flex flex-col">
+            <h1 className="text-sm font-bold text-slate-900 leading-none">Abertura de OS</h1>
+            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{osNumber}</span>
+          </div>
         </div>
         <div className="flex items-baseline gap-0.5">
           <span className="text-sm font-black text-slate-900 tracking-tighter">TENIS</span>
@@ -170,69 +192,111 @@ export default function AOSPage() {
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 flex flex-col gap-5">
         
-        {/* CLIENT SECTION */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-              <User className="w-4 h-4 text-blue-500" />
+        {/* CUSTOMER SECTION */}
+        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                <User className="w-4 h-4 text-blue-600" />
+              </div>
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Cliente</h2>
             </div>
-            <h2 className="text-base font-bold text-slate-800">Cliente</h2>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowCustomerSearch(!showCustomerSearch)}
+              className="text-xs font-bold text-blue-600 h-8 gap-1"
+            >
+              <Search className="w-3 h-3" /> {showCustomerSearch ? "Fechar" : "Buscar"}
+            </Button>
           </div>
+
+          {showCustomerSearch && (
+            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2 mb-2 animate-in fade-in slide-in-from-top-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase ml-1">Clientes Frequentes</p>
+              {MOCK_CUSTOMERS.map(cust => (
+                <button
+                  key={cust.phone}
+                  type="button"
+                  onClick={() => selectCustomer(cust)}
+                  className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 text-left hover:border-blue-200 transition-all"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-800">{cust.name}</span>
+                    <span className="text-[10px] text-slate-500">{cust.phone}</span>
+                  </div>
+                  <Plus className="w-4 h-4 text-blue-400" />
+                </button>
+              ))}
+            </div>
+          )}
           
           <div className="flex flex-col gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="clientName" className="text-xs font-bold text-slate-500 uppercase ml-1">Nome Completo</Label>
+            <div className="space-y-1">
+              <Label htmlFor="clientName" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome Completo *</Label>
               <Input 
                 id="clientName"
-                placeholder="Ex: João Silva" 
+                placeholder="Nome do cliente" 
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 required
-                className="rounded-xl border-slate-200 h-12"
+                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
               />
             </div>
             
-            <div className="space-y-1.5">
-              <Label htmlFor="clientPhone" className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</Label>
-              <Input 
-                id="clientPhone"
-                placeholder="(00) 00000-0000" 
-                value={clientPhone}
-                onChange={(e) => setClientPhone(e.target.value)}
-                required
-                className="rounded-xl border-slate-200 h-12"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="clientPhone" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Telefone *</Label>
+                <Input 
+                  id="clientPhone"
+                  placeholder="(00) 00000-0000" 
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  required
+                  className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="clientWhatsApp" className="text-[10px] font-bold text-slate-400 uppercase ml-1">WhatsApp</Label>
+                <Input 
+                  id="clientWhatsApp"
+                  placeholder="(00) 00000-0000" 
+                  value={clientWhatsApp}
+                  onChange={(e) => setClientWhatsApp(e.target.value)}
+                  className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
+                />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ITEMS SECTION */}
+        {/* ITEMS / PAIRS SECTION */}
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
-                <Package className="w-4 h-4 text-amber-500" />
+                <Package className="w-4 h-4 text-amber-600" />
               </div>
-              <h2 className="text-base font-bold text-slate-800">Tênis</h2>
+              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Pares / Itens</h2>
             </div>
             <Button 
               type="button" 
               onClick={addItem}
-              variant="outline" 
               size="sm" 
-              className="rounded-full gap-1 border-blue-200 text-blue-600 hover:bg-blue-50"
+              className="rounded-full gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold h-8 text-xs px-4"
             >
-              <Plus className="w-4 h-4" /> Add Par
+              <Plus className="w-3 h-3" /> Add Par
             </Button>
           </div>
 
           {items.map((item, index) => (
-            <Card key={item.id} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
-              <CardHeader className="bg-slate-50/50 py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold text-slate-700">
-                  Item 001/2025.{item.orderInOS}
+            <Card key={item.id} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden animate-in zoom-in-95 duration-200">
+              <CardHeader className="bg-slate-50/50 py-2.5 px-5 border-b border-slate-100 flex flex-row items-center justify-between">
+                <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
+                  ITEM {osNumber}.{item.orderInOS}
                 </CardTitle>
                 {items.length > 1 && (
                   <Button 
@@ -240,61 +304,64 @@ export default function AOSPage() {
                     variant="ghost" 
                     size="icon" 
                     onClick={() => removeItem(item.id)}
-                    className="h-8 w-8 text-slate-400 hover:text-red-500"
+                    className="h-7 w-7 text-slate-400 hover:text-red-500 rounded-full"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 )}
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                {/* Photo Placeholder */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-400">
-                    <Camera className="w-6 h-6" />
-                    <span className="text-[10px] font-bold uppercase">Foto Frontal</span>
+              <CardContent className="p-5 space-y-5">
+                {/* Photo Upload (Mock) */}
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors">
+                    <Camera className="w-5 h-5" />
+                    <span className="text-[8px] font-bold uppercase">Foto</span>
                   </div>
-                  <div className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-400">
-                    <Camera className="w-6 h-6" />
-                    <span className="text-[10px] font-bold uppercase">Foto Lateral</span>
+                  <div className="min-w-[80px] h-[80px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
+                    <Plus className="w-4 h-4" />
                   </div>
                 </div>
 
-                {/* Services Checkboxes */}
-                <div className="space-y-3">
-                  <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Serviços</Label>
-                  <div className="grid grid-cols-1 gap-2">
+                {/* Services */}
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviços</Label>
+                  <div className="grid grid-cols-1 gap-1.5">
                     {SERVICES_CATALOG.map(service => (
                       <div 
                         key={service.id} 
-                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                          item.services.includes(service.id) 
-                            ? "bg-blue-50 border-blue-200 ring-1 ring-blue-100" 
-                            : "bg-white border-slate-100"
-                        }`}
                         onClick={() => toggleService(item.id, service.id)}
+                        className={`flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.99] ${
+                          item.services.includes(service.id) 
+                            ? "bg-blue-600 border-blue-600 text-white" 
+                            : "bg-white border-slate-100 text-slate-600"
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Checkbox 
-                            id={`s-${item.id}-${service.id}`}
-                            checked={item.services.includes(service.id)}
-                            onCheckedChange={() => {}} // handled by div click
-                          />
-                          <Label className="font-medium text-slate-700">{service.name}</Label>
+                          <div className={`w-4 h-4 rounded-sm border flex items-center justify-center ${
+                            item.services.includes(service.id) ? "bg-white border-white" : "border-slate-300 bg-white"
+                          }`}>
+                            {item.services.includes(service.id) && <CheckCircle2 className="w-3 h-3 text-blue-600" />}
+                          </div>
+                          <span className="text-xs font-bold">{service.name}</span>
                         </div>
-                        <span className="text-sm font-bold text-slate-900">R$ {service.price.toFixed(2)}</span>
+                        {service.price > 0 && (
+                          <span className={`text-xs font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
+                            R$ {service.price.toFixed(2)}
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Observations */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Observações / Avarias</Label>
+                {/* Notes */}
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Observações do Item</Label>
                   <Textarea 
-                    placeholder="Manchas, rasgos, etc..." 
+                    placeholder="Ex: Mancha no solado, bico descolado..." 
                     value={item.observations}
                     onChange={(e) => updateItemObservations(item.id, e.target.value)}
-                    className="rounded-xl border-slate-200 min-h-[80px]"
+                    className="rounded-xl border-slate-200 min-h-[60px] text-xs resize-none focus:ring-blue-500/20"
                   />
                 </div>
               </CardContent>
@@ -303,114 +370,108 @@ export default function AOSPage() {
         </div>
 
         {/* EXTRA SERVICE */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-          <div className="flex items-center gap-2 mb-2">
+        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
               <Plus className="w-4 h-4 text-slate-500" />
             </div>
-            <h2 className="text-base font-bold text-slate-800">Serviço Extra (Opcional)</h2>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Serviço Extra</h2>
           </div>
           
           <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Descrição</Label>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Descrição</Label>
               <Input 
                 placeholder="Ex: Troca de cadarço" 
                 value={extraServiceName}
                 onChange={(e) => setExtraServiceName(e.target.value)}
-                className="rounded-xl border-slate-200"
+                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Valor (R$)</Label>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Valor Manual (R$)</Label>
               <Input 
                 type="number"
                 placeholder="0.00" 
-                value={extraServiceValue || ""}
-                onChange={(e) => setExtraServiceValue(Number(e.target.value))}
-                className="rounded-xl border-slate-200"
+                value={extraServiceValue}
+                onChange={(e) => setExtraServiceValue(e.target.value === "" ? "" : Number(e.target.value))}
+                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
               />
             </div>
           </div>
         </section>
 
         {/* DATES & LOGISTICS */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-          <div className="flex items-center gap-2 mb-2">
+        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
               <Calendar className="w-4 h-4 text-slate-500" />
             </div>
-            <h2 className="text-base font-bold text-slate-800">Datas & Entrega</h2>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Prazos & Taxas</h2>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Entrada</Label>
-              <div className="h-12 px-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center text-slate-500 text-sm font-medium">
-                {new Date(entryDate).toLocaleDateString('pt-BR')}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Entrada</Label>
+              <div className="h-11 px-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center text-slate-500 text-xs font-bold">
+                {entryDate}
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Previsão</Label>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Previsão Entrega</Label>
               <Input 
                 type="date"
                 value={deliveryDate}
                 onChange={(e) => setDeliveryDate(e.target.value)}
-                className="rounded-xl border-slate-200 h-12"
+                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Taxa de Entrega (Opcional)</Label>
+          <div className="space-y-1">
+            <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Taxa de Entrega (Opcional)</Label>
             <Input 
               type="number"
               placeholder="0.00" 
-              value={deliveryFee || ""}
-              onChange={(e) => setDeliveryFee(Number(e.target.value))}
-              className="rounded-xl border-slate-200"
+              value={deliveryFee}
+              onChange={(e) => setDeliveryFee(e.target.value === "" ? "" : Number(e.target.value))}
+              className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
             />
           </div>
         </section>
 
         {/* FINANCIAL SUMMARY */}
-        <section className="bg-slate-900 rounded-3xl p-6 shadow-xl text-white flex flex-col gap-6">
+        <section className="bg-slate-900 rounded-[2.5rem] p-7 shadow-2xl text-white flex flex-col gap-6 -mx-1">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">Resumo Financeiro</h2>
-            <Badge variant="outline" className="border-white/20 text-white/60 font-mono">
-              TOTAL
+            <h2 className="text-base font-black uppercase tracking-widest text-white/50">Resumo</h2>
+            <Badge variant="outline" className="border-white/20 text-blue-400 font-mono text-[10px]">
+              FINANCEIRO
             </Badge>
           </div>
 
-          <div className="space-y-3 border-b border-white/10 pb-6">
-            <div className="flex justify-between text-sm text-white/60">
-              <span>Serviços ({items.length} {items.length === 1 ? 'par' : 'pares'})</span>
-              <span>R$ {servicesTotal.toFixed(2)}</span>
+          <div className="space-y-3.5 border-b border-white/10 pb-6">
+            <div className="flex justify-between text-xs font-bold text-white/70">
+              <span>Subtotal ({items.length} {items.length === 1 ? 'par' : 'pares'})</span>
+              <span>R$ {(servicesTotal + Number(extraServiceValue || 0)).toFixed(2)}</span>
             </div>
-            {extraServiceValue > 0 && (
-              <div className="flex justify-between text-sm text-white/60">
-                <span>Extra ({extraServiceName || 'Serviço'})</span>
-                <span>R$ {extraServiceValue.toFixed(2)}</span>
-              </div>
-            )}
             {deliveryFee > 0 && (
-              <div className="flex justify-between text-sm text-white/60">
+              <div className="flex justify-between text-xs font-bold text-white/70">
                 <span>Taxa de Entrega</span>
-                <span>R$ {deliveryFee.toFixed(2)}</span>
+                <span>R$ {Number(deliveryFee).toFixed(2)}</span>
               </div>
             )}
             
-            <div className="flex items-center justify-between gap-4 pt-2">
-              <span className="text-sm text-white/60">Desconto</span>
-              <div className="flex gap-1">
+            <div className="flex flex-col gap-2 pt-2">
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Desconto Aplicado</span>
+              <div className="grid grid-cols-4 gap-1.5">
                 {DISCOUNTS.map(d => (
                   <button
                     key={d.label}
                     type="button"
                     onClick={() => setDiscount(d.value)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    className={`h-10 rounded-xl text-xs font-black transition-all ${
                       discount === d.value 
-                        ? "bg-blue-500 text-white" 
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" 
                         : "bg-white/5 text-white/40 hover:bg-white/10"
                     }`}
                   >
@@ -423,31 +484,27 @@ export default function AOSPage() {
 
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <span className="text-xs text-white/40 font-bold uppercase tracking-widest">Valor Final</span>
-              <span className="text-4xl font-black tracking-tighter">
+              <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Total Geral</span>
+              <span className="text-4xl font-black tracking-tighter text-white">
                 R$ {finalTotal.toFixed(2)}
               </span>
             </div>
             {discount > 0 && (
-              <span className="text-xs font-bold bg-green-500/20 text-green-400 px-2 py-1 rounded-full mb-1">
-                - R$ {discountAmount.toFixed(2)}
-              </span>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-[10px] font-black text-green-400 uppercase tracking-wider">Economia</span>
+                <span className="text-sm font-black bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
+                  - R$ {discountAmount.toFixed(2)}
+                </span>
+              </div>
             )}
           </div>
         </section>
 
-        {/* PAYMENT */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-slate-500" />
-            </div>
-            <h2 className="text-base font-bold text-slate-800">Pagamento</h2>
-          </div>
-
+        {/* PAYMENT & STATUS */}
+        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-6">
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Método</Label>
+            <div className="space-y-2.5">
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Método de Pagamento</Label>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: 'Pix', icon: Smartphone },
@@ -458,67 +515,56 @@ export default function AOSPage() {
                     key={method.id}
                     type="button"
                     onClick={() => setPaymentMethod(method.id)}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all ${
+                    className={`flex flex-col items-center gap-2 p-3.5 rounded-2xl border transition-all ${
                       paymentMethod === method.id 
-                        ? "bg-slate-900 border-slate-900 text-white" 
-                        : "bg-white border-slate-100 text-slate-500 hover:border-slate-200"
+                        ? "bg-slate-900 border-slate-900 text-white shadow-md" 
+                        : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
                     }`}
                   >
                     <method.icon className="w-5 h-5" />
-                    <span className="text-[10px] font-bold uppercase">{method.id}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight">{method.id}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Status</Label>
-              <Select value={paymentStatus} onValueChange={setPaymentStatus}>
-                <SelectTrigger className="rounded-xl h-12 border-slate-200">
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pendente">A pagar na entrega</SelectItem>
-                  <SelectItem value="Parcial">Pago Parcial (50%)</SelectItem>
-                  <SelectItem value="Pago">Pago Integral</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-800">Pago na Entrada?</span>
+                <span className="text-[10px] text-slate-500">Marcar se o cliente já pagou</span>
+              </div>
+              <Checkbox 
+                id="payOnEntry" 
+                checked={payOnEntry}
+                onCheckedChange={(checked) => setPayOnEntry(checked as boolean)}
+                className="h-6 w-6 rounded-lg border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              />
             </div>
           </div>
         </section>
 
-        {/* CONTRACT */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-4">
-          <div className="bg-slate-50 rounded-2xl p-4 text-[10px] text-slate-500 leading-relaxed font-medium">
-            <h4 className="font-bold mb-2 uppercase text-slate-700">Contrato e Garantia</h4>
-            <p className="mb-2">A TENISLAB oferece garantia de 30 dias para os serviços realizados. Não nos responsabilizamos por danos em calçados com vida útil excedida ou materiais ressecados.</p>
-            <p>O prazo de entrega é estimado e pode variar conforme a complexidade do serviço. Calçados não retirados em até 90 dias serão doados.</p>
+        {/* CONTRACT NOTE */}
+        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+          <div className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-[10px] font-bold text-amber-700">!</span>
           </div>
-          <div className="flex items-start gap-3 p-2">
-            <Checkbox 
-              id="terms" 
-              checked={contractAccepted}
-              onCheckedChange={(checked) => setContractAccepted(checked as boolean)}
-              className="mt-1"
-            />
-            <Label htmlFor="terms" className="text-sm font-medium text-slate-600 leading-snug">
-              O cliente está ciente e de acordo com os termos de serviço e prazos estabelecidos.
-            </Label>
-          </div>
-        </section>
+          <p className="text-[11px] text-amber-800 leading-snug font-medium">
+            O aceite do cliente será solicitado via link externo (WhatsApp/E-mail) após a finalização desta OS.
+          </p>
+        </div>
 
-        {/* SUBMIT */}
+        {/* SUBMIT BUTTON */}
         <Button 
           type="submit" 
-          disabled={loading || !contractAccepted}
-          className="h-16 rounded-3xl bg-blue-600 hover:bg-blue-700 text-white font-black text-lg shadow-lg shadow-blue-200 transition-all active:scale-[0.98] mt-4"
+          disabled={loading}
+          className="h-16 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white font-black text-lg shadow-xl shadow-blue-500/20 transition-all active:scale-[0.97] mt-2 mb-4"
         >
           {loading ? (
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-6 h-6" />
-              Finalizar Ordem de Serviço
+              GERAR ORDEM DE SERVIÇO
             </div>
           )}
         </Button>
