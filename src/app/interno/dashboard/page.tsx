@@ -144,16 +144,23 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Dashboard Interno</h1>
-          <p className="text-slate-500 font-medium">Gerencie as ordens de serviço da TENISLAB</p>
-        </div>
-        <div className="flex gap-1 items-baseline">
-          <span className="text-2xl font-black text-slate-900">TENIS</span>
-          <span className="text-2xl font-light text-blue-500">LAB</span>
-        </div>
-      </header>
+        <header className="flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Dashboard Interno</h1>
+            <p className="text-slate-500 font-medium">Gerencie as ordens de serviço da TENISLAB</p>
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex gap-1 items-baseline">
+              <span className="text-2xl font-black text-slate-900">TENIS</span>
+              <span className="text-2xl font-light text-blue-500">LAB</span>
+            </div>
+            <Link href="/interno/aos">
+              <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 shadow-lg shadow-blue-100">
+                Nova OS
+              </Button>
+            </Link>
+          </div>
+        </header>
 
       <Card className="border-slate-200 shadow-sm overflow-hidden">
         <CardHeader className="bg-slate-50 border-b border-slate-200 py-4">
