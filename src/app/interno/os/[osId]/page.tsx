@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   ArrowLeft, 
   LayoutDashboard,
@@ -8,11 +8,22 @@ import {
   Calendar,
   User,
   AlertTriangle,
-  Info
+  Info,
+  XCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -93,7 +104,37 @@ export default function OSViewPage() {
   const params = useParams();
   const osId = params.osId as string;
   
-  const osData = useMemo(() => getOSMockData(osId), [osId]);
+  const [role, setRole] = useState<string | null>(null);
+  const [osData, setOsData] = useState<OSData | null>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+
+  useEffect(() => {
+    setRole(localStorage.getItem("tenislab_role"));
+    setOsData(getOSMockData(osId));
+  }, [osId]);
+
+  const isReasonValid = cancellationReason.trim().length >= 10;
+
+  const handleCancelClick = () => {
+    setCancelModalOpen(true);
+    setCancellationReason("");
+  };
+
+  const confirmCancel = () => {
+    if (!isReasonValid || !osData) return;
+
+    setOsData(prev => prev ? {
+      ...prev,
+      status: "Cancelado",
+      cancellationReason,
+      cancellationDate: new Date().toISOString()
+    } : null);
+    
+    setCancelModalOpen(false);
+  };
+
+  if (!osData) return null;
 
   const getStatusBadge = (status: Status) => {
     switch (status) {
@@ -260,6 +301,19 @@ export default function OSViewPage() {
 
         {/* SECTION 4 — ACTIONS */}
         <div className="flex flex-col gap-3 mt-4">
+          {/* CANCEL BUTTON: Visible for Admin/Atendente if status is not Entregue/Cancelado */}
+          {(role === "ADMIN" || role === "ATENDENTE") && 
+           osData.status !== "Entregue" && 
+           osData.status !== "Cancelado" && (
+            <Button 
+              onClick={handleCancelClick}
+              className="w-full h-14 rounded-2xl bg-white border-2 border-red-200 hover:bg-red-50 text-red-600 font-black shadow-sm transition-all active:scale-[0.97] flex items-center gap-2"
+            >
+              <XCircle className="w-5 h-5" />
+              CANCELAR ESTA OS
+            </Button>
+          )}
+
           <Link href="/interno/dashboard" className="w-full">
             <Button 
               type="button" 
@@ -272,6 +326,51 @@ export default function OSViewPage() {
             </Button>
           </Link>
         </div>
+
+        {/* CANCELLATION DIALOG */}
+        <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+          <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-red-500" />
+                Cancelar Ordem de Serviço
+              </DialogTitle>
+              <DialogDescription className="font-medium text-slate-500">
+                Esta ação é irreversível. A OS será marcada como cancelada e não poderá mais ser editada.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+                Motivo do cancelamento *
+              </Label>
+              <Textarea 
+                id="reason"
+                placeholder="Informe detalhadamente o motivo..."
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                className="mt-2 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
+                required
+              />
+              {!isReasonValid && cancellationReason.length > 0 && (
+                <p className="text-[10px] text-red-500 mt-1 font-medium">
+                  O motivo deve ter pelo menos 10 caracteres.
+                </p>
+              )}
+            </div>
+            <DialogFooter className="flex gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="rounded-xl font-bold">
+                Voltar
+              </Button>
+              <Button 
+                onClick={confirmCancel} 
+                disabled={!isReasonValid}
+                className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold disabled:opacity-50"
+              >
+                Confirmar cancelamento
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <footer className="mt-8 text-center opacity-30">
           <p className="text-[10px] uppercase tracking-[0.3em] font-bold">

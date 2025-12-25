@@ -140,9 +140,12 @@ export default function DashboardPage() {
   // Cancellation Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
-  const [cancellationReason, setCancellationReason] = useState("");
+    const [cancellationReason, setCancellationReason] = useState("");
 
-  // Deletion Modal State
+    const isReasonValid = cancellationReason.trim().length >= 10;
+
+    // Deletion Modal State
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
@@ -165,17 +168,18 @@ export default function DashboardPage() {
     setCancellationReason("");
   };
 
-  const confirmCancel = () => {
-    if (!cancellationReason.trim() || !orderToCancel) return;
+    const confirmCancel = () => {
+      if (!isReasonValid || !orderToCancel) return;
 
-    setOrders(prev => prev.map(order => 
-      order.id === orderToCancel 
-        ? { ...order, status: "Cancelado", cancellationReason } 
-        : order
-    ));
-    setCancelModalOpen(false);
-    setOrderToCancel(null);
-  };
+      setOrders(prev => prev.map(order => 
+        order.id === orderToCancel 
+          ? { ...order, status: "Cancelado", cancellationReason } 
+          : order
+      ));
+      setCancelModalOpen(false);
+      setOrderToCancel(null);
+    };
+
 
   const handleDeleteClick = (orderId: string) => {
     setOrderToDelete(orderId);
@@ -384,26 +388,33 @@ export default function DashboardPage() {
               <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
                 Motivo do cancelamento *
               </Label>
-              <Textarea 
-                id="reason"
-                placeholder="Ex: Cliente desistiu por conta do prazo..."
-                value={cancellationReason}
-                onChange={(e) => setCancellationReason(e.target.value)}
-                className="mt-2 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
-                required
-              />
+                <Textarea 
+                  id="reason"
+                  placeholder="Ex: Cliente desistiu por conta do prazo..."
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className="mt-2 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
+                  required
+                />
+                {!isReasonValid && cancellationReason.length > 0 && (
+                  <p className="text-[10px] text-red-500 mt-1 font-medium">
+                    O motivo deve ter pelo menos 10 caracteres.
+                  </p>
+                )}
+
             </div>
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="rounded-xl font-bold">
                 Voltar
               </Button>
-              <Button 
-                onClick={confirmCancel} 
-                disabled={!cancellationReason.trim()}
-                className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
-              >
-                Confirmar cancelamento
-              </Button>
+                <Button 
+                  onClick={confirmCancel} 
+                  disabled={!isReasonValid}
+                  className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold disabled:opacity-50"
+                >
+                  Confirmar cancelamento
+                </Button>
+
             </DialogFooter>
           </DialogContent>
         </Dialog>
