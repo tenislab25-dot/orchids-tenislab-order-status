@@ -18,8 +18,7 @@ import {
   Link as LinkIcon,
   LayoutDashboard,
   Info,
-  ChevronRight,
-  X
+ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +95,10 @@ export default function OSPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState<number | "">("");
   
+  // Services Modal State
+  const [openDialogId, setOpenDialogId] = useState<string | null>(null);
+  const [tempServices, setTempServices] = useState<string[]>([]);
+  
   // Financial & Payment State
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Pix");
@@ -131,16 +134,17 @@ export default function OSPage() {
     }
   };
 
-  const toggleService = (itemId: string, serviceId: string) => {
-    setItems(items.map(item => {
-      if (item.id === itemId) {
-        const services = item.services.includes(serviceId)
-          ? item.services.filter(s => s !== serviceId)
-          : [...item.services, serviceId];
-        return { ...item, services };
-      }
-      return item;
-    }));
+  const toggleTempService = (serviceId: string) => {
+    setTempServices(prev => 
+      prev.includes(serviceId) 
+        ? prev.filter(id => id !== serviceId) 
+        : [...prev, serviceId]
+    );
+  };
+
+  const confirmSelection = (itemId: string) => {
+    updateItem(itemId, { services: tempServices });
+    setOpenDialogId(null);
   };
 
   const updateItem = (itemId: string, data: Partial<Item>) => {
@@ -337,79 +341,83 @@ export default function OSPage() {
                     </div>
                   </div>
 
-                  {/* Services Selection - COMPACT SELECTOR */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviços Selecionados</Label>
-                      
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {item.services.map(sId => {
-                          const service = INITIAL_SERVICES.find(s => s.id === sId);
-                          return (
-                            <Badge key={sId} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100 gap-1 pr-1 py-1 rounded-lg">
-                              {service?.name}
-                              <button onClick={() => toggleService(item.id, sId)} className="hover:text-red-500">
-                                <X className="w-3 h-3" />
-                              </button>
-                            </Badge>
-                          );
-                        })}
-                        {item.services.length === 0 && (
-                          <span className="text-xs text-slate-400 italic">Nenhum serviço selecionado</span>
-                        )}
-                      </div>
-
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="w-full h-12 rounded-xl border-slate-200 flex justify-between px-4 text-slate-600">
-                            <span className="text-sm font-medium">Selecionar Serviços</span>
-                            <ChevronRight className="w-4 h-4 text-slate-400" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-[90vw] rounded-3xl p-0 overflow-hidden">
-                          <DialogHeader className="p-6 pb-2">
-                            <DialogTitle className="text-lg font-black uppercase tracking-tight">Catálogo de Serviços</DialogTitle>
-                          </DialogHeader>
-                          <div className="p-6 pt-2 max-h-[60vh] overflow-y-auto space-y-6">
-                            {groupedServices.map(group => (
-                              <div key={group.name} className="space-y-3">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{group.name}</h3>
-                                <div className="grid grid-cols-1 gap-2">
-                                  {group.services.map(service => (
-                                    <div 
-                                      key={service.id} 
-                                      onClick={() => toggleService(item.id, service.id)}
-                                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                                        item.services.includes(service.id) 
-                                          ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200" 
-                                          : "bg-white border-slate-100 text-slate-600"
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                                          item.services.includes(service.id) ? "bg-white border-white" : "border-slate-200 bg-white"
-                                        }`}>
-                                          {item.services.includes(service.id) && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
-                                        </div>
-                                        <span className="text-sm font-bold">{service.name}</span>
-                                      </div>
-                                      <span className={`text-sm font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
-                                        R$ {(Number(service.defaultPrice) || 0).toFixed(2)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
+                    {/* Services Selection - COMPACT SELECTOR */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Resumo do Par</Label>
+                        
+                        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-1">
+                          <div className="flex justify-between items-start">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Serviços</span>
+                            <span className="text-[10px] font-black text-blue-600">
+                              ITEM: R$ {(Number(itemValues[index]) || 0).toFixed(2)}
+                            </span>
                           </div>
-                          <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
-                            <Button className="w-full h-12 rounded-2xl bg-slate-900 font-bold" onClick={() => {}}>
-                              Concluir Seleção
+                          <p className="text-xs font-medium text-slate-600 leading-tight">
+                            {item.services.length > 0 
+                              ? item.services.map(sId => INITIAL_SERVICES.find(s => s.id === sId)?.name).join(", ")
+                              : "Nenhum serviço selecionado"}
+                          </p>
+                        </div>
+  
+                        <Dialog open={openDialogId === item.id} onOpenChange={(open) => { if (!open) setOpenDialogId(null); }}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              className="w-full h-12 rounded-xl border-slate-200 flex justify-between px-4 text-slate-600"
+                              onClick={() => {
+                                setOpenDialogId(item.id);
+                                setTempServices(item.services);
+                              }}
+                            >
+                              <span className="text-sm font-medium">Selecionar Serviços</span>
+                              <ChevronRight className="w-4 h-4 text-slate-400" />
                             </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-[90vw] rounded-3xl p-0 overflow-hidden">
+                            <DialogHeader className="p-6 pb-2">
+                              <DialogTitle className="text-lg font-black uppercase tracking-tight">Catálogo de Serviços</DialogTitle>
+                            </DialogHeader>
+                            <div className="p-6 pt-2 max-h-[60vh] overflow-y-auto space-y-6">
+                              {groupedServices.map(group => (
+                                <div key={group.name} className="space-y-3">
+                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{group.name}</h3>
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {group.services.map(service => (
+                                      <div 
+                                        key={service.id} 
+                                        onClick={() => toggleTempService(service.id)}
+                                        className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                                          tempServices.includes(service.id) 
+                                            ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200" 
+                                            : "bg-white border-slate-100 text-slate-600"
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${
+                                            tempServices.includes(service.id) ? "bg-white border-white" : "border-slate-200 bg-white"
+                                          }`}>
+                                            {tempServices.includes(service.id) && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
+                                          </div>
+                                          <span className="text-sm font-bold">{service.name}</span>
+                                        </div>
+                                        <span className={`text-sm font-black ${tempServices.includes(service.id) ? "text-white" : "text-slate-900"}`}>
+                                          R$ {(Number(service.defaultPrice) || 0).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
+                              <Button className="w-full h-12 rounded-2xl bg-slate-900 font-bold" onClick={() => confirmSelection(item.id)}>
+                                Concluir Seleção
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
 
                     {/* Custom Service (one per item) */}
                     <div className="space-y-2 pt-2 border-t border-slate-100">
