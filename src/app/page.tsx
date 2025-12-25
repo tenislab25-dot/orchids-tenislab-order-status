@@ -2,127 +2,141 @@
 
 import Link from "next/link";
 import { 
-  PlusCircle, 
-  LayoutDashboard, 
-  Wallet, 
-  Wrench, 
-  Search,
+  Search, 
+  MessageCircle, 
+  Instagram, 
+  Lock,
   ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface NavCardProps {
+interface ActionButtonProps {
   href: string;
   title: string;
   description: string;
   icon: React.ElementType;
-  adminOnly?: boolean;
+  external?: boolean;
+  variant?: "default" | "outline" | "secondary";
 }
 
-function NavCard({ href, title, description, icon: Icon, adminOnly }: NavCardProps) {
-  return (
-    <Link href={href} className="block group">
-      <div className="relative overflow-hidden bg-white p-6 rounded-3xl border border-slate-100 shadow-sm transition-all hover:shadow-md active:scale-[0.98] flex flex-col gap-3 h-full">
-        <div className="flex items-center justify-between">
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-            <Icon className="w-6 h-6 text-slate-600 group-hover:text-blue-500 transition-colors" />
-          </div>
-          {adminOnly && (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
-              Admin
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col gap-1">
-          <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">{title}</h3>
-          <p className="text-slate-500 text-xs leading-relaxed">{description}</p>
-        </div>
+function ActionButton({ href, title, description, icon: Icon, external, variant = "default" }: ActionButtonProps) {
+  const content = (
+    <div className={`
+      flex items-center gap-4 p-5 rounded-2xl transition-all active:scale-[0.98] w-full text-left
+      ${variant === "default" ? "bg-slate-900 text-white shadow-lg shadow-slate-200" : ""}
+      ${variant === "outline" ? "bg-white border-2 border-slate-100 text-slate-900 hover:border-slate-200" : ""}
+      ${variant === "secondary" ? "bg-slate-100 text-slate-700" : ""}
+    `}>
+      <div className={`
+        w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+        ${variant === "default" ? "bg-white/10" : "bg-slate-50"}
+      `}>
+        <Icon className="w-6 h-6" />
       </div>
+      <div className="flex-1">
+        <h3 className="font-bold text-lg leading-tight">{title}</h3>
+        <p className={`text-sm ${variant === "default" ? "text-slate-400" : "text-slate-500"}`}>{description}</p>
+      </div>
+      <ChevronRight className={`w-5 h-5 opacity-30 ${variant === "default" ? "text-white" : "text-slate-400"}`} />
+    </div>
+  );
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="block w-full">
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className="block w-full">
+      {content}
     </Link>
   );
 }
 
 export default function Home() {
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
+    <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* SECTION 1 — HEADER */}
-      <header className="flex flex-col items-center gap-3 mb-12">
+      <header className="flex flex-col items-center gap-4 mb-12">
         <div className="flex items-baseline gap-1">
           <span className="text-5xl font-extrabold tracking-tighter text-slate-900">TENIS</span>
           <span className="text-5xl font-light tracking-tighter text-blue-500">LAB</span>
         </div>
-        <p className="text-slate-500 text-sm font-semibold text-center leading-relaxed">
-          Sistema interno de gestão de ordens de serviço
+        <div className="h-px w-12 bg-slate-200" />
+        <p className="text-slate-500 text-sm font-medium tracking-widest uppercase">
+          Sneaker Laundry Service
         </p>
       </header>
 
-      <main className="flex-1 flex flex-col gap-12">
-        {/* SECTION 2 — INTERNAL ACCESS */}
+      <main className="flex-1 flex flex-col gap-10">
+        {/* SECTION 2 — CUSTOMER ACTIONS */}
         <section className="flex flex-col gap-6">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">Acesso Interno</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <NavCard 
-              href="/interno/os"
-              title="Nova Ordem de Serviço"
-              description="Criar uma nova OS para atendimento ao cliente"
-              icon={PlusCircle}
+          <div className="flex flex-col gap-1 text-center">
+            <h2 className="text-xl font-bold text-slate-900">O que você precisa?</h2>
+          </div>
+          
+          <div className="flex flex-col gap-3">
+            <ActionButton 
+              href="/consulta"
+              title="Consultar Pedido"
+              description="Acompanhe o status do seu serviço"
+              icon={Search}
             />
-            <NavCard 
-              href="/interno/dashboard"
-              title="Dashboard Interno"
-              description="Gerenciar ordens de serviço em andamento"
-              icon={LayoutDashboard}
+            <ActionButton 
+              href="https://wa.me/placeholder"
+              title="Falar no WhatsApp"
+              description="Atendimento direto pelo WhatsApp"
+              icon={MessageCircle}
+              variant="outline"
+              external
             />
-            <NavCard 
-              href="/interno/financeiro"
-              title="Financeiro"
-              description="Visualizar caixa e projeções"
-              icon={Wallet}
-              adminOnly
-            />
-            <NavCard 
-              href="/interno/servicos"
-              title="Serviços"
-              description="Gerenciar catálogo de serviços"
-              icon={Wrench}
+            <ActionButton 
+              href="https://instagram.com/tenislab"
+              title="Instagram"
+              description="Veja nossos trabalhos e novidades"
+              icon={Instagram}
+              variant="outline"
+              external
             />
           </div>
         </section>
 
-        {/* SECTION 3 — CUSTOMER ACCESS */}
-        <section className="flex flex-col gap-4">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">Área do Cliente</h2>
-          <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] flex flex-col gap-4">
-            <p className="text-blue-700/80 text-sm font-medium text-center">
-              Área exclusiva para clientes acompanharem o status do serviço.
-            </p>
-            <Link href="/consulta">
+        {/* SECTION 3 — ABOUT */}
+        <section className="bg-slate-50/50 rounded-[2rem] p-8 text-center border border-slate-100">
+          <p className="text-slate-600 text-sm leading-relaxed font-medium">
+            Especialistas em higienização, pintura, costura e restauração de tênis.
+          </p>
+        </section>
+
+        {/* SECTION 4 — INTERNAL ACCESS */}
+        <section className="mt-4 pt-10 border-t border-slate-100">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Acesso Interno</h2>
+              <p className="text-slate-400 text-[10px] uppercase font-bold">Área restrita para equipe TENISLAB.</p>
+            </div>
+            <Link href="/login" className="w-full">
               <Button 
-                className="w-full h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-lg shadow-blue-900/10 flex items-center justify-center gap-3"
+                variant="ghost" 
+                className="w-full h-12 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest"
               >
-                <Search className="w-5 h-5" />
-                Consultar Pedido
-                <ChevronRight className="w-4 h-4 opacity-50" />
+                <Lock className="w-3.5 h-3.5" />
+                Acessar Sistema
               </Button>
             </Link>
           </div>
         </section>
       </main>
 
-      {/* SECTION 4 — FOOTER */}
+      {/* SECTION 5 — FOOTER */}
       <footer className="mt-auto pt-16 text-center">
-        <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          TENISLAB · Sistema Interno
+        <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-bold">
+          TENISLAB · Sneaker Laundry Service
         </p>
       </footer>
     </div>
   );
-}
-
-interface NavCardProps {
-  href: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  adminOnly?: boolean;
 }
