@@ -17,7 +17,9 @@ import {
   Search,
   Link as LinkIcon,
   LayoutDashboard,
-  Info
+  Info,
+  ChevronRight,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +28,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { INITIAL_SERVICES, Category } from "@/lib/services-data";
 
 // MOCK DATA
 const MOCK_CUSTOMERS = [
-  { name: "João Silva", phone: "(82) 99999-9999", whatsapp: "(82) 99999-9999" },
-  { name: "Maria Oliveira", phone: "(82) 98888-8888", whatsapp: "(82) 98888-8888" },
-  { name: "Pedro Santos", phone: "(82) 97777-7777", whatsapp: "(82) 97777-7777" },
+  { name: "João Silva", phone: "(82) 99999-9999" },
+  { name: "Maria Oliveira", phone: "(82) 98888-8888" },
+  { name: "Pedro Santos", phone: "(82) 97777-7777" },
 ];
 
 const DISCOUNTS = [
@@ -63,7 +73,6 @@ export default function OSPage() {
   // Customer State
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
-  const [clientWhatsApp, setClientWhatsApp] = useState("");
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
   
   // Items State
@@ -94,7 +103,6 @@ export default function OSPage() {
   const selectCustomer = (cust: typeof MOCK_CUSTOMERS[0]) => {
     setClientName(cust.name);
     setClientPhone(cust.phone);
-    setClientWhatsApp(cust.whatsapp);
     setShowCustomerSearch(false);
   };
 
@@ -158,34 +166,26 @@ export default function OSPage() {
   }, [items]);
 
   const subtotal = useMemo(() => {
-    return itemValues.reduce((acc, val) => acc + val, 0);
+    return itemValues.reduce((acc, val) => acc + (Number(val) || 0), 0);
   }, [itemValues]);
 
-  const discountAmount = subtotal * (Number(discount) || 0);
+  const discountAmount = Number(subtotal) * (Number(discount) || 0);
   const deliveryValue = Number(deliveryFee) || 0;
-  const finalTotal = subtotal - discountAmount + deliveryValue;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clientName || !clientPhone) {
-      alert("Nome e Telefone são obrigatórios.");
-      return;
-    }
-
-    setLoading(true);
-    setTimeout(() => {
-      alert(`Ordem de Serviço ${osNumber} gerada com sucesso!`);
-      router.push("/interno/dashboard");
-      setLoading(false);
-    }, 1200);
-  };
+  const finalTotal = Number(subtotal) - Number(discountAmount) + Number(deliveryValue);
 
   const handleGenerateLink = () => {
     if (!clientName || !clientPhone) {
-      alert("Preencha os dados do cliente para gerar o link.");
+      alert("Preencha os dados do cliente (Nome e Telefone) para gerar o link.");
       return;
     }
-    alert(`Link de aceite gerado para a OS ${osNumber}. Enviando para ${clientPhone}...`);
+    
+    setLoading(true);
+    // Simulate generation
+    setTimeout(() => {
+      alert(`Link de aceite gerado para a OS ${osNumber}.\nStatus: Pendente de aceite.\n\nSimulando envio para: ${clientPhone}`);
+      router.push("/interno/dashboard");
+      setLoading(false);
+    }, 1500);
   };
 
   return (
@@ -209,10 +209,8 @@ export default function OSPage() {
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 flex flex-col gap-5">
+      <div className="max-w-md mx-auto p-4 flex flex-col gap-5">
         
-        {/* SECTION 1 — OS IDENTIFICATION is in header, but let's show items as well */}
-
         {/* SECTION 2 — CUSTOMER DATA */}
         <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
           <div className="flex items-center justify-between mb-1">
@@ -266,33 +264,21 @@ export default function OSPage() {
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="clientPhone" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Telefone *</Label>
-                <Input 
-                  id="clientPhone"
-                  placeholder="(00) 00000-0000" 
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                  required
-                  className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="clientWhatsApp" className="text-[10px] font-bold text-slate-400 uppercase ml-1">WhatsApp</Label>
-                <Input 
-                  id="clientWhatsApp"
-                  placeholder="(00) 00000-0000" 
-                  value={clientWhatsApp}
-                  onChange={(e) => setClientWhatsApp(e.target.value)}
-                  className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-                />
-              </div>
+            <div className="space-y-1">
+              <Label htmlFor="clientPhone" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Telefone / WhatsApp *</Label>
+              <Input 
+                id="clientPhone"
+                placeholder="(00) 00000-0000" 
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+                required
+                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
+              />
             </div>
           </div>
         </section>
 
-        {/* SECTION 3 — ITEMS (TÊNIS) & SECTION 4 — SERVICES */}
+        {/* SECTION 3 — ITEMS (TÊNIS) */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -319,7 +305,7 @@ export default function OSPage() {
                       ITEM {osNumber}.{item.orderInOS}
                     </CardTitle>
                     <span className="text-[10px] font-bold text-blue-600">
-                      Valor do Item: R$ {(Number(itemValues[index]) || 0).toFixed(2)}
+                      R$ {(Number(itemValues[index]) || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -341,64 +327,103 @@ export default function OSPage() {
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors cursor-pointer">
                       <Camera className="w-5 h-5" />
-                      <span className="text-[8px] font-bold uppercase text-center">Tirar<br/>Foto</span>
+                      <span className="text-[8px] font-bold uppercase text-center">Câmera</span>
                     </div>
                     <div className="min-w-[80px] h-[80px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
                       <Plus className="w-4 h-4" />
                     </div>
                   </div>
 
-                  {/* Services Selection */}
+                  {/* Services Selection - COMPACT SELECTOR */}
                   <div className="space-y-4">
-                    {groupedServices.map(group => (
-                      <div key={group.name} className="space-y-2">
-                        <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">{group.name}</Label>
-                        <div className="grid grid-cols-1 gap-1.5">
-                          {group.services.map(service => (
-                            <div 
-                              key={service.id} 
-                              onClick={() => toggleService(item.id, service.id)}
-                              className={`flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
-                                item.services.includes(service.id) 
-                                  ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
-                                  : "bg-white border-slate-100 text-slate-600 hover:border-blue-200"
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-4 h-4 rounded-sm border flex items-center justify-center ${
-                                  item.services.includes(service.id) ? "bg-white border-white" : "border-slate-300 bg-white"
-                                }`}>
-                                  {item.services.includes(service.id) && <CheckCircle2 className="w-3 h-3 text-blue-600" />}
-                                </div>
-                                <span className="text-xs font-bold">{service.name}</span>
-                              </div>
-                              {service.defaultPrice > 0 && (
-                                <span className={`text-xs font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
-                                  R$ {Number(service.defaultPrice).toFixed(2)}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviços Selecionados</Label>
+                      
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {item.services.map(sId => {
+                          const service = INITIAL_SERVICES.find(s => s.id === sId);
+                          return (
+                            <Badge key={sId} variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100 gap-1 pr-1 py-1 rounded-lg">
+                              {service?.name}
+                              <button onClick={() => toggleService(item.id, sId)} className="hover:text-red-500">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          );
+                        })}
+                        {item.services.length === 0 && (
+                          <span className="text-xs text-slate-400 italic">Nenhum serviço selecionado</span>
+                        )}
                       </div>
-                    ))}
 
-                    {/* Custom Service (one per item for practical use) */}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full h-12 rounded-xl border-slate-200 flex justify-between px-4 text-slate-600">
+                            <span className="text-sm font-medium">Selecionar Serviços</span>
+                            <ChevronRight className="w-4 h-4 text-slate-400" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-[90vw] rounded-3xl p-0 overflow-hidden">
+                          <DialogHeader className="p-6 pb-2">
+                            <DialogTitle className="text-lg font-black uppercase tracking-tight">Catálogo de Serviços</DialogTitle>
+                          </DialogHeader>
+                          <div className="p-6 pt-2 max-h-[60vh] overflow-y-auto space-y-6">
+                            {groupedServices.map(group => (
+                              <div key={group.name} className="space-y-3">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{group.name}</h3>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {group.services.map(service => (
+                                    <div 
+                                      key={service.id} 
+                                      onClick={() => toggleService(item.id, service.id)}
+                                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                                        item.services.includes(service.id) 
+                                          ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200" 
+                                          : "bg-white border-slate-100 text-slate-600"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${
+                                          item.services.includes(service.id) ? "bg-white border-white" : "border-slate-200 bg-white"
+                                        }`}>
+                                          {item.services.includes(service.id) && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
+                                        </div>
+                                        <span className="text-sm font-bold">{service.name}</span>
+                                      </div>
+                                      <span className={`text-sm font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
+                                        R$ {(Number(service.defaultPrice) || 0).toFixed(2)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
+                            <Button className="w-full h-12 rounded-2xl bg-slate-900 font-bold" onClick={() => {}}>
+                              Concluir Seleção
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    {/* Custom Service (one per item) */}
                     <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviço Personalizado</Label>
+                      <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviço Personalizado (Opcional)</Label>
                       <div className="grid grid-cols-2 gap-2">
                         <Input 
                           placeholder="Descrição" 
                           value={item.customServiceLabel}
                           onChange={(e) => updateItem(item.id, { customServiceLabel: e.target.value })}
-                          className="rounded-xl border-slate-200 h-10 text-xs focus:ring-blue-500/20"
+                          className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
                         />
                         <Input 
                           type="number"
                           placeholder="Valor R$" 
                           value={item.customServiceValue}
                           onChange={(e) => updateItem(item.id, { customServiceValue: e.target.value === "" ? "" : Number(e.target.value) })}
-                          className="rounded-xl border-slate-200 h-10 text-xs focus:ring-blue-500/20"
+                          className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
                         />
                       </div>
                     </div>
@@ -408,10 +433,10 @@ export default function OSPage() {
                   <div className="space-y-1 pt-2">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Notas / Observações</Label>
                     <Textarea 
-                      placeholder="Detalhes adicionais sobre o estado do tênis..." 
+                      placeholder="Detalhes sobre o estado do tênis, manchas, reparos específicos..." 
                       value={item.observations}
                       onChange={(e) => updateItem(item.id, { observations: e.target.value })}
-                      className="rounded-xl border-slate-200 min-h-[60px] text-xs resize-none focus:ring-blue-500/20"
+                      className="rounded-xl border-slate-200 min-h-[80px] text-sm resize-none focus:ring-blue-500/20"
                     />
                   </div>
                 </CardContent>
@@ -463,13 +488,13 @@ export default function OSPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-black uppercase tracking-widest text-white/50">Financeiro</h2>
             <Badge variant="outline" className="border-white/20 text-blue-400 font-mono text-[10px]">
-              SUMMARY
+              OPERATIONAL
             </Badge>
           </div>
 
           <div className="space-y-3.5 border-b border-white/10 pb-6">
             <div className="flex justify-between text-xs font-bold text-white/70">
-              <span>Subtotal (soma dos itens)</span>
+              <span>Subtotal Itens</span>
               <span>R$ {(Number(subtotal) || 0).toFixed(2)}</span>
             </div>
             {deliveryValue > 0 && (
@@ -480,7 +505,7 @@ export default function OSPage() {
             )}
             
             <div className="flex flex-col gap-2 pt-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Seletor de Desconto</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Desconto Especial</span>
               <div className="grid grid-cols-4 gap-1.5">
                 {DISCOUNTS.map(d => (
                   <button
@@ -574,7 +599,8 @@ export default function OSPage() {
         {/* SECTION 9 — ACTIONS */}
         <div className="flex flex-col gap-3 mt-4">
           <Button 
-            type="submit" 
+            type="button" 
+            onClick={handleGenerateLink}
             disabled={loading}
             className="h-16 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-xl transition-all active:scale-[0.97]"
           >
@@ -582,22 +608,10 @@ export default function OSPage() {
               <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-6 h-6" />
-                SALVAR OS
+                <LinkIcon className="w-6 h-6" />
+                GERAR LINK PARA ACEITE
               </div>
             )}
-          </Button>
-
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={handleGenerateLink}
-            className="h-14 rounded-2xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 transition-all active:scale-[0.97]"
-          >
-            <div className="flex items-center gap-2">
-              <LinkIcon className="w-5 h-5" />
-              GERAR LINK PARA ACEITE
-            </div>
           </Button>
 
           <Link href="/interno/dashboard" className="w-full">
@@ -614,7 +628,7 @@ export default function OSPage() {
           </Link>
         </div>
 
-      </form>
+      </div>
     </div>
   );
 }
