@@ -16,7 +16,8 @@ import {
   User,
   Search,
   Link as LinkIcon,
-  LayoutDashboard
+  LayoutDashboard,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,8 @@ interface Item {
   id: string;
   orderInOS: number;
   services: string[];
+  customServiceLabel: string;
+  customServiceValue: number | "";
   observations: string;
   photos: string[];
 }
@@ -65,15 +68,19 @@ export default function OSPage() {
   
   // Items State
   const [items, setItems] = useState<Item[]>([
-    { id: Math.random().toString(36).substr(2, 9), orderInOS: 1, services: [], observations: "", photos: [] }
+    { 
+      id: Math.random().toString(36).substr(2, 9), 
+      orderInOS: 1, 
+      services: [], 
+      customServiceLabel: "",
+      customServiceValue: "",
+      observations: "", 
+      photos: [] 
+    }
   ]);
   
-  // Extra Service State
-  const [extraServiceName, setExtraServiceName] = useState("");
-  const [extraServiceValue, setExtraServiceValue] = useState<number | "">("");
-  
   // Dates & Delivery
-  const [entryDate] = useState(new Date().toISOString().split('T')[0]); // Use YYYY-MM-DD for input date
+  const [entryDate] = useState(new Date().toISOString().split('T')[0]);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState<number | "">("");
   
@@ -97,6 +104,8 @@ export default function OSPage() {
       id: Math.random().toString(36).substr(2, 9), 
       orderInOS: nextOrder, 
       services: [], 
+      customServiceLabel: "",
+      customServiceValue: "",
       observations: "", 
       photos: [] 
     }]);
@@ -123,11 +132,11 @@ export default function OSPage() {
     }));
   };
 
-  const updateItemObservations = (itemId: string, obs: string) => {
-    setItems(items.map(item => item.id === itemId ? { ...item, observations: obs } : item));
+  const updateItem = (itemId: string, data: Partial<Item>) => {
+    setItems(items.map(item => item.id === itemId ? { ...item, ...data } : item));
   };
 
-  // Filter Active Services and Group by Category (Exclude Taxa de urgência)
+  // Filter Active Services (Exclude Taxa de urgência as per requirements)
   const activeServices = INITIAL_SERVICES.filter(s => s.status === "Active" && s.name !== "Taxa de urgência");
   const categories: Category[] = ["Higienização", "Pintura", "Costura", "Restauração", "Extra / Avulso"];
 
@@ -136,20 +145,25 @@ export default function OSPage() {
     services: activeServices.filter(s => s.category === cat)
   })).filter(group => group.services.length > 0);
 
-  // Financial Calculations - Defensive
-  const servicesTotal = useMemo(() => {
-    return items.reduce((acc, item) => {
-      const itemTotal = item.services.reduce((sAcc, sId) => {
+  // Financial Calculations - Defensive and strict to requirements
+  const itemValues = useMemo(() => {
+    return items.map(item => {
+      const servicesSum = item.services.reduce((acc, sId) => {
         const service = INITIAL_SERVICES.find(s => s.id === sId);
-        return sAcc + (Number(service?.defaultPrice) || 0);
+        return acc + (Number(service?.defaultPrice) || 0);
       }, 0);
-      return acc + itemTotal;
-    }, 0);
+      const customValue = Number(item.customServiceValue) || 0;
+      return servicesSum + customValue;
+    });
   }, [items]);
 
-  const subtotal = servicesTotal + (Number(extraServiceValue) || 0) + (Number(deliveryFee) || 0);
+  const subtotal = useMemo(() => {
+    return itemValues.reduce((acc, val) => acc + val, 0);
+  }, [itemValues]);
+
   const discountAmount = subtotal * (Number(discount) || 0);
-  const finalTotal = subtotal - discountAmount;
+  const deliveryValue = Number(deliveryFee) || 0;
+  const finalTotal = subtotal - discountAmount + deliveryValue;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,7 +173,6 @@ export default function OSPage() {
     }
 
     setLoading(true);
-    // Simulate OS generation
     setTimeout(() => {
       alert(`Ordem de Serviço ${osNumber} gerada com sucesso!`);
       router.push("/interno/dashboard");
@@ -198,7 +211,9 @@ export default function OSPage() {
 
       <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 flex flex-col gap-5">
         
-        {/* CUSTOMER SECTION */}
+        {/* SECTION 1 — OS IDENTIFICATION is in header, but let's show items as well */}
+
+        {/* SECTION 2 — CUSTOMER DATA */}
         <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -277,7 +292,7 @@ export default function OSPage() {
           </div>
         </section>
 
-        {/* ITEMS / PAIRS SECTION */}
+        {/* SECTION 3 — ITEMS (TÊNIS) & SECTION 4 — SERVICES */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -292,7 +307,7 @@ export default function OSPage() {
               size="sm" 
               className="rounded-full gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold h-8 text-xs px-4"
             >
-              <Plus className="w-3 h-3" /> Add Par
+              <Plus className="w-3 h-3" /> Adicionar par
             </Button>
           </div>
 
@@ -304,7 +319,7 @@ export default function OSPage() {
                       ITEM {osNumber}.{item.orderInOS}
                     </CardTitle>
                     <span className="text-[10px] font-bold text-blue-600">
-                      Subtotal: R$ {item.services.reduce((acc, sId) => acc + (Number(INITIAL_SERVICES.find(s => s.id === sId)?.defaultPrice) || 0), 0).toFixed(2)}
+                      Valor do Item: R$ {(Number(itemValues[index]) || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -324,16 +339,16 @@ export default function OSPage() {
                 <CardContent className="p-5 space-y-5">
                   {/* Photo Upload (Mock) */}
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors">
+                    <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors cursor-pointer">
                       <Camera className="w-5 h-5" />
-                      <span className="text-[8px] font-bold uppercase">Foto</span>
+                      <span className="text-[8px] font-bold uppercase text-center">Tirar<br/>Foto</span>
                     </div>
                     <div className="min-w-[80px] h-[80px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
                       <Plus className="w-4 h-4" />
                     </div>
                   </div>
 
-                  {/* Services */}
+                  {/* Services Selection */}
                   <div className="space-y-4">
                     {groupedServices.map(group => (
                       <div key={group.name} className="space-y-2">
@@ -345,7 +360,7 @@ export default function OSPage() {
                               onClick={() => toggleService(item.id, service.id)}
                               className={`flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
                                 item.services.includes(service.id) 
-                                  ? "bg-blue-600 border-blue-600 text-white" 
+                                  ? "bg-blue-600 border-blue-600 text-white shadow-sm" 
                                   : "bg-white border-slate-100 text-slate-600 hover:border-blue-200"
                               }`}
                             >
@@ -367,74 +382,61 @@ export default function OSPage() {
                         </div>
                       </div>
                     ))}
+
+                    {/* Custom Service (one per item for practical use) */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviço Personalizado</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input 
+                          placeholder="Descrição" 
+                          value={item.customServiceLabel}
+                          onChange={(e) => updateItem(item.id, { customServiceLabel: e.target.value })}
+                          className="rounded-xl border-slate-200 h-10 text-xs focus:ring-blue-500/20"
+                        />
+                        <Input 
+                          type="number"
+                          placeholder="Valor R$" 
+                          value={item.customServiceValue}
+                          onChange={(e) => updateItem(item.id, { customServiceValue: e.target.value === "" ? "" : Number(e.target.value) })}
+                          className="rounded-xl border-slate-200 h-10 text-xs focus:ring-blue-500/20"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-
-                {/* Notes */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Observações do Item</Label>
-                  <Textarea 
-                    placeholder="Ex: Mancha no solado, bico descolado..." 
-                    value={item.observations}
-                    onChange={(e) => updateItemObservations(item.id, e.target.value)}
-                    className="rounded-xl border-slate-200 min-h-[60px] text-xs resize-none focus:ring-blue-500/20"
-                  />
-                </div>
-              </CardContent>
+                  {/* Notes */}
+                  <div className="space-y-1 pt-2">
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Notas / Observações</Label>
+                    <Textarea 
+                      placeholder="Detalhes adicionais sobre o estado do tênis..." 
+                      value={item.observations}
+                      onChange={(e) => updateItem(item.id, { observations: e.target.value })}
+                      className="rounded-xl border-slate-200 min-h-[60px] text-xs resize-none focus:ring-blue-500/20"
+                    />
+                  </div>
+                </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* EXTRA SERVICE */}
-        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
-              <Plus className="w-4 h-4 text-slate-500" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Serviço Personalizado</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Descrição</Label>
-              <Input 
-                placeholder="Ex: Troca de cadarço" 
-                value={extraServiceName}
-                onChange={(e) => setExtraServiceName(e.target.value)}
-                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Valor Manual (R$)</Label>
-              <Input 
-                type="number"
-                placeholder="0.00" 
-                value={extraServiceValue}
-                onChange={(e) => setExtraServiceValue(e.target.value === "" ? "" : Number(e.target.value))}
-                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* DATES & LOGISTICS */}
+        {/* SECTION 5 — DATES */}
         <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
               <Calendar className="w-4 h-4 text-slate-500" />
             </div>
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Prazos & Taxas</h2>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Prazos & Logística</h2>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Entrada</Label>
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data de Entrada</Label>
               <div className="h-11 px-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center text-slate-500 text-xs font-bold">
                 {new Date(entryDate).toLocaleDateString('pt-BR')}
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Previsão Entrega</Label>
+              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data prevista entrega</Label>
               <Input 
                 type="date"
                 value={deliveryDate}
@@ -445,7 +447,7 @@ export default function OSPage() {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Taxa de Entrega (Opcional)</Label>
+            <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Taxa de entrega (Opcional)</Label>
             <Input 
               type="number"
               placeholder="0.00" 
@@ -456,29 +458,29 @@ export default function OSPage() {
           </div>
         </section>
 
-        {/* FINANCIAL SUMMARY */}
+        {/* SECTION 6 — FINANCIAL SUMMARY */}
         <section className="bg-slate-900 rounded-[2.5rem] p-7 shadow-2xl text-white flex flex-col gap-6 -mx-1">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-black uppercase tracking-widest text-white/50">Resumo</h2>
+            <h2 className="text-base font-black uppercase tracking-widest text-white/50">Financeiro</h2>
             <Badge variant="outline" className="border-white/20 text-blue-400 font-mono text-[10px]">
-              FINANCEIRO
+              SUMMARY
             </Badge>
           </div>
 
           <div className="space-y-3.5 border-b border-white/10 pb-6">
             <div className="flex justify-between text-xs font-bold text-white/70">
-              <span>Subtotal ({items.length} {items.length === 1 ? 'par' : 'pares'})</span>
-              <span>R$ {(Number(servicesTotal) + (Number(extraServiceValue) || 0)).toFixed(2)}</span>
+              <span>Subtotal (soma dos itens)</span>
+              <span>R$ {(Number(subtotal) || 0).toFixed(2)}</span>
             </div>
-            {(Number(deliveryFee) || 0) > 0 && (
+            {deliveryValue > 0 && (
               <div className="flex justify-between text-xs font-bold text-white/70">
                 <span>Taxa de Entrega</span>
-                <span>R$ {Number(deliveryFee).toFixed(2)}</span>
+                <span>R$ {deliveryValue.toFixed(2)}</span>
               </div>
             )}
             
             <div className="flex flex-col gap-2 pt-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Desconto Aplicado</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Seletor de Desconto</span>
               <div className="grid grid-cols-4 gap-1.5">
                 {DISCOUNTS.map(d => (
                   <button
@@ -500,14 +502,14 @@ export default function OSPage() {
 
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Total Geral</span>
+              <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Total Final</span>
               <span className="text-4xl font-black tracking-tighter text-white">
                 R$ {(Number(finalTotal) || 0).toFixed(2)}
               </span>
             </div>
             {discount > 0 && (
               <div className="flex flex-col items-end gap-0.5">
-                <span className="text-[10px] font-black text-green-400 uppercase tracking-wider">Economia</span>
+                <span className="text-[10px] font-black text-green-400 uppercase tracking-wider">Desconto</span>
                 <span className="text-sm font-black bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
                   - R$ {(Number(discountAmount) || 0).toFixed(2)}
                 </span>
@@ -516,7 +518,7 @@ export default function OSPage() {
           </div>
         </section>
 
-        {/* PAYMENT & STATUS */}
+        {/* SECTION 7 — PAYMENT METHOD */}
         <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-6">
           <div className="space-y-4">
             <div className="space-y-2.5">
@@ -524,8 +526,8 @@ export default function OSPage() {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { id: 'Pix', icon: Smartphone },
-                  { id: 'Cartão', icon: CreditCard },
-                  { id: 'Dinheiro', icon: Banknote }
+                  { id: 'Card', icon: CreditCard },
+                  { id: 'Cash', icon: Banknote }
                 ].map(method => (
                   <button
                     key={method.id}
@@ -538,7 +540,9 @@ export default function OSPage() {
                     }`}
                   >
                     <method.icon className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase tracking-tight">{method.id}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight">
+                      {method.id === 'Card' ? 'Cartão' : method.id === 'Cash' ? 'Dinheiro' : 'Pix'}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -546,8 +550,8 @@ export default function OSPage() {
 
             <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-800">Pago na Entrada?</span>
-                <span className="text-[10px] text-slate-500">Marcar se o cliente já pagou</span>
+                <span className="text-xs font-bold text-slate-800">Pagar na entrada</span>
+                <span className="text-[10px] text-slate-500">O cliente está pagando agora?</span>
               </div>
               <Checkbox 
                 id="payOnEntry" 
@@ -559,17 +563,15 @@ export default function OSPage() {
           </div>
         </section>
 
-        {/* CONTRACT NOTE */}
+        {/* SECTION 8 — CONTRACT & GUARANTEE (INFO ONLY) */}
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
-          <div className="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center shrink-0 mt-0.5">
-            <span className="text-[10px] font-bold text-blue-700">i</span>
-          </div>
+          <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
           <p className="text-[11px] text-blue-800 leading-snug font-medium">
             O contrato e o termo de garantia serão enviados ao cliente após a criação da OS.
           </p>
         </div>
 
-        {/* ACTIONS */}
+        {/* SECTION 9 — ACTIONS */}
         <div className="flex flex-col gap-3 mt-4">
           <Button 
             type="submit" 
