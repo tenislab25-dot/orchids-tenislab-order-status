@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { 
   ArrowLeft, 
   Camera, 
@@ -15,25 +15,19 @@ import {
   Package,
   User,
   Search,
-  X
+  Link as LinkIcon,
+  LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { INITIAL_SERVICES, Category, Service } from "@/lib/services-data";
+import { INITIAL_SERVICES, Category } from "@/lib/services-data";
 
 // MOCK DATA
 const MOCK_CUSTOMERS = [
@@ -57,11 +51,11 @@ interface Item {
   photos: string[];
 }
 
-export default function AOSPage() {
+export default function OSPage() {
   const router = useRouter();
   
   // OS Identification
-  const osNumber = "007/2025"; // Mocked incremental logic
+  const osNumber = "001/2025";
   
   // Customer State
   const [clientName, setClientName] = useState("");
@@ -79,7 +73,7 @@ export default function AOSPage() {
   const [extraServiceValue, setExtraServiceValue] = useState<number | "">("");
   
   // Dates & Delivery
-  const [entryDate] = useState(new Date().toLocaleDateString('pt-BR'));
+  const [entryDate] = useState(new Date().toISOString().split('T')[0]); // Use YYYY-MM-DD for input date
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState<number | "">("");
   
@@ -133,8 +127,8 @@ export default function AOSPage() {
     setItems(items.map(item => item.id === itemId ? { ...item, observations: obs } : item));
   };
 
-  // Filter Active Services and Group by Category
-  const activeServices = INITIAL_SERVICES.filter(s => s.status === "Active");
+  // Filter Active Services and Group by Category (Exclude Taxa de urgência)
+  const activeServices = INITIAL_SERVICES.filter(s => s.status === "Active" && s.name !== "Taxa de urgência");
   const categories: Category[] = ["Higienização", "Pintura", "Costura", "Restauração", "Extra / Avulso"];
 
   const groupedServices = categories.map(cat => ({
@@ -142,19 +136,19 @@ export default function AOSPage() {
     services: activeServices.filter(s => s.category === cat)
   })).filter(group => group.services.length > 0);
 
-  // Financial Calculations
+  // Financial Calculations - Defensive
   const servicesTotal = useMemo(() => {
     return items.reduce((acc, item) => {
       const itemTotal = item.services.reduce((sAcc, sId) => {
         const service = INITIAL_SERVICES.find(s => s.id === sId);
-        return sAcc + (service?.defaultPrice || 0);
+        return sAcc + (Number(service?.defaultPrice) || 0);
       }, 0);
       return acc + itemTotal;
-    }, [items]);
+    }, 0);
   }, [items]);
 
-  const subtotal = servicesTotal + Number(extraServiceValue || 0) + Number(deliveryFee || 0);
-  const discountAmount = subtotal * discount;
+  const subtotal = servicesTotal + (Number(extraServiceValue) || 0) + (Number(deliveryFee) || 0);
+  const discountAmount = subtotal * (Number(discount) || 0);
   const finalTotal = subtotal - discountAmount;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -173,8 +167,16 @@ export default function AOSPage() {
     }, 1200);
   };
 
+  const handleGenerateLink = () => {
+    if (!clientName || !clientPhone) {
+      alert("Preencha os dados do cliente para gerar o link.");
+      return;
+    }
+    alert(`Link de aceite gerado para a OS ${osNumber}. Enviando para ${clientPhone}...`);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-slate-50 pb-32">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
@@ -302,7 +304,7 @@ export default function AOSPage() {
                       ITEM {osNumber}.{item.orderInOS}
                     </CardTitle>
                     <span className="text-[10px] font-bold text-blue-600">
-                      Subtotal: R$ {item.services.reduce((acc, sId) => acc + (INITIAL_SERVICES.find(s => s.id === sId)?.defaultPrice || 0), 0).toFixed(2)}
+                      Subtotal: R$ {item.services.reduce((acc, sId) => acc + (Number(INITIAL_SERVICES.find(s => s.id === sId)?.defaultPrice) || 0), 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -357,7 +359,7 @@ export default function AOSPage() {
                               </div>
                               {service.defaultPrice > 0 && (
                                 <span className={`text-xs font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
-                                  R$ {service.defaultPrice.toFixed(2)}
+                                  R$ {Number(service.defaultPrice).toFixed(2)}
                                 </span>
                               )}
                             </div>
@@ -389,7 +391,7 @@ export default function AOSPage() {
             <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
               <Plus className="w-4 h-4 text-slate-500" />
             </div>
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Serviço Extra</h2>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Serviço Personalizado</h2>
           </div>
           
           <div className="grid grid-cols-1 gap-3">
@@ -428,7 +430,7 @@ export default function AOSPage() {
             <div className="space-y-1">
               <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Entrada</Label>
               <div className="h-11 px-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center text-slate-500 text-xs font-bold">
-                {entryDate}
+                {new Date(entryDate).toLocaleDateString('pt-BR')}
               </div>
             </div>
             <div className="space-y-1">
@@ -466,9 +468,9 @@ export default function AOSPage() {
           <div className="space-y-3.5 border-b border-white/10 pb-6">
             <div className="flex justify-between text-xs font-bold text-white/70">
               <span>Subtotal ({items.length} {items.length === 1 ? 'par' : 'pares'})</span>
-              <span>R$ {(servicesTotal + Number(extraServiceValue || 0)).toFixed(2)}</span>
+              <span>R$ {(Number(servicesTotal) + (Number(extraServiceValue) || 0)).toFixed(2)}</span>
             </div>
-            {deliveryFee > 0 && (
+            {(Number(deliveryFee) || 0) > 0 && (
               <div className="flex justify-between text-xs font-bold text-white/70">
                 <span>Taxa de Entrega</span>
                 <span>R$ {Number(deliveryFee).toFixed(2)}</span>
@@ -500,14 +502,14 @@ export default function AOSPage() {
             <div className="flex flex-col">
               <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Total Geral</span>
               <span className="text-4xl font-black tracking-tighter text-white">
-                R$ {finalTotal.toFixed(2)}
+                R$ {(Number(finalTotal) || 0).toFixed(2)}
               </span>
             </div>
             {discount > 0 && (
               <div className="flex flex-col items-end gap-0.5">
                 <span className="text-[10px] font-black text-green-400 uppercase tracking-wider">Economia</span>
                 <span className="text-sm font-black bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
-                  - R$ {discountAmount.toFixed(2)}
+                  - R$ {(Number(discountAmount) || 0).toFixed(2)}
                 </span>
               </div>
             )}
@@ -558,30 +560,57 @@ export default function AOSPage() {
         </section>
 
         {/* CONTRACT NOTE */}
-        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
-          <div className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center shrink-0 mt-0.5">
-            <span className="text-[10px] font-bold text-amber-700">!</span>
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+          <div className="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-[10px] font-bold text-blue-700">i</span>
           </div>
-          <p className="text-[11px] text-amber-800 leading-snug font-medium">
-            O aceite do cliente será solicitado via link externo (WhatsApp/E-mail) após a finalização desta OS.
+          <p className="text-[11px] text-blue-800 leading-snug font-medium">
+            O contrato e o termo de garantia serão enviados ao cliente após a criação da OS.
           </p>
         </div>
 
-        {/* SUBMIT BUTTON */}
-        <Button 
-          type="submit" 
-          disabled={loading}
-          className="h-16 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white font-black text-lg shadow-xl shadow-blue-500/20 transition-all active:scale-[0.97] mt-2 mb-4"
-        >
-          {loading ? (
-            <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
+        {/* ACTIONS */}
+        <div className="flex flex-col gap-3 mt-4">
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="h-16 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-xl transition-all active:scale-[0.97]"
+          >
+            {loading ? (
+              <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6" />
+                SALVAR OS
+              </div>
+            )}
+          </Button>
+
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={handleGenerateLink}
+            className="h-14 rounded-2xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 transition-all active:scale-[0.97]"
+          >
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-6 h-6" />
-              GERAR ORDEM DE SERVIÇO
+              <LinkIcon className="w-5 h-5" />
+              GERAR LINK PARA ACEITE
             </div>
-          )}
-        </Button>
+          </Button>
+
+          <Link href="/interno/dashboard" className="w-full">
+            <Button 
+              type="button" 
+              variant="ghost"
+              className="w-full h-12 rounded-2xl text-slate-400 font-bold hover:text-slate-600 transition-all"
+            >
+              <div className="flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                VOLTAR AO DASHBOARD
+              </div>
+            </Button>
+          </Link>
+        </div>
 
       </form>
     </div>

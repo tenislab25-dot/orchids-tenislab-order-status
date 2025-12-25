@@ -155,7 +155,7 @@ export default function DashboardPage() {
               <span className="text-2xl font-black text-slate-900">TENIS</span>
               <span className="text-2xl font-light text-blue-500">LAB</span>
             </div>
-            <Link href="/interno/aos">
+            <Link href="/interno/os">
               <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 shadow-lg shadow-blue-100">
                 Nova OS
               </Button>
