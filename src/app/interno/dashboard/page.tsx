@@ -13,7 +13,8 @@ import {
   ArrowUpDown,
   XCircle,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -32,6 +33,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,7 +181,12 @@ export default function DashboardPage() {
 
       setOrders(prev => prev.map(order => 
         order.id === orderToCancel 
-          ? { ...order, status: "Cancelado", cancellationReason } 
+          ? { 
+              ...order, 
+              status: "Cancelado", 
+              cancellationReason, 
+              cancellationDate: new Date().toISOString() 
+            } 
           : order
       ));
       setCancelModalOpen(false);
@@ -302,62 +315,69 @@ export default function DashboardPage() {
                     <TableCell>
                     {getStatusBadge(order.status)}
                   </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Select 
-                          value={order.status} 
-                          onValueChange={(value) => handleStatusChange(order.id, value as Status)}
-                          disabled={order.status === "Cancelado" || order.status === "Entregue"}
-                        >
-                          <SelectTrigger className="h-9 w-[140px] text-xs font-medium border-slate-200 rounded-lg">
-                            <SelectValue placeholder="Mudar status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Recebido">Recebido</SelectItem>
-                            <SelectItem value="Em serviço">Em serviço</SelectItem>
-                              <SelectItem value="Pronto">Pronto</SelectItem>
-                            <SelectItem value="Entregue">Entregue</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(value) => handleStatusChange(order.id, value as Status)}
+                            disabled={order.status === "Cancelado" || order.status === "Entregue"}
+                          >
+                            <SelectTrigger className="h-9 w-[130px] text-[10px] font-bold uppercase tracking-wider border-slate-200 rounded-lg">
+                              <SelectValue placeholder="Mudar status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Recebido">Recebido</SelectItem>
+                              <SelectItem value="Em serviço">Em serviço</SelectItem>
+                                <SelectItem value="Pronto">Pronto</SelectItem>
+                              <SelectItem value="Entregue">Entregue</SelectItem>
+                            </SelectContent>
+                          </Select>
 
-                        <div className="flex items-center">
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-slate-100" asChild>
-                              <Link href={`/interno/os/${order.osNumber.replace("/", "-")}`}>
-                                <Eye className="w-4 h-4 text-slate-400" />
-                              </Link>
-                            </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-slate-100">
+                                <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 rounded-xl p-2">
+                              <DropdownMenuItem className="rounded-lg cursor-pointer py-2" asChild>
+                                <Link href={`/interno/os/${order.osNumber.replace("/", "-")}`} className="flex items-center gap-2">
+                                  <Eye className="w-4 h-4 text-slate-400" />
+                                  <span className="font-bold text-xs text-slate-600">👁️ Ver detalhes</span>
+                                </Link>
+                              </DropdownMenuItem>
+                              
+                              {(role === "ADMIN" || role === "ATENDENTE") && order.status !== "Entregue" && order.status !== "Cancelado" && (
+                                <DropdownMenuItem 
+                                  className="rounded-lg cursor-pointer py-2 text-red-600 focus:text-red-600 focus:bg-red-50 flex items-center gap-2"
+                                  onClick={() => handleCancelClick(order.id)}
+                                >
+                                  <AlertTriangle className="w-4 h-4" />
+                                  <span className="font-bold text-xs">❌ Cancelar OS</span>
+                                </DropdownMenuItem>
+                              )}
 
-                          {/* CANCEL BUTTON: Admin or Atendente, not for Entregue or already Cancelado */}
-                          {(role === "ADMIN" || role === "ATENDENTE") && order.status !== "Entregue" && order.status !== "Cancelado" && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-9 w-9 rounded-lg hover:bg-red-50 hover:text-red-500 text-slate-400"
-                              onClick={() => handleCancelClick(order.id)}
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </Button>
-                          )}
-
-                          {/* DELETE BUTTON: ADMIN only */}
-                          {role === "ADMIN" && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-9 w-9 rounded-lg hover:bg-red-100 hover:text-red-600 text-slate-400"
-                              onClick={() => handleDeleteClick(order.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
+                              {role === "ADMIN" && (
+                                <>
+                                  <DropdownMenuSeparator className="my-1" />
+                                  <DropdownMenuItem 
+                                    className="rounded-lg cursor-pointer py-2 text-slate-400 focus:text-red-600 focus:bg-red-50 flex items-center gap-2"
+                                    onClick={() => handleDeleteClick(order.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="font-bold text-[10px] uppercase">🗑️ Excluir permanentemente</span>
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                      </div>
-                      {order.status === "Cancelado" && order.cancellationReason && (
-                        <p className="text-[10px] text-red-500 font-medium mt-1 italic max-w-[200px] truncate">
-                          Motivo: {order.cancellationReason}
-                        </p>
-                      )}
-                    </TableCell>
+                        {order.status === "Cancelado" && order.cancellationReason && (
+                          <p className="text-[10px] text-red-500 font-medium mt-1 italic max-w-[200px] truncate">
+                            Motivo: {order.cancellationReason}
+                          </p>
+                        )}
+                      </TableCell>
                   </TableRow>
                 ))}
                   {sortedAndFilteredOrders.length === 0 && (
@@ -372,41 +392,52 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* CANCELLATION DIALOG */}
-        <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
-          <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-black flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-red-500" />
-                Cancelar Ordem de Serviço
-              </DialogTitle>
-              <DialogDescription className="font-medium text-slate-500">
-                Para cancelar a OS, é necessário informar o motivo. Esta ação impedirá futuras edições.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
-                Motivo do cancelamento *
-              </Label>
-                <Textarea 
-                  id="reason"
-                  placeholder="Ex: Cliente desistiu por conta do prazo..."
-                  value={cancellationReason}
-                  onChange={(e) => setCancellationReason(e.target.value)}
-                  className="mt-2 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
-                  required
-                />
-                {!isReasonValid && cancellationReason.length > 0 && (
-                  <p className="text-[10px] text-red-500 mt-1 font-medium">
-                    O motivo deve ter pelo menos 10 caracteres.
-                  </p>
-                )}
-
-            </div>
-            <DialogFooter className="flex gap-2 sm:gap-0">
-              <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="rounded-xl font-bold">
-                Voltar
-              </Button>
+          <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+            <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  Cancelar Ordem de Serviço
+                </DialogTitle>
+                <DialogDescription className="font-bold text-slate-600">
+                  Esta ação é irreversível. A OS será marcada como cancelada.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="cancelDate" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+                    Data do cancelamento
+                  </Label>
+                  <Input 
+                    id="cancelDate" 
+                    value={new Date().toLocaleDateString('pt-BR')} 
+                    disabled 
+                    className="rounded-xl bg-slate-50 border-slate-200 font-bold text-slate-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+                    Motivo do cancelamento *
+                  </Label>
+                  <Textarea 
+                    id="reason"
+                    placeholder="Informe detalhadamente o motivo do cancelamento..."
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    className="mt-1 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
+                    required
+                  />
+                  {!isReasonValid && cancellationReason.length > 0 && (
+                    <p className="text-[10px] text-red-500 mt-1 font-medium italic">
+                      O motivo deve ter pelo menos 10 caracteres para confirmar.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <DialogFooter className="flex gap-2 sm:gap-0">
+                <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="rounded-xl font-bold">
+                  Voltar
+                </Button>
                 <Button 
                   onClick={confirmCancel} 
                   disabled={!isReasonValid}
@@ -414,10 +445,9 @@ export default function DashboardPage() {
                 >
                   Confirmar cancelamento
                 </Button>
-
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
         {/* DELETE CONFIRMATION DIALOG */}
         <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>

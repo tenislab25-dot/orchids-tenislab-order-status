@@ -9,7 +9,8 @@ import {
   User,
   AlertTriangle,
   Info,
-  XCircle
+  XCircle,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -277,23 +279,24 @@ export default function OSViewPage() {
 
         {/* SECTION 3 — CANCELLATION INFO */}
         {osData.status === "Cancelado" && (
-          <section className="bg-red-50/50 rounded-3xl p-6 border border-red-100 flex flex-col gap-4">
-            <div className="flex items-center gap-2">
+          <section className="bg-red-50 border-2 border-red-100 rounded-3xl p-6 flex flex-col gap-4 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-red-100 pb-3">
               <AlertTriangle className="w-5 h-5 text-red-500" />
-              <h2 className="text-sm font-bold text-red-900 uppercase tracking-tight">Informações de Cancelamento</h2>
+              <h2 className="text-sm font-black text-red-900 uppercase tracking-tight">INFORMAÇÕES DE CANCELAMENTO</h2>
             </div>
-            <div className="space-y-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Motivo do cancelamento</span>
-                <p className="text-sm font-bold text-red-700 bg-white p-4 rounded-2xl border border-red-100">
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest ml-1">Motivo do cancelamento</span>
+                <p className="text-sm font-bold text-red-700 bg-white p-4 rounded-2xl border border-red-100 shadow-inner">
                   {osData.cancellationReason}
                 </p>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Data do cancelamento</span>
-                <span className="text-sm font-bold text-red-700 ml-1">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest ml-1">Data do cancelamento</span>
+                <div className="flex items-center gap-2 text-sm font-bold text-red-700 bg-red-100/50 w-fit px-4 py-2 rounded-xl border border-red-200">
+                  <Calendar className="w-4 h-4" />
                   {osData.cancellationDate ? new Date(osData.cancellationDate).toLocaleDateString('pt-BR') : "-"}
-                </span>
+                </div>
               </div>
             </div>
           </section>
@@ -309,8 +312,8 @@ export default function OSViewPage() {
               onClick={handleCancelClick}
               className="w-full h-14 rounded-2xl bg-white border-2 border-red-200 hover:bg-red-50 text-red-600 font-black shadow-sm transition-all active:scale-[0.97] flex items-center gap-2"
             >
-              <XCircle className="w-5 h-5" />
-              CANCELAR ESTA OS
+              <AlertTriangle className="w-5 h-5" />
+              ❌ Cancelar Ordem de Serviço
             </Button>
           )}
 
@@ -332,30 +335,43 @@ export default function OSViewPage() {
           <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
             <DialogHeader>
               <DialogTitle className="text-xl font-black flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-red-500" />
+                <AlertTriangle className="w-5 h-5 text-red-500" />
                 Cancelar Ordem de Serviço
               </DialogTitle>
-              <DialogDescription className="font-medium text-slate-500">
-                Esta ação é irreversível. A OS será marcada como cancelada e não poderá mais ser editada.
+              <DialogDescription className="font-bold text-slate-600">
+                Esta ação é irreversível. A OS será marcada como cancelada.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
-                Motivo do cancelamento *
-              </Label>
-              <Textarea 
-                id="reason"
-                placeholder="Informe detalhadamente o motivo..."
-                value={cancellationReason}
-                onChange={(e) => setCancellationReason(e.target.value)}
-                className="mt-2 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
-                required
-              />
-              {!isReasonValid && cancellationReason.length > 0 && (
-                <p className="text-[10px] text-red-500 mt-1 font-medium">
-                  O motivo deve ter pelo menos 10 caracteres.
-                </p>
-              )}
+            <div className="py-4 space-y-4">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="cancelDate" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+                  Data do cancelamento
+                </Label>
+                <Input 
+                  id="cancelDate" 
+                  value={new Date().toLocaleDateString('pt-BR')} 
+                  disabled 
+                  className="rounded-xl bg-slate-50 border-slate-200 font-bold text-slate-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
+                  Motivo do cancelamento *
+                </Label>
+                <Textarea 
+                  id="reason"
+                  placeholder="Informe detalhadamente o motivo do cancelamento..."
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className="mt-1 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
+                  required
+                />
+                {!isReasonValid && cancellationReason.length > 0 && (
+                  <p className="text-[10px] text-red-500 mt-1 font-medium italic">
+                    O motivo deve ter pelo menos 10 caracteres para confirmar.
+                  </p>
+                )}
+              </div>
             </div>
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="rounded-xl font-bold">
