@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Status = "Recebido" | "Em serviço" | "Pronto para retirada" | "Entregue";
+type Status = "Recebido" | "Em serviço" | "Pronto para retirada / entrega" | "Entregue";
 
 interface OrderData {
   number: string;
@@ -18,25 +18,25 @@ const statusConfig = {
     icon: Package,
     color: "text-blue-500",
     bg: "bg-blue-50",
-    message: "Recebemos seu tênis! Ele já está em nossa fila para processamento.",
+    message: "Seu tênis foi recebido e já está na fila de serviço.",
   },
   "Em serviço": {
     icon: Clock,
     color: "text-amber-500",
     bg: "bg-amber-50",
-    message: "Seu tênis está em processo de limpeza e cuidado especial.",
+    message: "Seu tênis está em processo de limpeza/restauração.",
   },
-  "Pronto para retirada": {
+  "Pronto para retirada / entrega": {
     icon: CheckCircle2,
     color: "text-green-500",
     bg: "bg-green-50",
-    message: "Tudo pronto! Seu tênis está brilhando e aguardando você.",
+    message: "Seu tênis está pronto! Em breve entraremos em contato para retirada ou entrega.",
   },
   Entregue: {
     icon: Truck,
     color: "text-slate-500",
     bg: "bg-slate-50",
-    message: "Pedido finalizado. Obrigado por confiar na TENISLAB!",
+    message: "Pedido finalizado. Obrigado por confiar na TENISLAB.",
   },
 };
 
@@ -54,11 +54,14 @@ export default function Home() {
     // Simulate API call
     setTimeout(() => {
       // Mock logic: different numbers return different statuses for demo
-      const statuses: Status[] = ["Recebido", "Em serviço", "Pronto para retirada", "Entregue"];
+      const statuses: Status[] = ["Recebido", "Em serviço", "Pronto para retirada / entrega", "Entregue"];
       const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
       
+      // Ensure number is formatted as 001/2025
+      const formattedNumber = osNumber.includes("/") ? osNumber : `${osNumber.padStart(3, "0")}/2025`;
+      
       setOrder({
-        number: osNumber,
+        number: formattedNumber,
         status: randomStatus,
       });
       setLoading(false);
@@ -130,8 +133,8 @@ export default function Home() {
           >
             <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
               <div className="flex flex-col gap-1">
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Pedido</span>
-                <span className="text-3xl font-black text-slate-900">#{order.number}</span>
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Número da OS</span>
+                <span className="text-3xl font-black text-slate-900">{order.number}</span>
               </div>
 
               <div className={`w-20 h-20 rounded-full ${statusConfig[order.status].bg} flex items-center justify-center`}>
