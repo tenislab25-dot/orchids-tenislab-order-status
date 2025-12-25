@@ -26,6 +26,7 @@ const MOCK_OS = {
   phone: "(82) 99999-9999",
   entryDate: "25/12/2025",
   deliveryDate: "30/12/2025",
+  status: "Recebido", // Can be "Cancelado"
   items: [
     {
       number: "007/2025.1",
@@ -80,6 +81,27 @@ export default function CustomerAcceptancePage() {
   const handleTrackOrder = () => {
     router.push(`/?os=${MOCK_OS.number}`);
   };
+
+  if (MOCK_OS.status === "Cancelado") {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
+          <ShieldCheck className="w-12 h-12 text-red-500" />
+        </div>
+        <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
+        <p className="text-slate-500 mb-8 max-w-[280px]">
+          Esta ordem de serviço ({MOCK_OS.number}) foi cancelada e não pode mais ser aceita. Entre em contato conosco para mais informações.
+        </p>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/")}
+          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
+        >
+          Voltar para Home
+        </Button>
+      </div>
+    );
+  }
 
   if (isConfirmed) {
     return (

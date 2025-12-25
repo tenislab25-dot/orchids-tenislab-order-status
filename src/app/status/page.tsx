@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue";
+type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
   number: string;
   phone: string;
   status: Status;
+  cancellationReason?: string;
 }
 
 const MOCK_ORDERS: OrderData[] = [
@@ -20,6 +21,7 @@ const MOCK_ORDERS: OrderData[] = [
   { number: "002/2025", phone: "11888888888", status: "Em serviço" },
   { number: "003/2025", phone: "11777777777", status: "Pronto" },
   { number: "004/2025", phone: "11666666666", status: "Entregue" },
+  { number: "006/2025", phone: "11555555555", status: "Cancelado", cancellationReason: "Cliente desistiu do serviço por conta do prazo." },
 ];
 
 const statusConfig = {
@@ -46,6 +48,12 @@ const statusConfig = {
     color: "text-slate-500",
     bg: "bg-slate-50",
     message: "Pedido finalizado. Obrigado por confiar na TENISLAB.",
+  },
+  Cancelado: {
+    icon: AlertCircle,
+    color: "text-red-500",
+    bg: "bg-red-50",
+    message: "Esta ordem de serviço foi cancelada.",
   },
 };
 
@@ -213,10 +221,18 @@ function OrderContent() {
               <span className={`text-2xl font-bold ${statusConfig[order.status].color}`}>
                 {order.status}
               </span>
-              <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
-                {statusConfig[order.status].message}
-              </p>
-            </div>
+                <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
+                  {statusConfig[order.status].message}
+                </p>
+                {order.status === "Cancelado" && order.cancellationReason && (
+                  <div className="mt-4 p-4 rounded-2xl bg-red-50/50 border border-red-100/50">
+                    <span className="text-[10px] font-black text-red-400 uppercase tracking-widest block mb-1">Motivo do Cancelamento</span>
+                    <p className="text-xs text-red-600 font-medium italic">
+                      "{order.cancellationReason}"
+                    </p>
+                  </div>
+                )}
+              </div>
 
             <Button 
               variant="ghost" 
