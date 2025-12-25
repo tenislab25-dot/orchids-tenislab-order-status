@@ -33,16 +33,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { INITIAL_SERVICES, Category, Service } from "@/lib/services-data";
 
 // MOCK DATA
-const SERVICES_CATALOG = [
-  { id: "higienizacao", name: "Higienização", price: 60 },
-  { id: "pintura", name: "Pintura", price: 80 },
-  { id: "costura", name: "Costura", price: 40 },
-  { id: "clareamento", name: "Clareamento", price: 50 },
-  { id: "outros", name: "Outros", price: 0 }, // Value defined by staff if needed or keep at 0
-];
-
 const MOCK_CUSTOMERS = [
   { name: "João Silva", phone: "(82) 99999-9999", whatsapp: "(82) 99999-9999" },
   { name: "Maria Oliveira", phone: "(82) 98888-8888", whatsapp: "(82) 98888-8888" },
@@ -140,15 +133,24 @@ export default function AOSPage() {
     setItems(items.map(item => item.id === itemId ? { ...item, observations: obs } : item));
   };
 
+  // Filter Active Services and Group by Category
+  const activeServices = INITIAL_SERVICES.filter(s => s.status === "Active");
+  const categories: Category[] = ["Higienização", "Pintura", "Costura", "Restauração", "Extra / Avulso"];
+
+  const groupedServices = categories.map(cat => ({
+    name: cat,
+    services: activeServices.filter(s => s.category === cat)
+  })).filter(group => group.services.length > 0);
+
   // Financial Calculations
   const servicesTotal = useMemo(() => {
     return items.reduce((acc, item) => {
       const itemTotal = item.services.reduce((sAcc, sId) => {
-        const service = SERVICES_CATALOG.find(s => s.id === sId);
-        return sAcc + (service?.price || 0);
+        const service = INITIAL_SERVICES.find(s => s.id === sId);
+        return sAcc + (service?.defaultPrice || 0);
       }, 0);
       return acc + itemTotal;
-    }, 0);
+    }, [items]);
   }, [items]);
 
   const subtotal = servicesTotal + Number(extraServiceValue || 0) + Number(deliveryFee || 0);
@@ -294,65 +296,77 @@ export default function AOSPage() {
 
           {items.map((item, index) => (
             <Card key={item.id} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden animate-in zoom-in-95 duration-200">
-              <CardHeader className="bg-slate-50/50 py-2.5 px-5 border-b border-slate-100 flex flex-row items-center justify-between">
-                <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
-                  ITEM {osNumber}.{item.orderInOS}
-                </CardTitle>
-                {items.length > 1 && (
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => removeItem(item.id)}
-                    className="h-7 w-7 text-slate-400 hover:text-red-500 rounded-full"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-5 space-y-5">
-                {/* Photo Upload (Mock) */}
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                  <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors">
-                    <Camera className="w-5 h-5" />
-                    <span className="text-[8px] font-bold uppercase">Foto</span>
+                <CardHeader className="bg-slate-50/50 py-2.5 px-5 border-b border-slate-100 flex flex-row items-center justify-between">
+                  <div className="flex flex-col">
+                    <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
+                      ITEM {osNumber}.{item.orderInOS}
+                    </CardTitle>
+                    <span className="text-[10px] font-bold text-blue-600">
+                      Subtotal: R$ {item.services.reduce((acc, sId) => acc + (INITIAL_SERVICES.find(s => s.id === sId)?.defaultPrice || 0), 0).toFixed(2)}
+                    </span>
                   </div>
-                  <div className="min-w-[80px] h-[80px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
-                    <Plus className="w-4 h-4" />
-                  </div>
-                </div>
-
-                {/* Services */}
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviços</Label>
-                  <div className="grid grid-cols-1 gap-1.5">
-                    {SERVICES_CATALOG.map(service => (
-                      <div 
-                        key={service.id} 
-                        onClick={() => toggleService(item.id, service.id)}
-                        className={`flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.99] ${
-                          item.services.includes(service.id) 
-                            ? "bg-blue-600 border-blue-600 text-white" 
-                            : "bg-white border-slate-100 text-slate-600"
-                        }`}
+                  <div className="flex items-center gap-1">
+                    {items.length > 1 && (
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeItem(item.id)}
+                        className="h-7 w-7 text-slate-400 hover:text-red-500 rounded-full"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-sm border flex items-center justify-center ${
-                            item.services.includes(service.id) ? "bg-white border-white" : "border-slate-300 bg-white"
-                          }`}>
-                            {item.services.includes(service.id) && <CheckCircle2 className="w-3 h-3 text-blue-600" />}
-                          </div>
-                          <span className="text-xs font-bold">{service.name}</span>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-5 space-y-5">
+                  {/* Photo Upload (Mock) */}
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors">
+                      <Camera className="w-5 h-5" />
+                      <span className="text-[8px] font-bold uppercase">Foto</span>
+                    </div>
+                    <div className="min-w-[80px] h-[80px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
+                      <Plus className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  <div className="space-y-4">
+                    {groupedServices.map(group => (
+                      <div key={group.name} className="space-y-2">
+                        <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">{group.name}</Label>
+                        <div className="grid grid-cols-1 gap-1.5">
+                          {group.services.map(service => (
+                            <div 
+                              key={service.id} 
+                              onClick={() => toggleService(item.id, service.id)}
+                              className={`flex items-center justify-between p-3 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                                item.services.includes(service.id) 
+                                  ? "bg-blue-600 border-blue-600 text-white" 
+                                  : "bg-white border-slate-100 text-slate-600 hover:border-blue-200"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-4 h-4 rounded-sm border flex items-center justify-center ${
+                                  item.services.includes(service.id) ? "bg-white border-white" : "border-slate-300 bg-white"
+                                }`}>
+                                  {item.services.includes(service.id) && <CheckCircle2 className="w-3 h-3 text-blue-600" />}
+                                </div>
+                                <span className="text-xs font-bold">{service.name}</span>
+                              </div>
+                              {service.defaultPrice > 0 && (
+                                <span className={`text-xs font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
+                                  R$ {service.defaultPrice.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                        {service.price > 0 && (
-                          <span className={`text-xs font-black ${item.services.includes(service.id) ? "text-white" : "text-slate-900"}`}>
-                            R$ {service.price.toFixed(2)}
-                          </span>
-                        )}
                       </div>
                     ))}
                   </div>
-                </div>
+
 
                 {/* Notes */}
                 <div className="space-y-1">
