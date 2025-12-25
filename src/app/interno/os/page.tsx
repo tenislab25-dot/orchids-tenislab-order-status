@@ -1,645 +1,538 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { 
-  ArrowLeft, 
   Camera, 
   Plus, 
   Trash2, 
-  CheckCircle2, 
-  CreditCard, 
-  Wallet, 
-  Banknote,
-  Smartphone,
-  Calendar,
-  Package,
+  ChevronRight, 
+  Info, 
+  ArrowLeft, 
+  Share2,
+  Calendar as CalendarIcon,
   User,
-  Search,
-  Link as LinkIcon,
-  LayoutDashboard,
-  Info,
-ChevronRight
+  Phone,
+  Package,
+  CreditCard,
+  DollarSign,
+  AlertTriangle,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectLabel, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { INITIAL_SERVICES, Category } from "@/lib/services-data";
 
-// MOCK DATA
-const MOCK_CUSTOMERS = [
-  { name: "João Silva", phone: "(82) 99999-9999" },
-  { name: "Maria Oliveira", phone: "(82) 98888-8888" },
-  { name: "Pedro Santos", phone: "(82) 97777-7777" },
-];
-
-const DISCOUNTS = [
-  { label: "0%", value: 0 },
-  { label: "5%", value: 0.05 },
-  { label: "8%", value: 0.08 },
-  { label: "10%", value: 0.10 },
-];
-
-interface Item {
+interface Service {
   id: string;
-  orderInOS: number;
-  services: string[];
-  customServiceLabel: string;
-  customServiceValue: number | "";
-  observations: string;
-  photos: string[];
+  name: string;
+  price: number;
 }
 
-export default function OSPage() {
-  const router = useRouter();
+const SERVICE_CATALOG: Record<string, Service[]> = {
+  "Higienização": [
+    { id: "h1", name: "Limpeza Padrão", price: 50 },
+    { id: "h2", name: "Limpeza Deep", price: 80 },
+    { id: "h3", name: "Limpeza Premium", price: 120 },
+  ],
+  "Pintura": [
+    { id: "p1", name: "Pintura Midsole", price: 60 },
+    { id: "p2", name: "Repintura Completa", price: 150 },
+  ],
+  "Costura": [
+    { id: "c1", name: "Costura Lateral", price: 40 },
+    { id: "c2", name: "Colagem de Sola", price: 45 },
+  ],
+  "Restauração": [
+    { id: "r1", name: "Unyellowing", price: 70 },
+    { id: "r2", name: "Hidratação Couro", price: 30 },
+  ],
+  "Extra / Avulso": [
+    { id: "e1", name: "Impermeabilização", price: 25 },
+    { id: "e2", name: "Desodorização", price: 15 },
+  ],
+};
+
+interface OSItem {
+  id: string;
+  index: number;
+  services: Service[];
+  observations: string;
+  photoUploaded: boolean;
+  customService?: {
+    name: string;
+    price: number;
+  };
+}
+
+export default function InternalOSPage() {
+  const [mounted, setMounted] = useState(false);
+  const [osNumber, setOsNumber] = useState("");
+  const [entryDate, setEntryDate] = useState("");
   
-  // OS Identification
-  const osNumber = useMemo(() => {
-    const year = new Date().getFullYear();
-    return `001/${year}`;
-  }, []);
-  
-  // Customer State
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
-  const [showCustomerSearch, setShowCustomerSearch] = useState(false);
   
-  // Items State
-  const [items, setItems] = useState<Item[]>([
-    { 
-      id: Math.random().toString(36).substr(2, 9), 
-      orderInOS: 1, 
-      services: [], 
-      customServiceLabel: "",
-      customServiceValue: "",
-      observations: "", 
-      photos: [] 
-    }
-  ]);
-  
-  // Dates & Delivery
-  const [entryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [items, setItems] = useState<OSItem[]>([]);
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryFee, setDeliveryFee] = useState<number | "">("");
-  
-  // Services Modal State
-  const [openDialogId, setOpenDialogId] = useState<string | null>(null);
-  const [tempServices, setTempServices] = useState<string[]>([]);
-  
-  // Financial & Payment State
-  const [discount, setDiscount] = useState(0);
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [discountPercent, setDiscountPercent] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Pix");
-  const [payOnEntry, setPayOnEntry] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [payAtIntake, setPayAtIntake] = useState(false);
 
-  // Behavior: Select existing customer
-  const selectCustomer = (cust: typeof MOCK_CUSTOMERS[0]) => {
-    setClientName(cust.name);
-    setClientPhone(cust.phone);
-    setShowCustomerSearch(false);
-  };
+  useEffect(() => {
+    setMounted(true);
+    const now = new Date();
+    const year = now.getFullYear();
+    const randomNum = Math.floor(Math.random() * 900) + 100;
+    setOsNumber(`${randomNum}/${year}`);
+    setEntryDate(now.toISOString().split("T")[0]);
+    
+    // Default delivery date (7 days from now)
+    const delivery = new Date();
+    delivery.setDate(now.getDate() + 7);
+    setDeliveryDate(delivery.toISOString().split("T")[0]);
+  }, []);
+
+  if (!mounted) return null;
 
   const addItem = () => {
-    const nextOrder = items.length + 1;
-    setItems([...items, { 
-      id: Math.random().toString(36).substr(2, 9), 
-      orderInOS: nextOrder, 
-      services: [], 
-      customServiceLabel: "",
-      customServiceValue: "",
-      observations: "", 
-      photos: [] 
-    }]);
+    const newItem: OSItem = {
+      id: crypto.randomUUID(),
+      index: items.length + 1,
+      services: [],
+      observations: "",
+      photoUploaded: false,
+    };
+    setItems([...items, newItem]);
   };
 
   const removeItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id).map((item, index) => ({
-        ...item,
-        orderInOS: index + 1
-      })));
-    }
+    setItems(items.filter(item => item.id !== id).map((item, idx) => ({ ...item, index: idx + 1 })));
   };
 
-  const toggleTempService = (serviceId: string) => {
-    setTempServices(prev => 
-      prev.includes(serviceId) 
-        ? prev.filter(id => id !== serviceId) 
-        : [...prev, serviceId]
-    );
-  };
-
-  const confirmSelection = (itemId: string) => {
-    updateItem(itemId, { services: tempServices });
-    setOpenDialogId(null);
-  };
-
-  const updateItem = (itemId: string, data: Partial<Item>) => {
-    setItems(items.map(item => item.id === itemId ? { ...item, ...data } : item));
-  };
-
-  // Filter Active Services (Exclude Taxa de urgência as per requirements)
-  const activeServices = INITIAL_SERVICES.filter(s => s.status === "Active" && s.name !== "Taxa de urgência");
-  const categories: Category[] = ["Higienização", "Pintura", "Costura", "Restauração", "Extra / Avulso"];
-
-  const groupedServices = categories.map(cat => ({
-    name: cat,
-    services: activeServices.filter(s => s.category === cat)
-  })).filter(group => group.services.length > 0);
-
-  // Financial Calculations - Defensive and strict to requirements
-  const itemValues = useMemo(() => {
-    return items.map(item => {
-      const servicesSum = item.services.reduce((acc, sId) => {
-        const service = INITIAL_SERVICES.find(s => s.id === sId);
-        return acc + (Number(service?.defaultPrice) || 0);
-      }, 0);
-      const customValue = Number(item.customServiceValue) || 0;
-      return servicesSum + customValue;
-    });
-  }, [items]);
-
-  const subtotal = useMemo(() => {
-    return itemValues.reduce((acc, val) => acc + (Number(val) || 0), 0);
-  }, [itemValues]);
-
-  const discountAmount = Number(subtotal) * (Number(discount) || 0);
-  const deliveryValue = Number(deliveryFee) || 0;
-  const finalTotal = Number(subtotal) - Number(discountAmount) + Number(deliveryValue);
-
-  const handleGenerateLink = () => {
-    if (!clientName || !clientPhone) {
-      alert("Preencha os dados do cliente (Nome e Telefone) para gerar o link.");
+  const addServiceToItem = (itemId: string, serviceId: string) => {
+    if (serviceId === "custom") {
+      setItems(items.map(item => {
+        if (item.id === itemId) {
+          return {
+            ...item,
+            customService: { name: "", price: 0 }
+          };
+        }
+        return item;
+      }));
       return;
     }
-    
-    setLoading(true);
-    // Simulate generation
-    setTimeout(() => {
-      alert(`Link de aceite gerado para a OS ${osNumber}.\nStatus: Pendente de aceite.\n\nSimulando envio para: ${clientPhone}`);
-      router.push("/interno/dashboard");
-      setLoading(false);
-    }, 1500);
+
+    const allServices = Object.values(SERVICE_CATALOG).flat();
+    const service = allServices.find(s => s.id === serviceId);
+    if (!service) return;
+
+    setItems(items.map(item => {
+      if (item.id === itemId) {
+        if (item.services.find(s => s.id === serviceId)) return item;
+        return {
+          ...item,
+          services: [...item.services, service]
+        };
+      }
+      return item;
+    }));
   };
 
+  const removeServiceFromItem = (itemId: string, serviceId: string) => {
+    setItems(items.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          services: item.services.filter(s => s.id !== serviceId)
+        };
+      }
+      return item;
+    }));
+  };
+
+  const updateItemObservations = (itemId: string, obs: string) => {
+    setItems(items.map(item => item.id === itemId ? { ...item, observations: obs } : item));
+  };
+
+  const updateCustomService = (itemId: string, name: string, price: number) => {
+    setItems(items.map(item => {
+      if (item.id === itemId && item.customService) {
+        return {
+          ...item,
+          customService: { name, price }
+        };
+      }
+      return item;
+    }));
+  };
+
+  const calculateItemSubtotal = (item: OSItem) => {
+    const servicesTotal = item.services.reduce((sum, s) => sum + Number(s.price || 0), 0);
+    const customTotal = item.customService ? Number(item.customService.price || 0) : 0;
+    return servicesTotal + customTotal;
+  };
+
+  const subtotal = items.reduce((sum, item) => sum + calculateItemSubtotal(item), 0);
+  const deliveryFeeVal = Number(deliveryFee) || 0;
+  const discountVal = (subtotal + deliveryFeeVal) * (Number(discountPercent) / 100);
+  const total = subtotal + deliveryFeeVal - discountVal;
+
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <Link href="/interno/dashboard">
-            <Button variant="ghost" size="icon" className="rounded-full -ml-2">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
-            </Button>
+    <div className="min-h-screen bg-slate-50 flex flex-col pb-20 font-sans text-slate-900">
+      {/* SECTION 1 — OS IDENTIFICATION */}
+      <header className="bg-white px-6 py-6 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <Link href="/interno/dashboard" className="p-2 -ml-2 text-slate-400 hover:text-slate-900 transition-colors">
+            <ArrowLeft className="w-6 h-6" />
           </Link>
-          <div className="flex flex-col">
-            <h1 className="text-sm font-bold text-slate-900 leading-none">Abertura de OS</h1>
-            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{osNumber}</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-xl font-black tracking-tighter">TENIS</span>
+            <span className="text-xl font-light tracking-tighter text-blue-600">LAB</span>
           </div>
+          <div className="w-10" /> {/* Spacer */}
         </div>
-        <div className="flex items-baseline gap-0.5">
-          <span className="text-sm font-black text-slate-900 tracking-tighter">TENIS</span>
-          <span className="text-sm font-light text-blue-500 tracking-tighter">LAB</span>
+        <div className="flex flex-col items-center">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ordem de Serviço</span>
+          <h1 className="text-3xl font-black text-slate-900">{osNumber}</h1>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto p-4 flex flex-col gap-5">
-        
-        {/* SECTION 2 — CUSTOMER DATA */}
-        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                <User className="w-4 h-4 text-blue-600" />
-              </div>
-              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Cliente</h2>
-            </div>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowCustomerSearch(!showCustomerSearch)}
-              className="text-xs font-bold text-blue-600 h-8 gap-1"
-            >
-              <Search className="w-3 h-3" /> {showCustomerSearch ? "Fechar" : "Buscar"}
-            </Button>
+      <main className="flex-1 px-4 py-6 flex flex-col gap-6 max-w-md mx-auto w-full">
+        {/* SECTION 2 — CLIENT DATA */}
+        <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col gap-4">
+          <div className="flex items-center gap-2 mb-2">
+            <User className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold">Dados do Cliente</h2>
           </div>
-
-          {showCustomerSearch && (
-            <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2 mb-2 animate-in fade-in slide-in-from-top-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase ml-1">Clientes Frequentes</p>
-              {MOCK_CUSTOMERS.map(cust => (
-                <button
-                  key={cust.phone}
-                  type="button"
-                  onClick={() => selectCustomer(cust)}
-                  className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100 text-left hover:border-blue-200 transition-all"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">{cust.name}</span>
-                    <span className="text-[10px] text-slate-500">{cust.phone}</span>
-                  </div>
-                  <Plus className="w-4 h-4 text-blue-400" />
-                </button>
-              ))}
-            </div>
-          )}
-          
-          <div className="flex flex-col gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="clientName" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nome Completo *</Label>
+          <div className="flex flex-col gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="clientName" className="text-xs font-bold text-slate-500 uppercase ml-1">Nome Completo</Label>
               <Input 
-                id="clientName"
+                id="clientName" 
                 placeholder="Nome do cliente" 
+                className="h-12 rounded-2xl bg-slate-50 border-none focus-visible:ring-blue-500/20"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                required
-                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
               />
             </div>
-            
-              <div className="space-y-1">
-                <Label htmlFor="clientPhone" className="text-[10px] font-bold text-slate-400 uppercase ml-1">Telefone *</Label>
-                <Input 
-                  id="clientPhone"
-                  placeholder="DDD + Número" 
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                  required
-                  className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="clientPhone" className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone</Label>
+              <Input 
+                id="clientPhone" 
+                type="tel" 
+                placeholder="(00) 00000-0000" 
+                className="h-12 rounded-2xl bg-slate-50 border-none focus-visible:ring-blue-500/20"
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+              />
+            </div>
           </div>
         </section>
 
-        {/* SECTION 3 — ITEMS (TÊNIS) */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
+        {/* SECTION 3 & 4 — PARES / ITENS */}
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
-                <Package className="w-4 h-4 text-amber-600" />
-              </div>
-              <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Pares / Itens</h2>
+              <Package className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-bold">Tênis / Itens</h2>
             </div>
-            <Button 
-              type="button" 
-              onClick={addItem}
-              size="sm" 
-              className="rounded-full gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold h-8 text-xs px-4"
-            >
-              <Plus className="w-3 h-3" /> Adicionar par
-            </Button>
+            <Badge variant="outline" className="rounded-full bg-blue-50 text-blue-700 border-blue-100 px-3">
+              {items.length} {items.length === 1 ? 'item' : 'itens'}
+            </Badge>
           </div>
 
-          {items.map((item, index) => (
-            <Card key={item.id} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden animate-in zoom-in-95 duration-200">
-                <CardHeader className="bg-slate-50/50 py-2.5 px-5 border-b border-slate-100 flex flex-row items-center justify-between">
-                  <div className="flex flex-col">
-                    <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
-                      ITEM {osNumber}.{item.orderInOS}
-                    </CardTitle>
-                    <span className="text-[10px] font-bold text-blue-600">
-                      R$ {(Number(itemValues[index]) || 0).toFixed(2)}
-                    </span>
+          {items.map((item) => (
+            <Card key={item.id} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden bg-white">
+              <div className="bg-slate-50 px-5 py-3 flex justify-between items-center border-b border-slate-100">
+                <span className="font-bold text-slate-500 text-sm">Item {osNumber}.{item.index}</span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-red-400 hover:text-red-600 hover:bg-red-50 -mr-2"
+                  onClick={() => removeItem(item.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="p-5 flex flex-col gap-5">
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-400 cursor-pointer hover:bg-slate-200 transition-colors shrink-0">
+                    <Camera className="w-6 h-6" />
+                    <span className="text-[10px] font-bold uppercase">Foto</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {items.length > 1 && (
+                  <div className="flex-1 flex flex-col justify-center gap-2">
+                    <Select onValueChange={(val) => addServiceToItem(item.id, val)}>
+                      <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none text-slate-600">
+                        <SelectValue placeholder="Adicionar serviço" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl">
+                        {Object.entries(SERVICE_CATALOG).map(([category, services]) => (
+                          <SelectGroup key={category}>
+                            <SelectLabel className="text-blue-600 text-[10px] uppercase font-bold tracking-wider px-4 pt-3 pb-1">{category}</SelectLabel>
+                            {services.map(s => (
+                              <SelectItem key={s.id} value={s.id} className="rounded-xl px-4 py-3">
+                                <div className="flex justify-between items-center w-full gap-8">
+                                  <span>{s.name}</span>
+                                  <span className="font-bold text-slate-400">R$ {s.price}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                        <Separator className="my-1" />
+                        <SelectItem value="custom" className="rounded-xl px-4 py-3 font-bold text-blue-600">
+                          + Serviço Personalizado
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {item.services.map(s => (
+                    <Badge 
+                      key={s.id} 
+                      className="rounded-full pl-3 pr-1 py-1 bg-blue-50 text-blue-700 border-blue-100 flex items-center gap-1 text-xs hover:bg-blue-100 transition-colors"
+                    >
+                      {s.name}
                       <Button 
-                        type="button" 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => removeItem(item.id)}
-                        className="h-7 w-7 text-slate-400 hover:text-red-500 rounded-full"
+                        className="h-5 w-5 rounded-full p-0 text-blue-400 hover:text-blue-700"
+                        onClick={() => removeServiceFromItem(item.id, s.id)}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Plus className="w-3 h-3 rotate-45" />
                       </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-5 space-y-5">
-                  {/* Photo Upload (Mock) */}
-                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    <div className="min-w-[80px] h-[80px] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 bg-slate-50 text-slate-400 active:bg-slate-100 transition-colors cursor-pointer">
-                      <Camera className="w-5 h-5" />
-                      <span className="text-[8px] font-bold uppercase text-center">Câmera</span>
-                    </div>
-                    <div className="min-w-[80px] h-[80px] rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-300">
-                      <Plus className="w-4 h-4" />
-                    </div>
-                  </div>
-
-                    {/* Services Selection - COMPACT SELECTOR */}
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Resumo do Par</Label>
-                        
-                        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-1">
-                          <div className="flex justify-between items-start">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Serviços</span>
-                            <span className="text-[10px] font-black text-blue-600">
-                              ITEM: R$ {(Number(itemValues[index]) || 0).toFixed(2)}
-                            </span>
-                          </div>
-                          <p className="text-xs font-medium text-slate-600 leading-tight">
-                            {item.services.length > 0 
-                              ? item.services.map(sId => INITIAL_SERVICES.find(s => s.id === sId)?.name).join(", ")
-                              : "Nenhum serviço selecionado"}
-                          </p>
-                        </div>
-  
-                        <Dialog open={openDialogId === item.id} onOpenChange={(open) => { if (!open) setOpenDialogId(null); }}>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              className="w-full h-12 rounded-xl border-slate-200 flex justify-between px-4 text-slate-600"
-                              onClick={() => {
-                                setOpenDialogId(item.id);
-                                setTempServices(item.services);
-                              }}
-                            >
-                              <span className="text-sm font-medium">Selecionar Serviços</span>
-                              <ChevronRight className="w-4 h-4 text-slate-400" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-[90vw] rounded-3xl p-0 overflow-hidden">
-                            <DialogHeader className="p-6 pb-2">
-                              <DialogTitle className="text-lg font-black uppercase tracking-tight">Catálogo de Serviços</DialogTitle>
-                            </DialogHeader>
-                            <div className="p-6 pt-2 max-h-[60vh] overflow-y-auto space-y-6">
-                              {groupedServices.map(group => (
-                                <div key={group.name} className="space-y-3">
-                                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{group.name}</h3>
-                                  <div className="grid grid-cols-1 gap-2">
-                                    {group.services.map(service => (
-                                      <div 
-                                        key={service.id} 
-                                        onClick={() => toggleTempService(service.id)}
-                                        className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                                          tempServices.includes(service.id) 
-                                            ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200" 
-                                            : "bg-white border-slate-100 text-slate-600"
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                                            tempServices.includes(service.id) ? "bg-white border-white" : "border-slate-200 bg-white"
-                                          }`}>
-                                            {tempServices.includes(service.id) && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
-                                          </div>
-                                          <span className="text-sm font-bold">{service.name}</span>
-                                        </div>
-                                        <span className={`text-sm font-black ${tempServices.includes(service.id) ? "text-white" : "text-slate-900"}`}>
-                                          R$ {(Number(service.defaultPrice) || 0).toFixed(2)}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
-                              <Button className="w-full h-12 rounded-2xl bg-slate-900 font-bold" onClick={() => confirmSelection(item.id)}>
-                                Concluir Seleção
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
+                    </Badge>
+                  ))}
+                  {item.customService && (
+                    <div className="w-full flex flex-col gap-2 p-3 bg-blue-50/50 rounded-2xl border border-blue-100">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Serviço Personalizado</span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-5 w-5 rounded-full p-0 text-red-400 hover:text-red-600"
+                          onClick={() => setItems(items.map(it => it.id === item.id ? { ...it, customService: undefined } : it))}
+                        >
+                          <Plus className="w-3 h-3 rotate-45" />
+                        </Button>
                       </div>
-
-                    {/* Custom Service (one per item) */}
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Serviço Personalizado (Opcional)</Label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex gap-2">
                         <Input 
-                          placeholder="Descrição" 
-                          value={item.customServiceLabel}
-                          onChange={(e) => updateItem(item.id, { customServiceLabel: e.target.value })}
-                          className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
+                          placeholder="Nome do serviço" 
+                          className="h-9 bg-white border-blue-100 text-xs rounded-xl flex-[2]"
+                          value={item.customService.name}
+                          onChange={(e) => updateCustomService(item.id, e.target.value, item.customService?.price || 0)}
                         />
                         <Input 
-                          type="number"
-                          placeholder="Valor R$" 
-                          value={item.customServiceValue}
-                          onChange={(e) => updateItem(item.id, { customServiceValue: e.target.value === "" ? "" : Number(e.target.value) })}
-                          className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
+                          type="number" 
+                          placeholder="Preço" 
+                          className="h-9 bg-white border-blue-100 text-xs rounded-xl flex-1"
+                          value={item.customService.price || ""}
+                          onChange={(e) => updateCustomService(item.id, item.customService?.name || "", Number(e.target.value))}
                         />
                       </div>
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Notes */}
-                  <div className="space-y-1 pt-2">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Notas / Observações</Label>
-                    <Textarea 
-                      placeholder="Detalhes sobre o estado do tênis, manchas, reparos específicos..." 
-                      value={item.observations}
-                      onChange={(e) => updateItem(item.id, { observations: e.target.value })}
-                      className="rounded-xl border-slate-200 min-h-[80px] text-sm resize-none focus:ring-blue-500/20"
-                    />
-                  </div>
-                </CardContent>
+                <Textarea 
+                  placeholder="Observações do item (ex: desgaste na sola, mancha persistente...)"
+                  className="min-h-[80px] rounded-2xl bg-slate-50 border-none text-sm resize-none"
+                  value={item.observations}
+                  onChange={(e) => updateItemObservations(item.id, e.target.value)}
+                />
+
+                <div className="flex justify-end items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400 uppercase">Subtotal do item:</span>
+                  <span className="text-xl font-black text-slate-900">R$ {calculateItemSubtotal(item).toFixed(2)}</span>
+                </div>
+              </div>
             </Card>
           ))}
-        </div>
+
+          <Button 
+            onClick={addItem}
+            variant="outline" 
+            className="h-16 rounded-3xl border-dashed border-2 border-slate-300 text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all flex gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="font-bold text-lg">Adicionar par</span>
+          </Button>
+        </section>
 
         {/* SECTION 5 — DATES */}
-        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+        <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col gap-5">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-slate-500" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Prazos & Logística</h2>
+            <CalendarIcon className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold">Prazos e Entrega</h2>
           </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data de Entrada</Label>
-              <div className="h-11 px-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center text-slate-500 text-xs font-bold">
-                {new Date(entryDate).toLocaleDateString('pt-BR')}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-500 uppercase ml-1">Data de Entrada</Label>
+              <div className="h-12 rounded-2xl bg-slate-100 border-none flex items-center px-4 text-slate-500 font-medium">
+                {entryDate.split("-").reverse().join("/")}
               </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Data prevista entrega</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="deliveryDate" className="text-xs font-bold text-slate-500 uppercase ml-1">Previsão</Label>
               <Input 
-                type="date"
+                id="deliveryDate" 
+                type="date" 
+                className="h-12 rounded-2xl bg-slate-50 border-none focus-visible:ring-blue-500/20"
                 value={deliveryDate}
                 onChange={(e) => setDeliveryDate(e.target.value)}
-                className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
               />
             </div>
           </div>
-
-          <div className="space-y-1">
-            <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Taxa de entrega (Opcional)</Label>
-            <Input 
-              type="number"
-              placeholder="0.00" 
-              value={deliveryFee}
-              onChange={(e) => setDeliveryFee(e.target.value === "" ? "" : Number(e.target.value))}
-              className="rounded-xl border-slate-200 h-11 text-sm focus:ring-blue-500/20"
-            />
+          <div className="space-y-1.5">
+            <Label htmlFor="deliveryFee" className="text-xs font-bold text-slate-500 uppercase ml-1">Taxa de Entrega (Opcional)</Label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">R$</span>
+              <Input 
+                id="deliveryFee" 
+                type="number" 
+                placeholder="0,00" 
+                className="h-12 rounded-2xl bg-slate-50 border-none pl-10 focus-visible:ring-blue-500/20"
+                value={deliveryFee || ""}
+                onChange={(e) => setDeliveryFee(Number(e.target.value))}
+              />
+            </div>
           </div>
         </section>
 
         {/* SECTION 6 — FINANCIAL SUMMARY */}
-        <section className="bg-slate-900 rounded-[2.5rem] p-7 shadow-2xl text-white flex flex-col gap-6 -mx-1">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-black uppercase tracking-widest text-white/50">Financeiro</h2>
-            <Badge variant="outline" className="border-white/20 text-blue-400 font-mono text-[10px]">
-              OPERATIONAL
-            </Badge>
+        <section className="bg-slate-900 rounded-3xl p-6 shadow-xl text-white flex flex-col gap-6">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-bold">Resumo Financeiro</h2>
           </div>
-
-          <div className="space-y-3.5 border-b border-white/10 pb-6">
-            <div className="flex justify-between text-xs font-bold text-white/70">
-              <span>Subtotal Itens</span>
-              <span>R$ {(Number(subtotal) || 0).toFixed(2)}</span>
+          
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center text-slate-400 text-sm">
+              <span>Subtotal dos serviços</span>
+              <span className="font-bold text-white">R$ {subtotal.toFixed(2)}</span>
             </div>
-            {deliveryValue > 0 && (
-              <div className="flex justify-between text-xs font-bold text-white/70">
-                <span>Taxa de Entrega</span>
-                <span>R$ {deliveryValue.toFixed(2)}</span>
+            <div className="flex justify-between items-center text-slate-400 text-sm">
+              <span>Taxa de entrega</span>
+              <span className="font-bold text-white">R$ {deliveryFeeVal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center text-slate-400 text-sm">
+              <div className="flex items-center gap-2">
+                <span>Desconto</span>
+                <Select onValueChange={(val) => setDiscountPercent(Number(val))}>
+                  <SelectTrigger className="h-8 w-20 bg-slate-800 border-none text-[10px] rounded-lg">
+                    <SelectValue placeholder="0%" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 text-white min-w-0 w-20">
+                    <SelectItem value="0" className="text-xs">0%</SelectItem>
+                    <SelectItem value="5" className="text-xs">5%</SelectItem>
+                    <SelectItem value="8" className="text-xs">8%</SelectItem>
+                    <SelectItem value="10" className="text-xs">10%</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+              <span className="font-bold text-red-400">- R$ {discountVal.toFixed(2)}</span>
+            </div>
             
-            <div className="flex flex-col gap-2 pt-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Desconto Especial</span>
-              <div className="grid grid-cols-4 gap-1.5">
-                {DISCOUNTS.map(d => (
-                  <button
-                    key={d.label}
-                    type="button"
-                    onClick={() => setDiscount(d.value)}
-                    className={`h-10 rounded-xl text-xs font-black transition-all ${
-                      discount === d.value 
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" 
-                        : "bg-white/5 text-white/40 hover:bg-white/10"
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
+            <Separator className="bg-slate-800 my-2" />
+            
+            <div className="flex justify-between items-baseline">
+              <span className="text-lg font-bold text-blue-400">Total</span>
+              <div className="flex flex-col items-end">
+                <span className="text-4xl font-black">R$ {total.toFixed(2)}</span>
+                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Valor final</span>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-end justify-between">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Total Final</span>
-              <span className="text-4xl font-black tracking-tighter text-white">
-                R$ {(Number(finalTotal) || 0).toFixed(2)}
-              </span>
-            </div>
-            {discount > 0 && (
-              <div className="flex flex-col items-end gap-0.5">
-                <span className="text-[10px] font-black text-green-400 uppercase tracking-wider">Desconto</span>
-                <span className="text-sm font-black bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
-                  - R$ {(Number(discountAmount) || 0).toFixed(2)}
-                </span>
-              </div>
-            )}
           </div>
         </section>
 
         {/* SECTION 7 — PAYMENT METHOD */}
-        <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-6">
-          <div className="space-y-4">
-            <div className="space-y-2.5">
-              <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Método de Pagamento</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'Pix', icon: Smartphone },
-                  { id: 'Card', icon: CreditCard },
-                  { id: 'Cash', icon: Banknote }
-                ].map(method => (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setPaymentMethod(method.id)}
-                    className={`flex flex-col items-center gap-2 p-3.5 rounded-2xl border transition-all ${
-                      paymentMethod === method.id 
-                        ? "bg-slate-900 border-slate-900 text-white shadow-md" 
-                        : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
-                    }`}
-                  >
-                    <method.icon className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase tracking-tight">
-                      {method.id === 'Card' ? 'Cartão' : method.id === 'Cash' ? 'Dinheiro' : 'Pix'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+        <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col gap-5">
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold">Pagamento</h2>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            {["Pix", "Cartão", "Dinheiro"].map(method => (
+              <Button 
+                key={method}
+                variant={paymentMethod === method ? "default" : "outline"}
+                className={`h-14 rounded-2xl font-bold flex flex-col gap-1 transition-all ${
+                  paymentMethod === method 
+                    ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                    : "border-slate-100 bg-slate-50 text-slate-500 hover:bg-slate-100"
+                }`}
+                onClick={() => setPaymentMethod(method)}
+              >
+                <span className="text-sm">{method}</span>
+              </Button>
+            ))}
+          </div>
 
-            <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-800">Pagar na entrada</span>
-                <span className="text-[10px] text-slate-500">O cliente está pagando agora?</span>
-              </div>
-              <Checkbox 
-                id="payOnEntry" 
-                checked={payOnEntry}
-                onCheckedChange={(checked) => setPayOnEntry(checked as boolean)}
-                className="h-6 w-6 rounded-lg border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              />
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mt-2">
+            <div className="flex flex-col">
+              <span className="text-sm font-bold">Pagar na entrada?</span>
+              <span className="text-[10px] text-slate-500 uppercase font-medium">Liquidação imediata</span>
             </div>
+            <Switch checked={payAtIntake} onCheckedChange={setPayAtIntake} />
           </div>
         </section>
 
-        {/* SECTION 8 — CONTRACT & GUARANTEE (INFO ONLY) */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+        {/* SECTION 8 — CONTRACT & GUARANTEE */}
+        <div className="px-2 py-4 flex gap-3 bg-blue-50/50 rounded-2xl border border-blue-100">
           <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-[11px] text-blue-800 leading-snug font-medium">
-            O contrato e o termo de garantia serão enviados ao cliente após a criação da OS.
+          <p className="text-xs text-blue-700 leading-relaxed font-medium">
+            O contrato e o termo de garantia serão enviados ao cliente após a criação da OS para aceite formal via link.
           </p>
         </div>
 
         {/* SECTION 9 — ACTIONS */}
         <div className="flex flex-col gap-3 mt-4">
           <Button 
-            type="button" 
-            onClick={handleGenerateLink}
-            disabled={loading}
-            className="h-16 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-xl transition-all active:scale-[0.97]"
+            className="h-16 rounded-3xl bg-blue-600 hover:bg-blue-700 text-white font-black text-lg shadow-lg shadow-blue-500/20 flex gap-3 transition-all active:scale-[0.98]"
+            onClick={() => {
+              const id = osNumber.replace("/", "");
+              window.location.href = `/aceite/${id}`;
+            }}
           >
-            {loading ? (
-              <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <div className="flex items-center gap-2">
-                <LinkIcon className="w-6 h-6" />
-                GERAR LINK PARA ACEITE
-              </div>
-            )}
+            <Share2 className="w-5 h-5" />
+            Gerar link para aceite
           </Button>
-
-          <Link href="/interno/dashboard" className="w-full">
-            <Button 
-              type="button" 
-              variant="ghost"
-              className="w-full h-12 rounded-2xl text-slate-400 font-bold hover:text-slate-600 transition-all"
-            >
-              <div className="flex items-center gap-2">
-                <LayoutDashboard className="w-4 h-4" />
-                VOLTAR AO DASHBOARD
-              </div>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            className="h-14 rounded-2xl text-slate-400 hover:text-slate-900 font-bold"
+            asChild
+          >
+            <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
+          </Button>
         </div>
+      </main>
 
-      </div>
+      <footer className="mt-8 text-center pb-12">
+        <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
+          © 2025 TENISLAB • Staff Interface
+        </p>
+      </footer>
     </div>
   );
 }
