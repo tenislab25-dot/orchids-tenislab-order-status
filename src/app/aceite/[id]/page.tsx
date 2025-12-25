@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
   CheckCircle2, 
   Package, 
@@ -9,7 +10,8 @@ import {
   FileText,
   ShieldCheck,
   Image as ImageIcon,
-  Phone
+  Phone,
+  Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -61,6 +63,7 @@ Calçados não retirados em até 90 dias após a comunicação de finalização 
 `;
 
 export default function CustomerAcceptancePage() {
+  const router = useRouter();
   const [accepted, setAccepted] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,6 +77,10 @@ export default function CustomerAcceptancePage() {
     }, 1500);
   };
 
+  const handleTrackOrder = () => {
+    router.push(`/?os=${MOCK_OS.number}`);
+  };
+
   if (isConfirmed) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
@@ -84,12 +91,21 @@ export default function CustomerAcceptancePage() {
         <p className="text-slate-500 mb-8 max-w-[280px]">
           Obrigado, {MOCK_OS.customer.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
         </p>
-        <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm">
+        <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
           <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
             Recebido (confirmado pelo cliente)
           </Badge>
         </div>
+
+        <Button 
+          variant="outline"
+          onClick={handleTrackOrder}
+          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+        >
+          <Search className="w-5 h-5" />
+          Acompanhar status do pedido
+        </Button>
         
         <footer className="mt-12">
           <div className="flex items-baseline gap-1 justify-center mb-1">
@@ -298,20 +314,31 @@ export default function CustomerAcceptancePage() {
         </section>
 
         {/* PRIMARY ACTION */}
-        <Button 
-          disabled={!accepted || loading}
-          onClick={handleConfirm}
-          className="h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-2xl transition-all active:scale-[0.97] mt-4 mb-10 disabled:opacity-50 disabled:grayscale"
-        >
-          {loading ? (
-            <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-6 h-6" />
-              CONFIRMAR E ACEITAR SERVIÇO
-            </div>
-          )}
-        </Button>
+        <div className="flex flex-col gap-3 mt-4 mb-10">
+          <Button 
+            disabled={!accepted || loading}
+            onClick={handleConfirm}
+            className="h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-2xl transition-all active:scale-[0.97] disabled:opacity-50 disabled:grayscale"
+          >
+            {loading ? (
+              <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6" />
+                CONFIRMAR E ACEITAR SERVIÇO
+              </div>
+            )}
+          </Button>
+
+          <Button 
+            variant="outline"
+            onClick={handleTrackOrder}
+            className="h-14 rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
+            <Search className="w-5 h-5" />
+            Ver status do pedido
+          </Button>
+        </div>
 
       </main>
 
