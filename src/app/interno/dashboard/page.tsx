@@ -317,11 +317,11 @@ export default function DashboardPage() {
                         </Select>
 
                         <div className="flex items-center">
-                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-slate-100" asChild>
-                            <Link href={`/status?os=${order.osNumber}`}>
-                              <Eye className="w-4 h-4 text-slate-400" />
-                            </Link>
-                          </Button>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-slate-100" asChild>
+                              <Link href={`/interno/os/${order.osNumber.replace("/", "-")}`}>
+                                <Eye className="w-4 h-4 text-slate-400" />
+                              </Link>
+                            </Button>
 
                           {/* CANCEL BUTTON: Admin or Atendente, not for Entregue or already Cancelado */}
                           {(role === "ADMIN" || role === "ATENDENTE") && order.status !== "Entregue" && order.status !== "Cancelado" && (
