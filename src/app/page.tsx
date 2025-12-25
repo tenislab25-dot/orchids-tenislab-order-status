@@ -1,65 +1,128 @@
 "use client";
 
 import Link from "next/link";
-import { Search, ShieldCheck, LayoutDashboard } from "lucide-react";
+import { 
+  PlusCircle, 
+  LayoutDashboard, 
+  Wallet, 
+  Wrench, 
+  Search,
+  ChevronRight
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+interface NavCardProps {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  adminOnly?: boolean;
+}
+
+function NavCard({ href, title, description, icon: Icon, adminOnly }: NavCardProps) {
+  return (
+    <Link href={href} className="block group">
+      <div className="relative overflow-hidden bg-white p-6 rounded-3xl border border-slate-100 shadow-sm transition-all hover:shadow-md active:scale-[0.98] flex flex-col gap-3 h-full">
+        <div className="flex items-center justify-between">
+          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+            <Icon className="w-6 h-6 text-slate-600 group-hover:text-blue-500 transition-colors" />
+          </div>
+          {adminOnly && (
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-2 py-1 rounded-full">
+              Admin
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-1">
+          <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">{title}</h3>
+          <p className="text-slate-500 text-xs leading-relaxed">{description}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function Home() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
-      {/* SECTION 1 — BRANDING */}
-      <header className="flex flex-col items-center gap-2 mb-16">
+      {/* SECTION 1 — HEADER */}
+      <header className="flex flex-col items-center gap-3 mb-12">
         <div className="flex items-baseline gap-1">
           <span className="text-5xl font-extrabold tracking-tighter text-slate-900">TENIS</span>
           <span className="text-5xl font-light tracking-tighter text-blue-500">LAB</span>
         </div>
-        <p className="text-slate-500 text-base font-medium">Sneaker Laundry Service</p>
+        <p className="text-slate-500 text-sm font-semibold text-center leading-relaxed">
+          Sistema interno de gestão de ordens de serviço
+        </p>
       </header>
 
-      {/* SECTION 2 — MAIN ACTION (CLIENT) */}
       <main className="flex-1 flex flex-col gap-12">
-        <section className="flex flex-col gap-4">
-          <Link href="/status" className="w-full">
-            <Button 
-              className="w-full h-20 rounded-3xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xl shadow-lg shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-            >
-              <Search className="w-6 h-6" />
-              Consultar pedido
-            </Button>
-          </Link>
-          <p className="text-center text-slate-500 text-sm px-4">
-            Digite o número da sua OS para acompanhar o status do seu serviço.
-          </p>
+        {/* SECTION 2 — INTERNAL ACCESS */}
+        <section className="flex flex-col gap-6">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">Acesso Interno</h2>
+          <div className="grid grid-cols-1 gap-4">
+            <NavCard 
+              href="/interno/os"
+              title="Nova Ordem de Serviço"
+              description="Criar uma nova OS para atendimento ao cliente"
+              icon={PlusCircle}
+            />
+            <NavCard 
+              href="/interno/dashboard"
+              title="Dashboard Interno"
+              description="Gerenciar ordens de serviço em andamento"
+              icon={LayoutDashboard}
+            />
+            <NavCard 
+              href="/interno/financeiro"
+              title="Financeiro"
+              description="Visualizar caixa e projeções"
+              icon={Wallet}
+              adminOnly
+            />
+            <NavCard 
+              href="/interno/servicos"
+              title="Serviços"
+              description="Gerenciar catálogo de serviços"
+              icon={Wrench}
+            />
+          </div>
         </section>
 
-        {/* SECTION 3 — CUSTOMER INFORMATION (PASSIVE) */}
-        <section className="bg-blue-50/50 border border-blue-100 p-6 rounded-3xl flex items-start gap-4">
-          <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
-            <ShieldCheck className="w-6 h-6 text-blue-500" />
+        {/* SECTION 3 — CUSTOMER ACCESS */}
+        <section className="flex flex-col gap-4">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">Área do Cliente</h2>
+          <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-[2.5rem] flex flex-col gap-4">
+            <p className="text-blue-700/80 text-sm font-medium text-center">
+              Área exclusiva para clientes acompanharem o status do serviço.
+            </p>
+            <Link href="/consulta">
+              <Button 
+                className="w-full h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-lg shadow-blue-900/10 flex items-center justify-center gap-3"
+              >
+                <Search className="w-5 h-5" />
+                Consultar Pedido
+                <ChevronRight className="w-4 h-4 opacity-50" />
+              </Button>
+            </Link>
           </div>
-          <p className="text-blue-700 text-sm leading-relaxed">
-            Clientes recebem atualizações automáticas conforme o status do serviço.
-          </p>
         </section>
       </main>
 
-      {/* SECTION 4 — INTERNAL ACCESS (STAFF ONLY) */}
-      <footer className="mt-auto flex flex-col items-center gap-8 pt-12">
-        <Link href="/interno/dashboard">
-          <Button 
-            variant="ghost" 
-            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-2xl px-6 h-10 text-xs font-bold uppercase tracking-widest flex gap-2"
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            Acesso interno
-          </Button>
-        </Link>
-
-        {/* SECTION 5 — FOOTER */}
-        <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold text-center">
-          © TENISLAB — Uso interno e atendimento ao cliente
+      {/* SECTION 4 — FOOTER */}
+      <footer className="mt-auto pt-16 text-center">
+        <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
+          TENISLAB · Sistema Interno
         </p>
       </footer>
     </div>
   );
+}
+
+interface NavCardProps {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  adminOnly?: boolean;
 }
