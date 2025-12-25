@@ -41,6 +41,7 @@ interface Order {
   pairsCount: number;
   status: Status;
   entryDate: string;
+  deliveryDate?: string;
 }
 
 const initialOrders: Order[] = [
@@ -51,6 +52,7 @@ const initialOrders: Order[] = [
     pairsCount: 2,
     status: "Entregue",
     entryDate: "2025-12-01",
+    deliveryDate: "2025-12-05",
   },
   {
     id: "2",
@@ -59,6 +61,7 @@ const initialOrders: Order[] = [
     pairsCount: 1,
     status: "Pronto para retirada / entrega",
     entryDate: "2025-12-05",
+    deliveryDate: "2025-12-08",
   },
   {
     id: "3",
@@ -67,6 +70,7 @@ const initialOrders: Order[] = [
     pairsCount: 3,
     status: "Em serviço",
     entryDate: "2025-12-10",
+    deliveryDate: "2025-12-15",
   },
   {
     id: "4",
@@ -75,6 +79,7 @@ const initialOrders: Order[] = [
     pairsCount: 1,
     status: "Recebido",
     entryDate: "2025-12-15",
+    deliveryDate: "2025-12-20",
   },
   {
     id: "5",
@@ -83,6 +88,7 @@ const initialOrders: Order[] = [
     pairsCount: 2,
     status: "Em serviço",
     entryDate: "2025-12-08",
+    deliveryDate: "2025-12-13",
   },
 ];
 
@@ -170,14 +176,15 @@ export default function DashboardPage() {
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-slate-50/50">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[120px] font-bold text-slate-600">OS</TableHead>
-                <TableHead className="font-bold text-slate-600">Cliente</TableHead>
-                <TableHead className="font-bold text-slate-600 text-center">Pares</TableHead>
-                <TableHead className="font-bold text-slate-600">Data de Entrada</TableHead>
-                <TableHead className="font-bold text-slate-600">Status</TableHead>
-                <TableHead className="w-[180px] font-bold text-slate-600">Ações</TableHead>
-              </TableRow>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[120px] font-bold text-slate-600">OS</TableHead>
+                  <TableHead className="font-bold text-slate-600">Cliente</TableHead>
+                  <TableHead className="font-bold text-slate-600 text-center">Pares</TableHead>
+                  <TableHead className="font-bold text-slate-600">Data de Entrada</TableHead>
+                  <TableHead className="font-bold text-slate-600">Data de Entrega</TableHead>
+                  <TableHead className="font-bold text-slate-600">Status</TableHead>
+                  <TableHead className="w-[180px] font-bold text-slate-600">Ações</TableHead>
+                </TableRow>
             </TableHeader>
             <TableBody>
               {sortedAndFilteredOrders.map((order) => (
@@ -193,10 +200,13 @@ export default function DashboardPage() {
                       {order.pairsCount}
                     </span>
                   </TableCell>
-                  <TableCell className="text-slate-500 font-medium">
-                    {new Date(order.entryDate).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
+                    <TableCell className="text-slate-500 font-medium">
+                      {new Date(order.entryDate).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell className="text-slate-500 font-medium">
+                      {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('pt-BR') : "-"}
+                    </TableCell>
+                    <TableCell>
                     {getStatusBadge(order.status)}
                   </TableCell>
                   <TableCell>
@@ -222,13 +232,13 @@ export default function DashboardPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {sortedAndFilteredOrders.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-slate-400 font-medium">
-                    Nenhuma ordem de serviço encontrada.
-                  </TableCell>
-                </TableRow>
-              )}
+                {sortedAndFilteredOrders.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-32 text-center text-slate-400 font-medium">
+                      Nenhuma ordem de serviço encontrada.
+                    </TableCell>
+                  </TableRow>
+                )}
             </TableBody>
           </Table>
         </CardContent>
