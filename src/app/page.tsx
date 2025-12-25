@@ -74,7 +74,7 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-8 py-8 animate-in fade-in">
+    <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-8 animate-in fade-in">
       {/* Header / Logo */}
       <header className="flex flex-col items-center gap-2 mb-4">
         <div className="flex items-baseline gap-1">

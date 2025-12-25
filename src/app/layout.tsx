@@ -27,16 +27,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body
-        className={`${plusJakartaSans.variable} font-sans antialiased bg-white`}
-      >
-        <main className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className="w-full max-w-md mx-auto">
+        <body
+          className={`${plusJakartaSans.variable} font-sans antialiased bg-white`}
+        >
+          <main className="min-h-screen flex flex-col items-center justify-center p-4">
             {children}
-          </div>
-        </main>
-        <Toaster />
-      </body>
+          </main>
+          <Toaster />
+        </body>
     </html>
   );
 }
