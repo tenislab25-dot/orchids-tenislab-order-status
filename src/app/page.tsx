@@ -5,10 +5,8 @@ import {
   Search, 
   MessageCircle, 
   Instagram, 
-  Lock,
   ChevronRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface ActionButtonProps {
   href: string;
@@ -19,7 +17,7 @@ interface ActionButtonProps {
 
 function ActionButton({ href, title, icon: Icon, external }: ActionButtonProps) {
   const content = (
-    <div className="flex items-center gap-4 p-5 rounded-2xl transition-all active:scale-[0.98] w-full text-left bg-slate-900 text-white shadow-lg shadow-slate-200">
+    <div className="flex items-center gap-4 p-6 rounded-2xl transition-all active:scale-[0.98] w-full text-left bg-slate-900 text-white shadow-lg shadow-slate-200">
       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/10">
         <Icon className="w-6 h-6" />
       </div>
@@ -47,9 +45,9 @@ function ActionButton({ href, title, icon: Icon, external }: ActionButtonProps) 
 
 export default function Home() {
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* SECTION 1 — BRAND / HEADER */}
-      <header className="flex flex-col items-center gap-4 mb-12">
+      <header className="flex flex-col items-center gap-4 mb-16">
         <div className="flex items-baseline gap-1">
           <span className="text-5xl font-extrabold tracking-tighter text-slate-900">TENIS</span>
           <span className="text-5xl font-light tracking-tighter text-blue-500">LAB</span>
@@ -60,9 +58,9 @@ export default function Home() {
         </p>
       </header>
 
-      <main className="flex-1 flex flex-col gap-10">
-        {/* SECTION 2 — PRIMARY ACTIONS (PUBLIC) */}
-        <section className="flex flex-col gap-3">
+      <main className="flex-1 flex flex-col gap-12">
+        {/* SECTION 2 — MAIN CUSTOMER ACTIONS */}
+        <section className="flex flex-col gap-4">
           <ActionButton 
             href="/consulta"
             title="Consultar pedido"
@@ -70,7 +68,7 @@ export default function Home() {
           />
           <ActionButton 
             href="https://wa.me/55XXXXXXXXXX"
-            title="Falar conosco no WhatsApp"
+            title="Falar no WhatsApp"
             icon={MessageCircle}
             external
           />
@@ -82,32 +80,16 @@ export default function Home() {
           />
         </section>
 
-        {/* SECTION 3 — SERVICE INFO */}
+        {/* SECTION 3 — SUPPORT TEXT */}
         <section className="px-4 text-center">
           <p className="text-slate-500 text-sm leading-relaxed">
-            Acompanhe seu pedido, fale conosco ou entre em contato pelo Instagram.
+            Acompanhe seu pedido ou fale conosco para mais informações.
           </p>
-        </section>
-
-        {/* SECTION 4 — ACESSO RESTRITO (INTERNAL) */}
-        <section className="mt-8 pt-8 border-t border-slate-100">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Área Restrita</h2>
-            <Link href="/login" className="w-full">
-              <Button 
-                variant="ghost" 
-                className="w-full h-12 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                Acesso interno
-              </Button>
-            </Link>
-          </div>
         </section>
       </main>
 
-      {/* FOOTER */}
-      <footer className="mt-auto pt-12 text-center">
+      {/* SECTION 7 — FOOTER */}
+      <footer className="mt-auto pt-16 text-center">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-bold">
           TENISLAB · Sneaker Laundry Service
         </p>
