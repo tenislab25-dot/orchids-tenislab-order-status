@@ -7,7 +7,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-type Status = "Recebido" | "Em serviço" | "Pronto para retirada / entrega" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -21,7 +21,7 @@ interface Order {
 
 const MOCK_ORDERS: Order[] = [
   { id: "1", osNumber: "001/2025", clientName: "João Silva", pairsCount: 2, status: "Entregue", entryDate: "2025-12-01", total: 141.00 },
-  { id: "2", osNumber: "002/2025", clientName: "Maria Oliveira", pairsCount: 1, status: "Pronto para retirada / entrega", entryDate: "2025-12-05", total: 80.00 },
+    { id: "2", osNumber: "002/2025", clientName: "Maria Oliveira", pairsCount: 1, status: "Pronto", entryDate: "2025-12-05", total: 80.00 },
   { id: "3", osNumber: "003/2025", clientName: "Pedro Santos", pairsCount: 3, status: "Em serviço", entryDate: "2025-12-10", total: 210.00 },
   { id: "4", osNumber: "004/2025", clientName: "Ana Costa", pairsCount: 1, status: "Recebido", entryDate: "2025-12-15", total: 45.00 },
   { id: "6", osNumber: "006/2025", clientName: "Carla Souza", pairsCount: 1, status: "Cancelado", entryDate: "2025-12-12", total: 65.00 },

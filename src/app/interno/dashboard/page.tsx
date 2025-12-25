@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-type Status = "Recebido" | "Em serviço" | "Pronto para retirada / entrega" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -77,7 +77,7 @@ const initialOrders: Order[] = [
     osNumber: "002/2025",
     clientName: "Maria Oliveira",
     pairsCount: 1,
-    status: "Pronto para retirada / entrega",
+      status: "Pronto",
     entryDate: "2025-12-05",
     deliveryDate: "2025-12-08",
     total: 80.00,
@@ -127,7 +127,7 @@ const initialOrders: Order[] = [
 const statusWeight: Record<Status, number> = {
   "Recebido": 1,
   "Em serviço": 0, // Should appear first or among first
-  "Pronto para retirada / entrega": 2,
+    "Pronto": 2,
   "Entregue": 3,
   "Cancelado": 4,
 };
@@ -215,7 +215,7 @@ export default function DashboardPage() {
         return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-3 py-1">Recebido</Badge>;
       case "Em serviço":
         return <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none px-3 py-1">Em serviço</Badge>;
-      case "Pronto para retirada / entrega":
+      case "Pronto":
         return <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none px-3 py-1">Pronto</Badge>;
       case "Entregue":
         return <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-100 border-none px-3 py-1">Entregue</Badge>;
@@ -311,7 +311,7 @@ export default function DashboardPage() {
                           <SelectContent>
                             <SelectItem value="Recebido">Recebido</SelectItem>
                             <SelectItem value="Em serviço">Em serviço</SelectItem>
-                            <SelectItem value="Pronto para retirada / entrega">Pronto</SelectItem>
+                              <SelectItem value="Pronto">Pronto</SelectItem>
                             <SelectItem value="Entregue">Entregue</SelectItem>
                           </SelectContent>
                         </Select>
