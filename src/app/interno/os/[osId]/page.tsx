@@ -42,7 +42,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface OrderData {
   id: string;
@@ -245,11 +245,10 @@ export default function OSViewPage() {
         return `
           <div class="label-container ${idx < itemsToPrint.length - 1 ? 'page-break' : ''}">
             <div class="header">
-              <span class="os-label">OS</span>
               <span class="os-value">${order?.os_number}</span>
             </div>
-            <div class="item-info">Item: ${item.itemNumber || (idx + 1)}</div>
-            <div class="services">Srv: ${servicesText}</div>
+            <div class="item-info">ITEM: ${item.itemNumber || (idx + 1)}</div>
+            <div class="services">SRV: ${servicesText}</div>
             <div class="dates">
               <div class="date-box">
                 <span class="date-label">ENTRADA</span>
@@ -280,44 +279,44 @@ export default function OSViewPage() {
                 padding: 0;
                 width: 80mm;
                 background: white;
+                text-align: center;
               }
               .label-container {
-                padding: 4mm;
+                padding: 3mm 4mm;
                 height: 40mm;
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
-                border-bottom: 1px dashed #eee;
+                justify-content: space-between;
               }
               .page-break {
                 page-break-after: always;
               }
               .header {
                 display: flex;
-                align-items: baseline;
-                gap: 2mm;
-                border-bottom: 2px solid black;
+                justify-content: center;
+                border-bottom: 1.5px solid black;
                 padding-bottom: 1mm;
                 margin-bottom: 1mm;
               }
-              .os-label { font-size: 10pt; font-weight: 800; }
-              .os-value { font-size: 18pt; font-weight: 900; }
+              .os-value { font-size: 18pt; font-weight: 900; line-height: 1; }
               .item-info {
-                font-size: 11pt;
+                font-size: 10pt;
                 font-weight: 800;
                 margin-bottom: 1mm;
               }
               .services {
-                font-size: 9pt;
+                font-size: 8pt;
                 font-weight: 600;
-                line-height: 1.1;
-                flex-grow: 1;
+                line-height: 1;
+                max-height: 8mm;
                 overflow: hidden;
                 text-transform: uppercase;
+                margin-bottom: 1mm;
               }
               .dates {
                 display: flex;
-                justify-content: space-between;
+                justify-content: space-around;
                 margin-top: 1mm;
                 padding-top: 1mm;
                 border-top: 1px solid black;
@@ -325,15 +324,16 @@ export default function OSViewPage() {
               .date-box {
                 display: flex;
                 flex-direction: column;
+                align-items: center;
               }
-              .date-label { font-size: 6pt; font-weight: 800; color: #666; }
+              .date-label { font-size: 6pt; font-weight: 800; color: #333; }
               .date-value { font-size: 9pt; font-weight: 800; }
               .footer {
-                font-size: 6pt;
+                font-size: 7pt;
                 text-align: center;
                 margin-top: 1mm;
-                font-weight: 800;
-                letter-spacing: 1px;
+                font-weight: 900;
+                letter-spacing: 2px;
               }
               @media print {
                 .label-container { border-bottom: none; }
@@ -376,7 +376,7 @@ export default function OSViewPage() {
         Recebido: "bg-blue-100 text-blue-700",
         "Em espera": "bg-orange-100 text-orange-700",
         "Em serviço": "bg-amber-100 text-amber-700",
-        Pronto: "bg-green-100 text-green-700",
+        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
         Entregue: "bg-slate-100 text-slate-700",
         Cancelado: "bg-red-100 text-red-700",
       };
@@ -626,44 +626,44 @@ export default function OSViewPage() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
               
               {/* Special Button for Attendance Staff */}
-              {(role === "ADMIN" || role === "ATENDENTE") && order.status === "Pronto" && (
-                <Button
-                  onClick={toggleReadyForPickup}
-                  className={`w-full h-14 rounded-2xl font-black text-xs gap-2 mb-2 transition-all shadow-lg ${
-                    order.ready_for_pickup 
-                    ? "bg-amber-100 text-amber-700 border-2 border-amber-200" 
-                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"
-                  }`}
-                >
-                  <Bell className={`w-4 h-4 ${order.ready_for_pickup ? "fill-current" : ""}`} />
-                  {order.ready_for_pickup 
-                    ? "NOTIFICADO: PRONTO P/ RETIRADA" 
-                    : "PEDIDO PRONTO P/ RETIRADA / ENTREGA HOJE"}
-                </Button>
-              )}
+            {(role === "ADMIN" || role === "ATENDENTE") && order.status === "Pronto para entrega ou retirada" && (
+              <Button
+                onClick={toggleReadyForPickup}
+                className={`w-full h-14 rounded-2xl font-black text-xs gap-2 mb-2 transition-all shadow-lg ${
+                  order.ready_for_pickup 
+                  ? "bg-amber-100 text-amber-700 border-2 border-amber-200" 
+                  : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"
+                }`}
+              >
+                <Bell className={`w-4 h-4 ${order.ready_for_pickup ? "fill-current" : ""}`} />
+                {order.ready_for_pickup 
+                  ? "NOTIFICADO: PRONTO P/ RETIRADA" 
+                  : "PEDIDO PRONTO P/ RETIRADA / ENTREGA"}
+              </Button>
+            )}
 
-                <div className="grid grid-cols-2 gap-2">
-                  {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                    <>
-                      <Button
-                        onClick={() => handleStatusUpdate("Em serviço")}
-                        variant="outline"
-                        className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                      >
-                        <Clock className="w-4 h-4 mr-2" />
-                        Em Serviço
-                      </Button>
-                      
-                      <Button
-                        onClick={() => handleStatusUpdate("Pronto")}
-                        variant="outline"
-                        className={`h-12 rounded-xl font-bold border-2 ${order.status === "Pronto" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                      >
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Pronto
-                      </Button>
-                    </>
-                  )}
+              <div className="grid grid-cols-2 gap-2">
+                {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
+                  <>
+                    <Button
+                      onClick={() => handleStatusUpdate("Em serviço")}
+                      variant="outline"
+                      className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      Em Serviço
+                    </Button>
+                    
+                    <Button
+                      onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
+                      variant="outline"
+                      className={`h-12 rounded-xl font-bold border-2 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Pronto
+                    </Button>
+                  </>
+                )}
   
                   {(role === "ADMIN" || role === "ATENDENTE") && (
                     <>

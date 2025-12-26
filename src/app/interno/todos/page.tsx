@@ -28,7 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -102,21 +102,21 @@ export default function TodosPedidosPage() {
     );
   }, [orders, search]);
 
-  const getStatusBadge = (status: Status) => {
-    const styles = {
-      Recebido: "bg-blue-100 text-blue-700",
-      "Em espera": "bg-orange-100 text-orange-700",
-      "Em serviço": "bg-amber-100 text-amber-700",
-      Pronto: "bg-green-100 text-green-700",
-      Entregue: "bg-slate-100 text-slate-700",
-      Cancelado: "bg-red-100 text-red-700",
+    const getStatusBadge = (status: Status) => {
+      const styles = {
+        Recebido: "bg-blue-100 text-blue-700",
+        "Em espera": "bg-orange-100 text-orange-700",
+        "Em serviço": "bg-amber-100 text-amber-700",
+        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+        Entregue: "bg-slate-100 text-slate-700",
+        Cancelado: "bg-red-100 text-red-700",
+      };
+      return (
+        <Badge className={`${styles[status]} border-none px-3 py-1`}>
+          {status}
+        </Badge>
+      );
     };
-    return (
-      <Badge className={`${styles[status]} border-none px-3 py-1`}>
-        {status}
-      </Badge>
-    );
-  };
 
   return (
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
