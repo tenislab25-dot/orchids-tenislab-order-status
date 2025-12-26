@@ -8,15 +8,16 @@ import {
   Package,
   Eye,
   Plus,
-    Bell,
-    CheckCircle2,
-    Calendar,
-    User as UserIcon,
-    DollarSign,
-    Database,
-    History,
-    ArrowRight
-  } from "lucide-react";
+  Bell,
+  CheckCircle2,
+  Calendar,
+  User as UserIcon,
+  DollarSign,
+  Database,
+  History,
+  ArrowRight,
+  Download
+} from "lucide-react";
 
 
 import {
@@ -74,6 +75,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
@@ -115,6 +117,67 @@ export default function DashboardPage() {
       setOrders(dashboardOrders as Order[]);
     }
     setLoading(false);
+  };
+
+  const handleExportCSV = async (type: 'clients' | 'services' | 'finance') => {
+    setExporting(true);
+    try {
+      let data: any[] = [];
+      let filename = "";
+
+      if (type === 'clients') {
+        const { data: clients, error } = await supabase.from('clients').select('*');
+        if (error) throw error;
+        data = clients || [];
+        filename = "backup_clientes_tenislab.csv";
+      } else if (type === 'services') {
+        const { data: services, error } = await supabase.from('services').select('*');
+        if (error) throw error;
+        data = services || [];
+        filename = "backup_servicos_tenislab.csv";
+      } else if (type === 'finance') {
+        const { data: orders, error } = await supabase
+          .from('service_orders')
+          .select('*, clients(name)');
+        if (error) throw error;
+        data = (orders || []).map(o => ({
+          os: o.os_number,
+          cliente: o.clients?.name,
+          data: o.entry_date,
+          status: o.status,
+          total: o.total,
+          metodo_pagamento: o.payment_method
+        }));
+        filename = "backup_financeiro_tenislab.csv";
+      }
+
+      if (data.length === 0) {
+        toast.error("Sem dados para exportar");
+        return;
+      }
+
+      const headers = Object.keys(data[0]).join(",");
+      const rows = data.map(obj => 
+        Object.values(obj)
+          .map(val => `"${String(val).replace(/"/g, '""')}"`)
+          .join(",")
+      );
+      const csvContent = "\uFEFF" + [headers, ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success(`Backup de ${type} exportado!`);
+    } catch (error: any) {
+      toast.error("Erro ao exportar: " + error.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleStatusChange = async (orderId: string, newStatus: Status) => {
@@ -389,37 +452,81 @@ export default function DashboardPage() {
                     ))}
                     <TableRow className="bg-slate-50/30">
                       <TableCell colSpan={7} className="py-6 px-8">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            Mostrando as 20 ordens mais recentes
-                          </p>
-                            {(role === "ADMIN" || role === "ATENDENTE") && (
-                                <div className="flex gap-3">
-                                  <Link href="/interno/todos">
-                                    <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                      <History className="w-3.5 h-3.5" />
-                                      Ver Todos os Pedidos
-                                      <ArrowRight className="w-3.5 h-3.5" />
-                                    </Button>
-                                  </Link>
-                                  <Link href="/interno/banco-de-dados">
-                                    <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                      <Database className="w-3.5 h-3.5" />
-                                      Banco de Dados (Arquivo)
-                                    </Button>
-                                  </Link>
-                                </div>
-                              )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                              Mostrando as 20 ordens mais recentes
+                            </p>
+                              {(role === "ADMIN" || role === "ATENDENTE") && (
+                                  <div className="flex gap-3">
+                                    <Link href="/interno/todos">
+                                      <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                        <History className="w-3.5 h-3.5" />
+                                        Ver Todos os Pedidos
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </Link>
+                                  </div>
+                                )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* BACKUP SECTION */}
+        {(role === "ADMIN") && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-2 mb-4">
+              <Database className="w-5 h-5 text-slate-400" />
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Backup do Sistema (CSV)</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                variant="outline" 
+                disabled={exporting}
+                onClick={() => handleExportCSV('clients')}
+                className="h-16 rounded-2xl bg-white border-slate-200 hover:bg-slate-50 font-bold gap-3 shadow-sm"
+              >
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                  <UserIcon className="w-4 h-4" />
+                </div>
+                Backup Clientes
+                <Download className="w-4 h-4 ml-auto opacity-30" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                disabled={exporting}
+                onClick={() => handleExportCSV('services')}
+                className="h-16 rounded-2xl bg-white border-slate-200 hover:bg-slate-50 font-bold gap-3 shadow-sm"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <Package className="w-4 h-4" />
+                </div>
+                Backup Serviços
+                <Download className="w-4 h-4 ml-auto opacity-30" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                disabled={exporting}
+                onClick={() => handleExportCSV('finance')}
+                className="h-16 rounded-2xl bg-white border-slate-200 hover:bg-slate-50 font-bold gap-3 shadow-sm"
+              >
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                Backup Financeiro
+                <Download className="w-4 h-4 ml-auto opacity-30" />
+              </Button>
+            </div>
+          </section>
+        )}
 
       <footer className="mt-auto text-center pt-8 opacity-30">
         <p className="text-slate-900 text-[10px] uppercase tracking-[0.3em] font-black">
