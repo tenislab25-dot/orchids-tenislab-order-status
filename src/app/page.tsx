@@ -68,20 +68,20 @@ export default function Home() {
             icon={Search}
           />
           <ActionButton 
-            href="https://wa.me/55XXXXXXXXXX"
+            href="https://wa.me/5582999438997"
             title="Falar no WhatsApp"
             icon={MessageCircle}
             external
           />
           <ActionButton 
-            href="https://instagram.com/tenislab"
+            href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             title="Instagram"
             icon={Instagram}
             external
           />
           <ActionButton 
             href="https://maps.google.com/?q=TENISLAB+Maceio"
-            title="Como chegar (Maps)"
+            title="Como chegar"
             icon={MapPin}
             external
           />
@@ -92,13 +92,6 @@ export default function Home() {
           <p className="text-slate-500 text-sm leading-relaxed">
             Acompanhe seu pedido ou fale conosco para mais informações.
           </p>
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nosso Endereço</span>
-            <p className="text-slate-600 text-sm font-medium">
-              Rua Prof. Sandoval Arroxelas, 810<br />
-              Ponta Verde, Maceió - AL
-            </p>
-          </div>
         </section>
       </main>
 
