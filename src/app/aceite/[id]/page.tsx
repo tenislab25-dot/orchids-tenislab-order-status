@@ -48,20 +48,60 @@ const MOCK_OS = {
 const TERMS_TEXT = `
 TERMOS DE SERVIÇO E GARANTIA - TENISLAB
 
-1. OBJETO DO SERVIÇO
-A TENISLAB compromete-se a realizar os serviços de cuidado, limpeza e restauração de calçados conforme descritos nesta Ordem de Serviço.
+1. Condições Gerais
+Ao autorizar o serviço de higienização, restauração, pintura ou qualquer outro procedimento oferecido pela TênisLab, o(a) cliente declara estar ciente e de acordo com os seguintes termos.
 
-2. ESTADO DO PRODUTO
-O cliente declara que as fotos e observações anexadas representam o estado atual do calçado. A TENISLAB não se responsabiliza por danos pré-existentes não identificados ou desgaste natural decorrente do uso após o serviço.
+2. Avaliação e Execução dos Serviços
+Todos os serviços são realizados com produtos profissionais e técnicas específicas para cada tipo de material. Caso o calçado apresente desgaste, manchas antigas, oxidação, descolamentos, desbotamentos, rasgos ou falhas de colagem, a TênisLab não se responsabiliza por danos preexistentes ou resultados parciais decorrentes do estado do material.
 
-3. PRAZOS
-O prazo de entrega é uma estimativa. Eventuais atrasos por motivos de força maior ou complexidade do serviço serão comunicados.
+3. Manchas, Oxidações e Desgastes Permanentes
+Alguns tipos de manchas, oxidações e desbotamentos podem ser irreversíveis e não podem ser totalmente removidos, mesmo com o uso das melhores técnicas e produtos disponíveis. A equipe TênisLab compromete-se a empregar o máximo esforço técnico para amenizar esses danos, mas não garante a remoção completa.
 
-4. GARANTIA
-Oferecemos garantia de 30 dias para serviços de pintura e costura. A garantia não cobre danos por uso inadequado, contato com produtos químicos ou lavagem doméstica.
+4. Prazos de Entrega
+Os prazos informados (5 dias úteis, 72h ou 24h Express) começam a contar a partir da coleta do calçado. Situações excepcionais — como secagem prolongada, condições climáticas desfavoráveis ou intercorrências no processo — poderão prorrogar o prazo, mediante comunicação prévia ao cliente.
 
-5. RETIRADA
-Calçados não retirados em até 90 dias após a comunicação de finalização poderão ser doados para instituições de caridade.
+5. Coleta, Entrega e Armazenamento
+A coleta e entrega são realizadas mediante taxa fixa previamente informada. Após a conclusão do serviço, o cliente será comunicado. Calçados não retirados em até 30 dias poderão ser destinados ao descarte ou doação, conforme previsto em direito de guarda temporária.
+
+6. Responsabilidade Limitada
+A TênisLab utiliza produtos e técnicas profissionais que preservam ao máximo a integridade dos materiais. Ainda assim, devido à diversidade de tecidos, composições químicas e ao desgaste natural dos calçados, podem ocorrer alterações leves de tonalidade, textura ou brilho, especialmente em materiais sensíveis ou já oxidados. Essas variações são naturais do processo de higienização e restauração profissional e não configuram dano ao produto.
+
+A TênisLab não se responsabiliza por:
+• Descolamentos ou falhas estruturais decorrentes de colas antigas ou materiais frágeis;
+• Manchas, rachaduras ou desbotamentos pré-existentes;
+• Danos decorrentes de infiltração, mofo, oxidação ou uso inadequado anterior.
+
+7. Autorização de Imagem
+O cliente autoriza, caso concorde, o uso de imagens “antes e depois” dos serviços prestados, exclusivamente para divulgação no perfil @tenislabr e em materiais promocionais da marca.
+
+8. Aceite e Concordância
+O envio do calçado para serviço, bem como a assinatura ou aceite digital da Ordem de Serviço, configuram concordância integral com esta cláusula contratual.
+
+---
+
+TERMO DE GARANTIA
+
+Garantia válida por: 30 dias após a entrega do serviço.
+
+A TenisLab oferece garantia contratual para os seguintes serviços:
+
+1. Pintura de Solado / Cabedal
+Cobertura: descascamento da tinta por falha de aplicação, manchamento causado por erro técnico, diferença evidente de tonalidade decorrente do processo de pintura.
+Não cobre: danos causados por atrito excessivo, uso inadequado, contato com produtos químicos, calor, água em excesso ou desgaste natural. riscos, cortes, dobras ou abrasão gerados pelo uso.
+
+2. Colagem
+Cobertura: descolamento em áreas reparadas pela TenisLab causado por falha técnica.
+Não cobre: descolamentos novos em regiões não reparadas, danos por calor excessivo, água, lavagem inadequada ou uso indevido do calçado.
+
+3. Clareamento de Midsole / Entressola
+Cobertura: retorno acelerado do amarelado quando ocorrer por falha no processo de limpeza ou neutralização.
+Importante: o clareamento não impede o processo natural de oxidação do material. dependendo do grau de oxidação, o resultado pode variar e não é garantido como “permanente”.
+
+Condições gerais da garantia
+• A garantia só é aplicada mediante apresentação do calçado e análise técnica da TenisLab.
+• Não cobre danos físicos causados após o uso, quedas, atrito forte, impactos, contato com substâncias químicas ou tentativa de reparo por terceiros.
+• Caso seja comprovada falha técnica, o serviço será refeito sem custo dentro do prazo da garantia.
+• Caso seja constatado mau uso, o cliente poderá solicitar o serviço novamente, porém será cobrado normalmente.
 `;
 
 export default function CustomerAcceptancePage() {
@@ -384,7 +424,7 @@ export default function CustomerAcceptancePage() {
       {/* Footer */}
       <footer className="py-12 text-center bg-white flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          © 2025 TENISLAB
+          tenislab o laboratorio do seu tenis
         </p>
       </footer>
     </div>

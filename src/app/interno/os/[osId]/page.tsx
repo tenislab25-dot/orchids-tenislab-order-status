@@ -49,6 +49,7 @@ interface OSData {
   items: OSItem[];
   cancellationReason?: string;
   cancellationDate?: string;
+  createdBy: string; // ID or name of the employee who created the OS
 }
 
 // Mock function to get OS data
@@ -65,6 +66,7 @@ const getOSMockData = (osId: string): OSData => {
       entryDate: "2025-12-12",
       cancellationReason: "Cliente desistiu do serviço por conta do prazo.",
       cancellationDate: "2025-12-13",
+      createdBy: "func_123",
       items: [
         {
           id: "item1",
@@ -83,6 +85,7 @@ const getOSMockData = (osId: string): OSData => {
     status: "Em serviço",
     entryDate: "2025-12-20",
     deliveryDate: "2025-12-27",
+    createdBy: "func_123",
     items: [
       {
         id: "item1",
@@ -106,17 +109,21 @@ export default function OSViewPage() {
   const params = useParams();
   const osId = params.osId as string;
   
-  const [role, setRole] = useState<string | null>(null);
-  const [osData, setOsData] = useState<OSData | null>(null);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [cancellationReason, setCancellationReason] = useState("");
-
-  useEffect(() => {
-    setRole(localStorage.getItem("tenislab_role"));
-    setOsData(getOSMockData(osId));
-  }, [osId]);
-
-  const isReasonValid = cancellationReason.trim().length >= 10;
+    const [role, setRole] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [osData, setOsData] = useState<OSData | null>(null);
+    const [cancelModalOpen, setCancelModalOpen] = useState(false);
+    const [cancellationReason, setCancellationReason] = useState("");
+  
+    useEffect(() => {
+      setRole(localStorage.getItem("tenislab_role"));
+      setCurrentUserId(localStorage.getItem("tenislab_user_id") || "func_123"); // Mock fallback
+      setOsData(getOSMockData(osId));
+    }, [osId]);
+  
+    const isReasonValid = cancellationReason.trim().length >= 10;
+  
+    const canCancel = role === "ADMIN" || (role === "ATENDENTE" && osData?.createdBy === currentUserId);
 
   const handleCancelClick = () => {
     setCancelModalOpen(true);
@@ -302,20 +309,20 @@ export default function OSViewPage() {
           </section>
         )}
 
-        {/* SECTION 4 — ACTIONS */}
-        <div className="flex flex-col gap-3 mt-4">
-          {/* CANCEL BUTTON: Visible for Admin/Atendente if status is not Entregue/Cancelado */}
-          {(role === "ADMIN" || role === "ATENDENTE") && 
-           osData.status !== "Entregue" && 
-           osData.status !== "Cancelado" && (
-            <Button 
-              onClick={handleCancelClick}
-              className="w-full h-14 rounded-2xl bg-white border-2 border-red-200 hover:bg-red-50 text-red-600 font-black shadow-sm transition-all active:scale-[0.97] flex items-center gap-2"
-            >
-              <AlertTriangle className="w-5 h-5" />
-              ❌ Cancelar Ordem de Serviço
-            </Button>
-          )}
+          {/* SECTION 4 — ACTIONS */}
+          <div className="flex flex-col gap-3 mt-4">
+            {/* CANCEL BUTTON: Visible for Admin/Atendente if status is not Entregue/Cancelado */}
+            {canCancel && 
+             osData.status !== "Entregue" && 
+             osData.status !== "Cancelado" && (
+              <Button 
+                onClick={handleCancelClick}
+                className="w-full h-14 rounded-2xl bg-white border-2 border-red-200 hover:bg-red-50 text-red-600 font-black shadow-sm transition-all active:scale-[0.97] flex items-center gap-2"
+              >
+                <AlertTriangle className="w-5 h-5" />
+                ❌ Cancelar Ordem de Serviço
+              </Button>
+            )}
 
           <Link href="/interno/dashboard" className="w-full">
             <Button 

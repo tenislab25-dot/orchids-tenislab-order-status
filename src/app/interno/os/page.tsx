@@ -37,26 +37,30 @@ import { Separator } from "@/components/ui/separator";
 // MOCKED SERVICES CATALOG
 const SERVICE_CATALOG = {
   "Higienização": [
-    { id: "h1", name: "Limpeza Standard", price: 60 },
-    { id: "h2", name: "Limpeza Premium", price: 90 },
-    { id: "h3", name: "Ozonização", price: 30 },
+    { id: "1", name: "Higienização Basic", price: 38 },
+    { id: "2", name: "Higienização Basic - 24h", price: 85 },
+    { id: "3", name: "Higienização Basic - 72h", price: 55 },
+    { id: "4", name: "Higienização Pro", price: 55 },
+    { id: "5", name: "Higienização Pro - 24h", price: 110 },
+    { id: "6", name: "Higienização Pro - 72h", price: 70 },
+    { id: "7", name: "Higienização Premium", price: 70 },
+    { id: "8", name: "Higienização Premium - 24h", price: 125 },
+    { id: "9", name: "Higienização Premium - 72h", price: 85 },
   ],
   "Pintura": [
-    { id: "p1", name: "Retoque de Pintura", price: 45 },
-    { id: "p2", name: "Personalização Completa", price: 150 },
-    { id: "p3", name: "Pintura de Entressola", price: 80 },
+    { id: "10", name: "Pintura Parcial", price: 85 },
+    { id: "11", name: "Pintura Completa", price: 120 },
   ],
   "Costura": [
-    { id: "c1", name: "Reforço Interno", price: 40 },
-    { id: "c2", name: "Costura de Sola (Blaqueação)", price: 70 },
+    { id: "12", name: "Costura Cabedal", price: 75 },
   ],
   "Restauração": [
-    { id: "r1", name: "Colagem Reversível", price: 50 },
-    { id: "r2", name: "Hidratação de Couro", price: 35 },
+    { id: "13", name: "Clareamento da Mid (Entre Sola)", price: 80 },
+    { id: "14", name: "Colagem Simples", price: 70 },
+    { id: "15", name: "Remoção de Crease", price: 30 },
   ],
   "Extra / Avulso": [
-    { id: "e1", name: "Troca de Cadarço", price: 20 },
-    { id: "e2", name: "Palmilha Ortopédica", price: 45 },
+    { id: "16", name: "Impermeabilização", price: 25 },
   ]
 };
 
