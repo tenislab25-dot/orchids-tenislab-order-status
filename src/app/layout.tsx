@@ -9,8 +9,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "TENISLAB | Consulta de Pedido",
-  description: "Consulte o status da sua ordem de serviço na TENISLAB.",
+  title: "tenislab. | Consulta de Pedido",
+  description: "Consulte o status da sua ordem de serviço na tenislab.",
 };
 
 export const viewport: Viewport = {

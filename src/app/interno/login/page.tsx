@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail, AlertCircle } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -56,15 +57,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm flex flex-col gap-10">
         {/* SECTION 1 — BRAND */}
           <header className="flex flex-col items-center gap-6">
-            <div className="relative w-40 h-20">
-              <Image 
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-                alt="TENISLAB Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Logo width={160} height={80} variant="black" />
           <div className="h-px w-12 bg-slate-200" />
           <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">
             Acesso interno ao sistema
@@ -136,7 +129,7 @@ export default function LoginPage() {
           {/* SECTION 7 — FOOTER */}
           <CardFooter className="flex justify-center border-t border-slate-50 bg-slate-50/30 py-6">
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 text-center px-4">
-              Uso exclusivo da equipe TENISLAB
+              Uso exclusivo da equipe tenislab.
             </p>
           </CardFooter>
         </Card>

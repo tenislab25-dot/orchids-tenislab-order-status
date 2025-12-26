@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const TERMS_TEXT = `
-TERMOS DE SERVIÇO E GARANTIA - TENISLAB
+TERMOS DE SERVIÇO E GARANTIA - tenislab.
 
 1. Condições Gerais
 Ao autorizar o serviço de higienização, restauração, pintura ou qualquer outro procedimento oferecido pela TênisLab, o(a) cliente declara estar ciente e de acordo com os seguintes termos.
@@ -388,7 +388,7 @@ export default function CustomerAcceptancePage() {
               className="h-6 w-6 rounded-lg border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 shrink-0 mt-0.5"
             />
             <label htmlFor="terms" className="text-xs font-bold text-slate-700 leading-snug cursor-pointer select-none">
-              Li e concordo com os termos de serviço e garantia da TENISLAB.
+              Li e concordo com os termos de serviço e garantia da tenislab.
             </label>
           </div>
         </section>
@@ -422,7 +422,7 @@ export default function CustomerAcceptancePage() {
 
       <footer className="py-12 text-center bg-white flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          tenislab o laboratorio do seu tenis
+          tenislab. o laboratório do seu tênis
         </p>
       </footer>
     </div>

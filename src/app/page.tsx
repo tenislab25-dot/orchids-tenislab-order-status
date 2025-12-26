@@ -127,7 +127,7 @@ export default function Home() {
       {/* SECTION 7 — FOOTER */}
       <footer className="mt-auto pt-16 pb-8 text-center flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-bold">
-          tenislab o laboratorio do seu tenis
+          tenislab. o laboratório do seu tênis
         </p>
       </footer>
     </div>

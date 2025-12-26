@@ -48,9 +48,9 @@ const statusConfig = {
     icon: Truck,
     color: "text-slate-500",
     bg: "bg-slate-50",
-    message: "Pedido finalizado. Obrigado por confiar na TENISLAB.",
-  },
-  Cancelado: {
+      message: "Pedido finalizado. Obrigado por confiar na tenislab.",
+    },
+    Cancelado: {
     icon: AlertCircle,
     color: "text-red-500",
     bg: "bg-red-50",
@@ -275,7 +275,7 @@ export default function StatusPage() {
 
       <footer className="mt-auto pt-12 text-center pb-8 flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          © 2025 TENISLAB
+          tenislab. o laboratório do seu tênis
         </p>
       </footer>
     </div>
