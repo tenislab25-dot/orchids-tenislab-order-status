@@ -360,17 +360,17 @@ export default function OSPage() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <Link href="/interno/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10">
+        <div className="grid grid-cols-3 items-center max-w-md mx-auto">
+          <Link href="/interno/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           
-            <h1 className="font-black text-xl">TENISLAB</h1>
-
-          <div className="text-right">
-            <span className="text-[10px] uppercase tracking-widest text-white/50 block">OS</span>
+          <div className="text-center">
+            <span className="text-[10px] uppercase tracking-widest text-white/50 block font-bold">OS</span>
             <h1 className="text-lg font-black tracking-tighter">#{osNumber}</h1>
           </div>
+
+          <div />
         </div>
       </header>
 

@@ -265,19 +265,19 @@ export default function OSViewPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <Link href="/interno/dashboard">
+      <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
+        <div className="grid grid-cols-3 items-center max-w-md mx-auto">
+          <Link href="/interno/dashboard" className="w-fit">
             <Button variant="ghost" size="icon" className="rounded-full -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>
           </Link>
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center text-center">
             <h1 className="text-sm font-bold text-slate-900 leading-none">Detalhes da OS</h1>
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{order.os_number}</span>
           </div>
+          <div />
         </div>
-        <h1 className="font-black text-xl">TENISLAB</h1>
       </header>
 
       <main className="max-w-md mx-auto p-4 flex flex-col gap-5 animate-in fade-in duration-500">
