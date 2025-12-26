@@ -9,8 +9,17 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "tenislab. | Consulta de Pedido",
-  description: "Consulte o status da sua ordem de serviço na tenislab.",
+  title: "TENISLAB | O Laboratório do seu Tênis",
+  description: "Higienização, restauração e cuidado especializado para seus tênis. Acompanhe seu pedido online.",
+  metadataBase: new URL("https://www.tenislab.app.br"),
+  openGraph: {
+    title: "TENISLAB | O Laboratório do seu Tênis",
+    description: "Higienização, restauração e cuidado especializado para seus tênis.",
+    url: "https://www.tenislab.app.br",
+    siteName: "TENISLAB",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
