@@ -9,13 +9,15 @@ import {
   Package,
     User,
     Phone,
-    CheckCircle2, 
-    Clock, 
-    Truck, 
-    Bell, 
-    Printer,
-    Share2
-    } from "lucide-react";
+  CheckCircle2, 
+  Clock, 
+  Truck, 
+  Bell, 
+  Printer,
+  Share2,
+  Search,
+  X
+} from "lucide-react";
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
   import { Badge } from "@/components/ui/badge";
@@ -77,6 +79,7 @@ export default function OSViewPage() {
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
     
     const handleShareLink = () => {
@@ -520,15 +523,22 @@ export default function OSViewPage() {
                   </CardHeader>
 
                 <CardContent className="p-6 space-y-6">
-                  {item.photos && item.photos.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 pb-2">
-                      {item.photos.map((photo: string, pIdx: number) => (
-                        <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200">
-                          <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    {item.photos && item.photos.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 pb-2">
+                        {item.photos.map((photo: string, pIdx: number) => (
+                          <div 
+                            key={pIdx} 
+                            className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group"
+                            onClick={() => setSelectedImage(photo)}
+                          >
+                            <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Search className="w-6 h-6 text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   <div className="space-y-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços</span>
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
@@ -834,10 +844,35 @@ export default function OSViewPage() {
               <Button variant="ghost" onClick={() => setCancelModalOpen(false)}>Voltar</Button>
               <Button onClick={confirmCancel} className="bg-red-600 text-white">Confirmar Cancelamento</Button>
             </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-      </main>
-    </div>
-  );
-}
+            </DialogContent>
+          </Dialog>
+  
+          {/* IMAGE LIGHTBOX */}
+          <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+            <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+              {selectedImage && (
+                <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
+                  <div className="absolute top-4 right-4 z-50">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
+                      onClick={() => setSelectedImage(null)}
+                    >
+                      <X className="w-6 h-6" />
+                    </Button>
+                  </div>
+                  <img 
+                    src={selectedImage} 
+                    alt="Visualização ampliada" 
+                    className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                  />
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+  
+        </main>
+      </div>
+    );
+  }
