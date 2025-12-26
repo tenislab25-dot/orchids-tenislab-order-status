@@ -259,7 +259,7 @@ export default function StatusPage() {
 
       <footer className="mt-auto pt-12 text-center pb-8 flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          © 2025 TENISLAB
+          TENISLAB — O LABORATÓRIO DO SEU TÊNIS
         </p>
       </footer>
     </div>
