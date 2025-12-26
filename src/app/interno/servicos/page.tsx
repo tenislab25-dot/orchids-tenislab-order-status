@@ -61,7 +61,7 @@ export default function ServicesManagement() {
               <ArrowLeft className="w-4 h-4" />
               Voltar ao Painel
             </Link>
-            <Logo variant="black" width={120} height={60} />
+            <Logo variant="white" width={120} height={60} />
           </div>
 
           <div className="flex justify-between items-end">

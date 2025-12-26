@@ -14,6 +14,7 @@ import {
   Phone,
   Search
 } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -161,14 +162,7 @@ export default function CustomerAcceptancePage() {
   if (order.status === "Cancelado") {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="relative w-32 h-16 mb-8">
-          <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-            alt="TENISLAB Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
+        <Logo width={160} height={80} variant="black" className="mb-8" />
         <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
           <ShieldCheck className="w-12 h-12 text-red-500" />
         </div>
@@ -190,14 +184,7 @@ export default function CustomerAcceptancePage() {
   if (isConfirmed) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
-        <div className="relative w-32 h-16 mb-8">
-          <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-            alt="TENISLAB Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
+        <Logo width={160} height={80} variant="black" className="mb-8" />
         <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
           <CheckCircle2 className="w-12 h-12 text-green-500" />
         </div>
@@ -227,14 +214,7 @@ export default function CustomerAcceptancePage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
-        <div className="relative w-32 h-12">
-          <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-            alt="TENISLAB Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
+        <Logo width={120} height={48} variant="black" />
         <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">
           Confira os detalhes do seu serviço antes de confirmar
         </p>

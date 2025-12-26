@@ -9,9 +9,9 @@ interface LogoProps {
   height?: number;
 }
 
-// Current logo URLs (to be updated when user provides new ones)
-const LOGO_BLACK = "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain";
-const LOGO_WHITE = "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain";
+// Current logo URLs (Provided by user)
+const LOGO_BLACK = "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8894-1766764763314.PNG?width=8000&height=8000&resize=contain";
+const LOGO_WHITE = "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8897-1766764763326.PNG?width=8000&height=8000&resize=contain";
 
 export function Logo({ variant = "black", className, width = 160, height = 80 }: LogoProps) {
   const src = variant === "black" ? LOGO_BLACK : LOGO_WHITE;
