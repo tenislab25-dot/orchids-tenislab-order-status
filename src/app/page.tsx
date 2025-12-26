@@ -124,6 +124,12 @@ export default function Home() {
 
       {/* SECTION 7 — FOOTER */}
       <footer className="mt-auto pt-16 pb-8 text-center flex flex-col gap-4">
+        <Link 
+          href="/interno/login"
+          className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors mb-2"
+        >
+          Acesso Restrito
+        </Link>
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-bold">
           tenislab. o laboratório do seu tênis
         </p>
