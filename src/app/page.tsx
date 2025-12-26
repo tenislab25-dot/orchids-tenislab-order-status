@@ -5,7 +5,8 @@ import {
   Search, 
   MessageCircle, 
   Instagram, 
-  ChevronRight
+  ChevronRight,
+  MapPin
 } from "lucide-react";
 
 interface ActionButtonProps {
@@ -78,13 +79,26 @@ export default function Home() {
             icon={Instagram}
             external
           />
+          <ActionButton 
+            href="https://maps.google.com/?q=TENISLAB+Maceio"
+            title="Como chegar (Maps)"
+            icon={MapPin}
+            external
+          />
         </section>
 
         {/* SECTION 3 — SUPPORT TEXT */}
-        <section className="px-4 text-center">
+        <section className="px-4 text-center flex flex-col gap-4">
           <p className="text-slate-500 text-sm leading-relaxed">
             Acompanhe seu pedido ou fale conosco para mais informações.
           </p>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nosso Endereço</span>
+            <p className="text-slate-600 text-sm font-medium">
+              Rua Prof. Sandoval Arroxelas, 810<br />
+              Ponta Verde, Maceió - AL
+            </p>
+          </div>
         </section>
       </main>
 
