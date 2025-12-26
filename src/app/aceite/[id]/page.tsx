@@ -88,7 +88,7 @@ export default function CustomerAcceptancePage() {
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
           <div className="relative w-32 h-16 mb-8">
             <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
               alt="TENISLAB Logo"
               fill
               className="object-contain"
@@ -117,7 +117,7 @@ export default function CustomerAcceptancePage() {
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
           <div className="relative w-32 h-16 mb-8">
             <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
               alt="TENISLAB Logo"
               fill
               className="object-contain"
@@ -146,15 +146,11 @@ export default function CustomerAcceptancePage() {
             Acompanhar status do pedido
           </Button>
           
-          <footer className="mt-12 flex flex-col items-center gap-4">
-            <div className="flex flex-col gap-1 text-slate-500 font-medium text-xs">
-              <span>82 99943-8997</span>
-              <span>@tenislabr</span>
-            </div>
-            <p className="text-[10px] text-slate-300 uppercase tracking-[0.2em] font-bold">
-              © 2025 TENISLAB • O laboratório do seu tênis
-            </p>
-          </footer>
+            <footer className="mt-12 flex flex-col items-center gap-4">
+              <p className="text-[10px] text-slate-300 uppercase tracking-[0.2em] font-bold">
+                © 2025 TENISLAB
+              </p>
+            </footer>
         </div>
       );
     }
@@ -165,7 +161,7 @@ export default function CustomerAcceptancePage() {
       <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
         <div className="relative w-32 h-12">
           <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
             alt="TENISLAB Logo"
             fill
             className="object-contain"
@@ -387,12 +383,8 @@ export default function CustomerAcceptancePage() {
 
       {/* Footer */}
       <footer className="py-12 text-center bg-white flex flex-col gap-4">
-        <div className="flex flex-col gap-1 text-slate-500 font-medium text-sm">
-          <span>82 99943-8997</span>
-          <span>@tenislabr</span>
-        </div>
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          © 2025 TENISLAB • O laboratório do seu tênis
+          © 2025 TENISLAB
         </p>
       </footer>
     </div>

@@ -240,14 +240,13 @@ export default function StatusPage() {
       <header className="flex flex-col items-center gap-6 mb-4">
         <div className="relative w-40 h-20">
           <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
             alt="TENISLAB Logo"
             fill
             className="object-contain"
             priority
           />
         </div>
-        <p className="text-slate-500 text-sm font-medium">O laboratório do seu tênis</p>
       </header>
 
       <Suspense fallback={
@@ -259,12 +258,8 @@ export default function StatusPage() {
       </Suspense>
 
       <footer className="mt-auto pt-12 text-center pb-8 flex flex-col gap-4">
-        <div className="flex flex-col gap-1 text-slate-500 font-medium text-sm">
-          <span>82 99943-8997</span>
-          <span>@tenislabr</span>
-        </div>
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          © 2025 TENISLAB • O laboratório do seu tênis
+          © 2025 TENISLAB
         </p>
       </footer>
     </div>
