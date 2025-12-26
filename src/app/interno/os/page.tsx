@@ -632,26 +632,39 @@ export default function OSPage() {
                   <span className="text-white/70 font-medium">Taxa de entrega</span>
                   <span className="font-bold">R$ {Number(deliveryFee).toFixed(2)}</span>
                 </div>
-                <div className="flex flex-col gap-3 pt-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
-                  <div className="flex gap-2">
-                    {[0, 5, 8, 10].map((p) => (
-                      <Button 
-                        key={p}
-                        variant={discountPercent === p ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDiscountPercent(p)}
-                        className={`flex-1 rounded-xl border-white/20 h-10 ${
-                          discountPercent === p 
-                          ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
-                          : "bg-transparent text-white hover:bg-white/10"
-                        }`}
-                      >
-                        {p}%
-                      </Button>
-                    ))}
+                  <div className="flex flex-col gap-3 pt-3">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
+                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                      {[0, 5, 8, 10, 15, 20].map((p) => (
+                        <Button 
+                          key={p}
+                          variant={discountPercent === p ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setDiscountPercent(p)}
+                          className={`min-w-[50px] flex-1 rounded-xl border-white/20 h-10 ${
+                            discountPercent === p 
+                            ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
+                            : "bg-transparent text-white hover:bg-white/10"
+                          }`}
+                        >
+                          {p}%
+                        </Button>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 bg-white/5 p-3 rounded-2xl border border-white/10">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">Personalizado</span>
+                      <div className="relative flex-1">
+                        <Input 
+                          type="number"
+                          placeholder="%"
+                          value={discountPercent || ""}
+                          onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                          className="h-10 bg-white/10 border-white/10 text-white placeholder:text-white/20 rounded-xl pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold">%</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
                 {discountValue > 0 && (
                   <div className="flex justify-between items-center text-sm text-red-400 font-bold pt-2">
                     <span>Desconto ({discountPercent}%)</span>

@@ -38,6 +38,8 @@ interface Order {
   entry_date: string;
   total: number;
   payment_method: string;
+  pay_on_entry: boolean;
+  payment_confirmed: boolean;
   clients: {
     name: string;
   } | null;
@@ -47,6 +49,7 @@ export default function FinanceiroPage() {
   const [role, setRole] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"confirmados" | "projecao">("confirmados");
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
@@ -67,6 +70,8 @@ export default function FinanceiroPage() {
         entry_date,
         total,
         payment_method,
+        pay_on_entry,
+        payment_confirmed,
         clients (
           name
         )
@@ -82,12 +87,14 @@ export default function FinanceiroPage() {
   };
 
     const stats = useMemo(() => {
-      const delivered = orders.filter(o => o.status === "Entregue");
-      const totalCash = delivered.reduce((acc, o) => acc + Number(o.total || 0), 0);
+      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+      const totalCash = confirmedOrders.reduce((acc, o) => acc + Number(o.total || 0), 0);
 
       const projectedRevenue = orders
-        .filter(o => o.status !== "Cancelado" && o.status !== "Entregue")
+        .filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
         .reduce((acc, o) => acc + Number(o.total || 0), 0);
+
+      const totalProjected = totalCash + projectedRevenue;
 
       const lostRevenue = orders
         .filter(o => o.status === "Cancelado")
@@ -100,14 +107,15 @@ export default function FinanceiroPage() {
 
       // Payment method breakdown
       const paymentBreakdown: Record<string, number> = {};
-      delivered.forEach(o => {
+      confirmedOrders.forEach(o => {
         const method = o.payment_method || "Não informado";
         paymentBreakdown[method] = (paymentBreakdown[method] || 0) + Number(o.total || 0);
       });
 
       // Status distribution
-      const statusDistribution: Record<Status, number> = {
+      const statusDistribution: Record<string, number> = {
         Recebido: 0,
+        "Em espera": 0,
         "Em serviço": 0,
         Pronto: 0,
         Entregue: 0,
@@ -119,7 +127,7 @@ export default function FinanceiroPage() {
         }
       });
 
-      return { totalCash, projectedRevenue, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
+      return { totalCash, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
     }, [orders]);
 
   if (role !== "ADMIN") {
@@ -174,44 +182,44 @@ export default function FinanceiroPage() {
         <main className="flex flex-col gap-8">
             {/* CARDS TOP */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden col-span-1 md:col-span-1">
-                <CardContent className="p-8">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Saldo em Caixa</span>
-                    <span className="text-3xl font-black tracking-tighter">R$ {stats.totalCash.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="mt-6 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full w-fit">
-                    <div className="w-2 h-2 rounded-full bg-green-400" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">Realizado</span>
-                  </div>
-                </CardContent>
-              </Card>
+                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden col-span-1 md:col-span-1">
+                  <CardContent className="p-8">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Saldo em Caixa</span>
+                      <span className="text-3xl font-black tracking-tighter">R$ {stats.totalCash.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="mt-6 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full w-fit">
+                      <div className="w-2 h-2 rounded-full bg-green-400" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">Realizado</span>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-                <div className="flex flex-col gap-2 h-full justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                  <div className="flex flex-col gap-2 h-full justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento Total</span>
+                      <span className="text-2xl font-black text-slate-900">R$ {stats.totalProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Projeção Final</p>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projetado</span>
-                    <span className="text-2xl font-black text-slate-900">R$ {stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Em andamento</p>
-                  </div>
-                </div>
-              </Card>
+                </Card>
 
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-                <div className="flex flex-col gap-2 h-full justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-amber-600" />
+                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                  <div className="flex flex-col gap-2 h-full justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <TrendingDown className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">A Receber</span>
+                      <span className="text-2xl font-black text-blue-600">R$ {stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Pagamentos Pendentes</p>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Médio</span>
-                    <span className="text-2xl font-black text-slate-900">R$ {stats.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Por OS ativa</p>
-                  </div>
-                </div>
-              </Card>
+                </Card>
 
               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
                 <div className="flex flex-col gap-2 h-full justify-between">
@@ -286,61 +294,96 @@ export default function FinanceiroPage() {
                 </CardContent>
               </Card>
 
-              {/* RECENT TRANSACTIONS */}
-              <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-2">
-              <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
-                <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-500" />
-                  Transações Realizadas (Entregues)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="max-h-[400px] overflow-y-auto">
-                  <Table>
-                    <TableHeader className="bg-slate-50/50 sticky top-0 z-10">
-                      <TableRow>
-                        <TableHead className="pl-8 font-bold text-slate-500">OS</TableHead>
-                        <TableHead className="font-bold text-slate-500">Cliente</TableHead>
-                        <TableHead className="font-bold text-slate-500">Data</TableHead>
-                        <TableHead className="font-bold text-slate-500">Pagamento</TableHead>
-                        <TableHead className="pr-8 text-right font-bold text-slate-500">Valor</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {orders.filter(o => o.status === "Entregue").length === 0 ? (
+                {/* RECENT TRANSACTIONS */}
+                <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-2">
+                <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-emerald-500" />
+                    Transações
+                  </CardTitle>
+                  <div className="flex bg-slate-100 p-1 rounded-xl">
+                    <button 
+                      onClick={() => setActiveTab("confirmados")}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
+                        activeTab === "confirmados" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                      }`}
+                    >
+                      Confirmados
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab("projecao")}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
+                        activeTab === "projecao" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+                      }`}
+                    >
+                      Projeção
+                    </button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="max-h-[400px] overflow-y-auto">
+                    <Table>
+                      <TableHeader className="bg-slate-50/50 sticky top-0 z-10">
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-slate-400">
-                            Nenhuma transação encontrada.
-                          </TableCell>
+                          <TableHead className="pl-8 font-bold text-slate-500">OS</TableHead>
+                          <TableHead className="font-bold text-slate-500">Cliente</TableHead>
+                          <TableHead className="font-bold text-slate-500">Data</TableHead>
+                          <TableHead className="font-bold text-slate-500">Pagamento</TableHead>
+                          <TableHead className="pr-8 text-right font-bold text-slate-500">Valor</TableHead>
                         </TableRow>
-                      ) : (
-                        orders.filter(o => o.status === "Entregue").map((order) => (
-                          <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                            <TableCell className="pl-8 font-mono font-black text-blue-600">
-                              #{order.os_number}
-                            </TableCell>
-                            <TableCell className="font-medium text-slate-700">
-                              {order.clients?.name || "N/A"}
-                            </TableCell>
-                            <TableCell className="text-slate-500 text-xs">
-                              {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="text-[10px] font-bold border-slate-200 text-slate-500">
-                                {order.payment_method || "N/A"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="pr-8 text-right font-black text-slate-900">
-                              R$ {Number(order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </TableHeader>
+                      <TableBody>
+                        {orders.filter(o => 
+                          activeTab === "confirmados" 
+                            ? (o.payment_confirmed || o.pay_on_entry)
+                            : (o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
+                        ).length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-10 text-slate-400">
+                              Nenhuma transação encontrada.
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+                        ) : (
+                          orders
+                            .filter(o => 
+                              activeTab === "confirmados" 
+                                ? (o.payment_confirmed || o.pay_on_entry)
+                                : (o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
+                            )
+                            .map((order) => (
+                            <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                              <TableCell className="pl-8 font-mono font-black text-blue-600">
+                                #{order.os_number}
+                              </TableCell>
+                              <TableCell className="font-medium text-slate-700">
+                                {order.clients?.name || "N/A"}
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-xs">
+                                {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant="outline" className="w-fit text-[9px] font-bold border-slate-200 text-slate-500">
+                                    {order.payment_method || "N/A"}
+                                  </Badge>
+                                  {(order.payment_confirmed || order.pay_on_entry) ? (
+                                    <span className="text-[8px] font-bold text-green-500 uppercase">Pago</span>
+                                  ) : (
+                                    <span className="text-[8px] font-bold text-amber-500 uppercase">Pendente</span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="pr-8 text-right font-black text-slate-900">
+                                R$ {Number(order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
           </div>
         </main>
       )}

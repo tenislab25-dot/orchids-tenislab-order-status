@@ -44,6 +44,7 @@ interface OrderData {
   pay_on_entry: boolean;
   delivery_fee: number;
   discount_percent: number;
+  payment_confirmed: boolean;
   clients: {
     name: string;
     phone: string;
@@ -92,6 +93,20 @@ export default function OSViewPage() {
       setOrder(data as OrderData);
     }
     setLoading(false);
+  };
+
+  const handlePaymentConfirm = async (confirmed: boolean) => {
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ payment_confirmed: confirmed })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao atualizar pagamento: " + error.message);
+    } else {
+      setOrder(prev => prev ? { ...prev, payment_confirmed: confirmed } : null);
+      toast.success(confirmed ? "Pagamento Confirmado!" : "Aguardando Pagamento");
+    }
   };
 
   const handleStatusUpdate = async (newStatus: Status) => {
@@ -292,13 +307,36 @@ export default function OSViewPage() {
                 <span className="text-white/60">Método de Pagamento</span>
                 <span className="font-bold">{order.payment_method}</span>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-white/60">Status de Pagamento</span>
-                <span className={`font-bold ${order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
-                  {order.pay_on_entry ? "Pago na Entrada" : "Pagar na Entrega"}
-                </span>
-              </div>
-              <div className="h-px bg-white/10 my-2" />
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-white/60">Status de Pagamento</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold ${order.payment_confirmed || order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
+                      {order.payment_confirmed || order.pay_on_entry ? "Pago" : "Aguardando"}
+                    </span>
+                    <Badge variant="outline" className="text-[9px] border-white/20 text-white/40 uppercase">
+                      {order.pay_on_entry ? "Antecipado" : "Na Entrega"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="h-px bg-white/10 my-2" />
+                <div className="flex flex-col gap-2 mb-2">
+                  {!order.payment_confirmed && !order.pay_on_entry ? (
+                    <Button 
+                      onClick={() => handlePaymentConfirm(true)}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-10 rounded-xl text-xs"
+                    >
+                      Confirmar Pagamento
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline"
+                      onClick={() => handlePaymentConfirm(false)}
+                      className="w-full border-white/20 bg-transparent text-white/60 hover:bg-white/5 font-bold h-10 rounded-xl text-xs"
+                    >
+                      Estornar / Marcar como Pendente
+                    </Button>
+                  )}
+                </div>
               <div className="flex justify-between items-end">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">Total Geral</span>
                 <span className="text-3xl font-black text-blue-400 tracking-tighter">

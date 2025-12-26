@@ -316,9 +316,6 @@ export default function CustomerAcceptancePage() {
                 <CardTitle className="text-xs font-black text-slate-500 uppercase tracking-widest">
                   ITEM {item.itemNumber}
                 </CardTitle>
-                <span className="text-xs font-black text-slate-900">
-                  R$ {Number(item.value).toFixed(2)}
-                </span>
               </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   {item.photos && item.photos.length > 0 && (
