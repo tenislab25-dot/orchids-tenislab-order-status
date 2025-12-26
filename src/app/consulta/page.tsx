@@ -3,25 +3,21 @@
 import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { Search, Package, Clock, CheckCircle2, Truck, ArrowLeft, AlertCircle } from "lucide-react";
+import { Search, Package, Clock, CheckCircle2, Truck, ArrowLeft, AlertCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
-type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue";
+type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
-  number: string;
-  phone: string;
+  os_number: string;
   status: Status;
+  clients: {
+    phone: string;
+  } | null;
 }
-
-const MOCK_ORDERS: OrderData[] = [
-  { number: "001/2025", phone: "11999999999", status: "Recebido" },
-  { number: "002/2025", phone: "11888888888", status: "Em serviço" },
-  { number: "003/2025", phone: "11777777777", status: "Pronto" },
-  { number: "004/2025", phone: "11666666666", status: "Entregue" },
-];
 
 const statusConfig = {
   Recebido: {
@@ -47,6 +43,12 @@ const statusConfig = {
     color: "text-slate-500",
     bg: "bg-slate-50",
     message: "Pedido finalizado. Obrigado por confiar na TENISLAB.",
+  },
+  Cancelado: {
+    icon: XCircle,
+    color: "text-red-500",
+    bg: "bg-red-50",
+    message: "Esta ordem de serviço foi cancelada. Entre em contato para mais informações.",
   },
 };
 
@@ -147,32 +149,45 @@ function OrderContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = (os: string, phone: string) => {
+  const handleSearch = async (os: string, phone: string) => {
     setLoading(true);
     setError(null);
     
-    // Normalize OS format if needed (e.g. "1" -> "001/2025")
     let searchOs = os.trim();
     if (!searchOs.includes("/")) {
       searchOs = `${searchOs.padStart(3, "0")}/2025`;
     }
 
-    // Normalize phone (remove non-digits)
     const searchPhone = phone.replace(/\D/g, "");
 
-    // Simulate API call
-    setTimeout(() => {
-      const foundOrder = MOCK_ORDERS.find(o => 
-        o.number === searchOs && o.phone === searchPhone
-      );
+    const { data, error: sbError } = await supabase
+      .from("service_orders")
+      .select(`
+        os_number,
+        status,
+        clients (
+          phone
+        )
+      `)
+      .eq("os_number", searchOs)
+      .single();
 
-      if (foundOrder) {
-        setOrder(foundOrder);
-      } else {
-        setError("Pedido não encontrado. Verifique os dados informados.");
-      }
+    if (sbError || !data) {
+      setError("Pedido não encontrado. Verifique o número da OS.");
       setLoading(false);
-    }, 800);
+      return;
+    }
+
+    // Verify phone (very simple check)
+    const dbPhone = data.clients?.phone.replace(/\D/g, "");
+    if (dbPhone && !dbPhone.includes(searchPhone) && !searchPhone.includes(dbPhone)) {
+      setError("Telefone não confere com o cadastro.");
+      setLoading(false);
+      return;
+    }
+
+    setOrder(data as any);
+    setLoading(false);
   };
 
   const reset = () => {
@@ -200,22 +215,22 @@ function OrderContent() {
           <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
             <div className="flex flex-col gap-1">
               <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Número da OS</span>
-              <span className="text-3xl font-black text-slate-900">{order.number}</span>
+              <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
             </div>
 
-            <div className={`w-20 h-20 rounded-full ${statusConfig[order.status].bg} flex items-center justify-center`}>
+            <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
               {(() => {
-                const Icon = statusConfig[order.status].icon;
-                return <Icon className={`w-10 h-10 ${statusConfig[order.status].color}`} />;
+                const Icon = statusConfig[order.status as keyof typeof statusConfig].icon;
+                return <Icon className={`w-10 h-10 ${statusConfig[order.status as keyof typeof statusConfig].color}`} />;
               })()}
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className={`text-2xl font-bold ${statusConfig[order.status].color}`}>
+              <span className={`text-2xl font-bold ${statusConfig[order.status as keyof typeof statusConfig].color}`}>
                 {order.status}
               </span>
               <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
-                {statusConfig[order.status].message}
+                {statusConfig[order.status as keyof typeof statusConfig].message}
               </p>
             </div>
 
