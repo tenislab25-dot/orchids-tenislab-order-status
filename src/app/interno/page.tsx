@@ -123,15 +123,6 @@ export default function InternoPage() {
               />
             )}
 
-            {role === 'ADMIN' && (
-              <MenuButton 
-                href="/interno/banco-de-dados"
-                title="Banco de Dados"
-                icon={Database}
-                description="Arquivo de OS (5 anos)"
-              />
-            )}
-
         </main>
 
         {/* FOOTER / LOGOUT */}

@@ -255,7 +255,7 @@ export default function OSViewPage() {
                 <span class="date-value">${new Date(order?.entry_date || '').toLocaleDateString('pt-BR')}</span>
               </div>
               <div class="date-box">
-                <span class="date-label">SAÍDA</span>
+                <span class="date-label">ENTREGA</span>
                 <span class="date-value">${order?.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : '--/--'}</span>
               </div>
             </div>
@@ -314,13 +314,15 @@ export default function OSViewPage() {
                 text-transform: uppercase;
                 margin-bottom: 1mm;
               }
-              .dates {
-                display: flex;
-                justify-content: space-around;
-                margin-top: 1mm;
-                padding-top: 1mm;
-                border-top: 1px solid black;
-              }
+                .dates {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  gap: 1mm;
+                  margin-top: 1mm;
+                  padding-top: 1mm;
+                  border-top: 1px solid black;
+                }
               .date-box {
                 display: flex;
                 flex-direction: column;
@@ -396,10 +398,10 @@ export default function OSViewPage() {
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>
           </Link>
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-sm font-bold text-slate-900 leading-none">Detalhes da OS</h1>
-            <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{order.os_number}</span>
-          </div>
+            <div className="flex flex-col items-center text-center">
+              <h1 className="text-sm font-bold text-slate-900 leading-none">Detalhes</h1>
+              <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{order.os_number}</span>
+            </div>
           <div />
         </div>
       </header>
