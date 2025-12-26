@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { 
   CheckCircle2, 
@@ -82,73 +83,93 @@ export default function CustomerAcceptancePage() {
     router.push(`/?os=${MOCK_OS.number}`);
   };
 
-  if (MOCK_OS.status === "Cancelado") {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
-          <ShieldCheck className="w-12 h-12 text-red-500" />
-        </div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
-        <p className="text-slate-500 mb-8 max-w-[280px]">
-          Esta ordem de serviço ({MOCK_OS.number}) foi cancelada e não pode mais ser aceita. Entre em contato conosco para mais informações.
-        </p>
-        <Button 
-          variant="outline"
-          onClick={() => router.push("/")}
-          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
-        >
-          Voltar para Home
-        </Button>
-      </div>
-    );
-  }
-
-  if (isConfirmed) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
-        <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
-          <CheckCircle2 className="w-12 h-12 text-green-500" />
-        </div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Serviço Aceito!</h1>
-        <p className="text-slate-500 mb-8 max-w-[280px]">
-          Obrigado, {MOCK_OS.customer.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
-        </p>
-        <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
-          <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
-            Recebido (confirmado pelo cliente)
-          </Badge>
-        </div>
-
-        <Button 
-          variant="outline"
-          onClick={handleTrackOrder}
-          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
-        >
-          <Search className="w-5 h-5" />
-          Acompanhar status do pedido
-        </Button>
-        
-        <footer className="mt-12">
-          <div className="flex items-baseline gap-1 justify-center mb-1">
-            <span className="text-xl font-black text-slate-900 tracking-tighter">TENIS</span>
-            <span className="text-xl font-light text-blue-500 tracking-tighter">LAB</span>
+    if (MOCK_OS.status === "Cancelado") {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="relative w-32 h-16 mb-8">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+              alt="TENISLAB Logo"
+              fill
+              className="object-contain"
+            />
           </div>
-          <p className="text-[10px] text-slate-300 uppercase tracking-[0.2em] font-bold">
-            Premium Sneakers Care
+          <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
+            <ShieldCheck className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
+          <p className="text-slate-500 mb-8 max-w-[280px]">
+            Esta ordem de serviço ({MOCK_OS.number}) foi cancelada e não pode mais ser aceita. Entre em contato conosco para mais informações.
           </p>
-        </footer>
-      </div>
-    );
-  }
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/")}
+            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
+          >
+            Voltar para Home
+          </Button>
+        </div>
+      );
+    }
+
+    if (isConfirmed) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
+          <div className="relative w-32 h-16 mb-8">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+              alt="TENISLAB Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
+            <CheckCircle2 className="w-12 h-12 text-green-500" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">Serviço Aceito!</h1>
+          <p className="text-slate-500 mb-8 max-w-[280px]">
+            Obrigado, {MOCK_OS.customer.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
+          </p>
+          <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
+            <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
+              Recebido (confirmado pelo cliente)
+            </Badge>
+          </div>
+
+          <Button 
+            variant="outline"
+            onClick={handleTrackOrder}
+            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
+            <Search className="w-5 h-5" />
+            Acompanhar status do pedido
+          </Button>
+          
+          <footer className="mt-12 flex flex-col items-center gap-4">
+            <div className="flex flex-col gap-1 text-slate-500 font-medium text-xs">
+              <span>82 99943-8997</span>
+              <span>@tenislabr</span>
+            </div>
+            <p className="text-[10px] text-slate-300 uppercase tracking-[0.2em] font-bold">
+              © 2025 TENISLAB • O laboratório do seu tênis
+            </p>
+          </footer>
+        </div>
+      );
+    }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-6 flex flex-col items-center gap-3 shadow-sm sticky top-0 z-30">
-        <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-black text-slate-900 tracking-tighter">TENIS</span>
-          <span className="text-3xl font-light text-blue-500 tracking-tighter">LAB</span>
+      <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
+        <div className="relative w-32 h-12">
+          <Image 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+            alt="TENISLAB Logo"
+            fill
+            className="object-contain"
+          />
         </div>
         <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">
           Confira os detalhes do seu serviço antes de confirmar
@@ -365,9 +386,13 @@ export default function CustomerAcceptancePage() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 text-center bg-slate-100">
+      <footer className="py-12 text-center bg-white flex flex-col gap-4">
+        <div className="flex flex-col gap-1 text-slate-500 font-medium text-sm">
+          <span>82 99943-8997</span>
+          <span>@tenislabr</span>
+        </div>
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          © 2025 TENISLAB • Premium Sneakers Care
+          © 2025 TENISLAB • O laboratório do seu tênis
         </p>
       </footer>
     </div>

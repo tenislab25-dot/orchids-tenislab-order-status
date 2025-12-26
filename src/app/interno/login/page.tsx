@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,10 +59,15 @@ export default function LoginPage() {
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-12 bg-slate-50 animate-in fade-in duration-500">
       <div className="w-full max-w-sm flex flex-col gap-10">
         {/* SECTION 1 — BRAND */}
-        <header className="flex flex-col items-center gap-4">
-          <div className="flex items-baseline gap-1">
-            <span className="text-5xl font-extrabold tracking-tighter text-slate-900">TENIS</span>
-            <span className="text-5xl font-light tracking-tighter text-blue-500">LAB</span>
+        <header className="flex flex-col items-center gap-6">
+          <div className="relative w-40 h-20">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8882-1766752404200.PNG?width=8000&height=8000&resize=contain"
+              alt="TENISLAB Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           <div className="h-px w-12 bg-slate-200" />
           <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">
