@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface OrderData {
   os_number: string;
@@ -37,7 +37,7 @@ const statusConfig = {
     bg: "bg-amber-50",
     message: "Seu tênis está em processo de limpeza/restauração.",
   },
-  Pronto: {
+  "Pronto para entrega ou retirada": {
     icon: CheckCircle2,
     color: "text-green-500",
     bg: "bg-green-50",

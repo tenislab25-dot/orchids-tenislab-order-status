@@ -44,7 +44,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -64,7 +64,7 @@ const statusWeight: Record<Status, number> = {
   "Em espera": 0,
   "Em serviço": 1,
   "Recebido": 2,
-  "Pronto": 3,
+  "Pronto para entrega ou retirada": 3,
   "Entregue": 4,
   "Cancelado": 5,
 };
@@ -297,12 +297,12 @@ export default function DashboardPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pedido Aceito em: {new Date(order.updated_at || "").toLocaleDateString('pt-BR')}</span>
-                      <span className="text-xl font-black text-blue-600">#{order.os_number}</span>
+                        <span className="text-xl font-black text-blue-600">{order.os_number}</span>
+                      </div>
+                      <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
+                        ACEITO PELO CLIENTE
+                      </Badge>
                     </div>
-                    <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
-                      ACEITO PELO CLIENTE
-                    </Badge>
-                  </div>
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
                       <UserIcon className="w-5 h-5 text-slate-400" />
@@ -379,16 +379,16 @@ export default function DashboardPage() {
                   <>
                     {sortedAndFilteredOrders.map((order) => (
                       <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
-                        <TableCell className="pl-8 py-5">
-                            <div className="flex flex-col">
-                              <span className="font-mono font-black text-blue-600 text-base">#{order.os_number}</span>
-                              {(order.status === "Em espera" || order.status === "Em serviço") && (
-                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
-                                  <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
-                                </span>
-                              )}
-                            </div>
-                        </TableCell>
+                          <TableCell className="pl-8 py-5">
+                              <div className="flex flex-col">
+                                <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
+                                {(order.status === "Em espera" || order.status === "Em serviço") && (
+                                  <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
+                                    <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
+                                  </span>
+                                )}
+                              </div>
+                          </TableCell>
                         <TableCell className="font-bold text-slate-700">
                           {order.clients?.name || "Cliente não encontrado"}
                         </TableCell>
@@ -421,15 +421,15 @@ export default function DashboardPage() {
                               <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
                                 <SelectValue />
                               </SelectTrigger>
-                                  <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                    {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                                      <>
-                                        <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                        <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                        <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                        <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
-                                      </>
-                                    )}
+                                    <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                                      {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
+                                        <>
+                                          <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                          <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                          <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                          <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto</SelectItem>
+                                        </>
+                                      )}
                                     {(role === "ADMIN" || role === "ATENDENTE") && (
                                       <>
                                         <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>

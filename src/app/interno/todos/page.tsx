@@ -166,9 +166,9 @@ export default function TodosPedidosPage() {
                   <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400">Nenhum pedido encontrado</TableCell></TableRow>
                 ) : (
                   filteredOrders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-slate-50/50 border-b border-slate-50">
-                      <TableCell className="pl-8 font-mono font-black text-blue-600">#{order.os_number}</TableCell>
-                      <TableCell className="font-bold text-slate-700">{order.clients?.name}</TableCell>
+                      <TableRow key={order.id} className="hover:bg-slate-50/50 border-b border-slate-50">
+                        <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
+                        <TableCell className="font-bold text-slate-700">{order.clients?.name}</TableCell>
                       <TableCell className="text-slate-500 text-xs font-bold">
                         {new Date(order.entry_date).toLocaleDateString("pt-BR")}
                       </TableCell>

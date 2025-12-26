@@ -365,9 +365,9 @@ export default function OSPage() {
             <ArrowLeft className="w-6 h-6" />
           </Link>
           
-            <div className="text-center">
-              <h1 className="text-lg font-black tracking-tighter">#{osNumber}</h1>
-            </div>
+              <div className="text-center">
+                <h1 className="text-lg font-black tracking-tighter">{osNumber}</h1>
+              </div>
 
           <div />
         </div>
