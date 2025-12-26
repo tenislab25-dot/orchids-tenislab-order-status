@@ -28,9 +28,7 @@ export default function LoginPage() {
     // SECTION 3 — MOCK ROLE AUTHENTICATION
     let role: "ADMIN" | "ATENDENTE" | "OPERACIONAL" | null = null;
 
-    if (email === "italoysampaio@gmail.com" && password === "33254442") {
-      role = "ADMIN";
-    } else if (email.startsWith("admin@")) {
+    if (email.startsWith("admin@")) {
       role = "ADMIN";
     } else if (email.startsWith("atendente@") || email.startsWith("os@")) {
       role = "ATENDENTE";

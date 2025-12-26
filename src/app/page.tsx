@@ -57,9 +57,9 @@ export default function Home() {
         .select("items")
         .eq("status", "Entregue");
 
-      if (!error && data) {
+        if (!error && data) {
         const total = data.reduce((acc, order: any) => acc + (order.items?.length || 0), 0);
-        setProcessedCount(452 + total);
+        setProcessedCount(total);
       }
     }
     fetchCount();
