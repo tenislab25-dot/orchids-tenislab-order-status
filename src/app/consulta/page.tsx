@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
-type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
   os_number: string;
@@ -25,6 +25,12 @@ const statusConfig = {
     color: "text-blue-500",
     bg: "bg-blue-50",
     message: "Seu tênis foi recebido e já está na fila de serviço.",
+  },
+  "Em espera": {
+    icon: Clock,
+    color: "text-orange-500",
+    bg: "bg-orange-50",
+    message: "Serviço aceito! Seu tênis está na fila para iniciar a produção.",
   },
   "Em serviço": {
     icon: Clock,

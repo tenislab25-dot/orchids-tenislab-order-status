@@ -40,7 +40,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -57,11 +57,12 @@ interface Order {
 }
 
 const statusWeight: Record<Status, number> = {
-  "Em serviço": 0,
-  "Recebido": 1,
-  "Pronto": 2,
-  "Entregue": 3,
-  "Cancelado": 4,
+  "Em espera": 0,
+  "Em serviço": 1,
+  "Recebido": 2,
+  "Pronto": 3,
+  "Entregue": 4,
+  "Cancelado": 5,
 };
 
 export default function DashboardPage() {
@@ -140,9 +141,9 @@ export default function DashboardPage() {
   }, [orders, search]);
 
   const recentConfirmations = useMemo(() => {
-    // Orders that are "Em serviço" and were updated recently
+    // Orders that are "Em espera" and were updated recently
     return orders
-      .filter(o => o.status === "Em serviço")
+      .filter(o => o.status === "Em espera")
       .sort((a, b) => new Date(b.updated_at || "").getTime() - new Date(a.updated_at || "").getTime())
       .slice(0, 3);
   }, [orders]);
@@ -150,6 +151,7 @@ export default function DashboardPage() {
   const getStatusBadge = (status: Status) => {
     const styles = {
       Recebido: "bg-blue-100 text-blue-700",
+      "Em espera": "bg-orange-100 text-orange-700",
       "Em serviço": "bg-amber-100 text-amber-700",
       Pronto: "bg-green-100 text-green-700",
       Entregue: "bg-slate-100 text-slate-700",
@@ -307,14 +309,14 @@ export default function DashboardPage() {
                   sortedAndFilteredOrders.map((order) => (
                     <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
                       <TableCell className="pl-8 py-5">
-                        <div className="flex flex-col">
-                          <span className="font-mono font-black text-blue-600 text-base">#{order.os_number}</span>
-                          {order.status === "Em serviço" && (
-                            <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
-                              <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
-                            </span>
-                          )}
-                        </div>
+                          <div className="flex flex-col">
+                            <span className="font-mono font-black text-blue-600 text-base">#{order.os_number}</span>
+                            {(order.status === "Em espera" || order.status === "Em serviço") && (
+                              <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
+                                <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
+                              </span>
+                            )}
+                          </div>
                       </TableCell>
                       <TableCell className="font-bold text-slate-700">
                         {order.clients?.name || "Cliente não encontrado"}
@@ -348,13 +350,14 @@ export default function DashboardPage() {
                             <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                              <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                              <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                              <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
-                              <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                              <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                            </SelectContent>
+                              <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                                <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
+                                <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                                <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                              </SelectContent>
                           </Select>
   
                           <Link

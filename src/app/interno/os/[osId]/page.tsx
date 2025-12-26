@@ -30,7 +30,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
   id: string;
@@ -147,14 +147,15 @@ export default function OSViewPage() {
     </div>
   );
 
-  const getStatusBadge = (status: Status) => {
-    const styles = {
-      Recebido: "bg-blue-100 text-blue-700",
-      "Em serviço": "bg-amber-100 text-amber-700",
-      Pronto: "bg-green-100 text-green-700",
-      Entregue: "bg-slate-100 text-slate-700",
-      Cancelado: "bg-red-100 text-red-700",
-    };
+    const getStatusBadge = (status: Status) => {
+      const styles = {
+        Recebido: "bg-blue-100 text-blue-700",
+        "Em espera": "bg-orange-100 text-orange-700",
+        "Em serviço": "bg-amber-100 text-amber-700",
+        Pronto: "bg-green-100 text-green-700",
+        Entregue: "bg-slate-100 text-slate-700",
+        Cancelado: "bg-red-100 text-red-700",
+      };
     return (
       <Badge className={`${styles[status]} border-none px-3 py-1 font-bold`}>
         {status}

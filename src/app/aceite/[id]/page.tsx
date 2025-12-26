@@ -126,12 +126,13 @@ export default function CustomerAcceptancePage() {
     setConfirming(true);
     const { error } = await supabase
       .from("service_orders")
-      .update({ status: "Em serviço" })
+      .update({ status: "Em espera" })
       .eq("id", id);
 
     if (error) {
       toast.error("Erro ao confirmar serviço");
     } else {
+      setOrder({ ...order, status: "Em espera" });
       setIsConfirmed(true);
       toast.success("Serviço aceito com sucesso!");
     }
@@ -206,9 +207,9 @@ export default function CustomerAcceptancePage() {
         </p>
         <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
-          <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
-            {order.status === "Recebido" ? "Em serviço" : order.status}
-          </Badge>
+            <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
+              {order.status}
+            </Badge>
         </div>
 
         <Button 
