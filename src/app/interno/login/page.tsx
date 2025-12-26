@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail, AlertCircle } from "lucide-react";
-import { Logo } from "@/components/Logo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -55,9 +54,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-12 bg-slate-50 animate-in fade-in duration-500">
       <div className="w-full max-w-sm flex flex-col gap-10">
-        {/* SECTION 1 — BRAND */}
-          <header className="flex flex-col items-center gap-6">
-            <Logo width={160} height={80} variant="black" />
+          {/* SECTION 1 — BRAND */}
+            <header className="flex flex-col items-center gap-6">
+              <h1 className="font-black text-2xl">TENISLAB</h1>
           <div className="h-px w-12 bg-slate-200" />
           <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">
             Acesso interno ao sistema

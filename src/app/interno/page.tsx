@@ -15,7 +15,6 @@ import {
   LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/Logo";
 
 interface MenuButtonProps {
   href: string;
@@ -69,7 +68,7 @@ export default function InternoPage() {
       <div className="w-full max-w-md flex flex-col gap-10">
         {/* HEADER */}
         <header className="flex flex-col items-center gap-6">
-          <Logo variant="black" width={160} height={80} />
+          <h1 className="font-black text-2xl">TENISLAB</h1>
           <div className="text-center">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">

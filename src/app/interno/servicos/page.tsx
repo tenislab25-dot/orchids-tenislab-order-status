@@ -22,7 +22,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Edit2, LayoutGrid, Search, ArrowLeft, Loader2 } from "lucide-react";
-import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -108,10 +107,10 @@ export default function ServicesManagement() {
           <div className="flex justify-between items-start">
             <Link href="/interno" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
               <ArrowLeft className="w-4 h-4" />
-              Voltar ao Painel
-            </Link>
-            <Logo variant="white" width={120} height={60} />
-          </div>
+                Voltar ao Painel
+              </Link>
+              <h1 className="font-black text-2xl">TENISLAB</h1>
+            </div>
 
           <div className="flex justify-between items-end">
             <div>

@@ -259,7 +259,7 @@ export default function StatusPage() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
       <header className="flex flex-col items-center gap-6 mb-4">
-        <Logo width={160} height={80} variant="black" />
+        <h1 className="font-black text-2xl">TENISLAB</h1>
       </header>
 
       <Suspense fallback={
