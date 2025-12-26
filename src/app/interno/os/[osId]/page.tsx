@@ -534,18 +534,20 @@ export default function OSViewPage() {
                   </Button>
                 )}
 
-                <Button
-                  onClick={() => setCancelModalOpen(true)}
-                  variant="outline"
-                  className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
-                >
-                  Cancelar OS
-                </Button>
+                  {(role === "adm" || role === "atendente") && (
+                    <Button
+                      onClick={() => setCancelModalOpen(true)}
+                      variant="outline"
+                      className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
+                    >
+                      Cancelar OS
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <Link href={role === "atendente" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
+            <Link href={role === "atendente" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
             <Button 
               className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 font-black shadow-sm"
             >

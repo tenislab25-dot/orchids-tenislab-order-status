@@ -367,12 +367,24 @@ export default function DashboardPage() {
                                 <SelectValue />
                               </SelectTrigger>
                                 <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                  <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                  <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                  <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                  <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
-                                  <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                                  <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                                  {(role === "adm" || role === "atendente") && (
+                                    <>
+                                      <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                      <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                    </>
+                                  )}
+                                  {(role === "adm" || role === "atendente" || role === "interno") && (
+                                    <>
+                                      <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                      <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
+                                    </>
+                                  )}
+                                  {(role === "adm" || role === "atendente") && (
+                                    <>
+                                      <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                                      <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                                    </>
+                                  )}
                                 </SelectContent>
                             </Select>
     
