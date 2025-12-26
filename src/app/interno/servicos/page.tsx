@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Edit2, LayoutGrid, Search } from "lucide-react";
+import { Edit2, LayoutGrid, Search, ArrowLeft } from "lucide-react";
+import { Logo } from "@/components/Logo";
+import Link from "next/link";
 
 import { INITIAL_SERVICES, Service, Category } from "@/lib/services-data";
 
@@ -51,30 +53,43 @@ export default function ServicesManagement() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <LayoutGrid className="w-8 h-8 text-blue-500" />
-            Gestão de Serviços
-          </h1>
-          <p className="text-slate-500">Administração do catálogo de serviços da TENISLAB</p>
-        </div>
-        
-        <div className="relative w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            placeholder="Buscar serviço ou categoria..." 
-            className="pl-10 h-11"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
+    <div className="min-h-screen bg-white">
+      <div className="p-8 max-w-6xl mx-auto">
+        <div className="flex flex-col gap-8 mb-8">
+          <div className="flex justify-between items-start">
+            <Link href="/interno" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
+              <ArrowLeft className="w-4 h-4" />
+              Voltar ao Painel
+            </Link>
+            <Logo variant="black" width={120} height={60} />
+          </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader className="bg-slate-50">
+          <div className="flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
+                <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                  <LayoutGrid className="w-6 h-6" />
+                </div>
+                Gestão de Serviços
+              </h1>
+              <p className="text-slate-500 font-medium mt-1">Administração do catálogo de preços da TENISLAB</p>
+            </div>
+            
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input 
+                placeholder="Buscar serviço..." 
+                className="pl-10 h-12 bg-slate-50 border-slate-200 rounded-xl"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-slate-50/50">
             <TableRow>
               <TableHead className="font-bold text-slate-900">Serviço</TableHead>
               <TableHead className="font-bold text-slate-900">Categoria</TableHead>

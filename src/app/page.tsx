@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
+import { Logo } from "@/components/Logo";
 
 interface ActionButtonProps {
   href: string;
@@ -70,15 +71,7 @@ export default function Home() {
     <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* SECTION 1 — BRAND / HEADER */}
       <header className="flex flex-col items-center gap-6 mb-12">
-        <div className="relative w-48 h-24">
-          <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-            alt="TENISLAB Logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
+        <Logo width={192} height={96} variant="black" />
 
         {processedCount !== null && (
           <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">

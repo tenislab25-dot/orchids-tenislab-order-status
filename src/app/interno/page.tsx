@@ -11,9 +11,11 @@ import {
   Database,
   LogOut,
   ChevronRight,
-  ClipboardList
+  ClipboardList,
+  LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 
 interface MenuButtonProps {
   href: string;
@@ -67,15 +69,7 @@ export default function InternoPage() {
       <div className="w-full max-w-md flex flex-col gap-10">
         {/* HEADER */}
         <header className="flex flex-col items-center gap-6">
-          <div className="relative w-40 h-20">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-              alt="TENISLAB Logo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+          <Logo variant="black" width={160} height={80} />
           <div className="text-center">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
@@ -119,6 +113,15 @@ export default function InternoPage() {
                 title="Financeiro"
                 icon={Wallet}
                 description="Relatórios Financeiros"
+              />
+            )}
+
+            {role === 'adm' && (
+              <MenuButton 
+                href="/interno/servicos"
+                title="Serviços"
+                icon={LayoutGrid}
+                description="Catálogo de Preços"
               />
             )}
 
