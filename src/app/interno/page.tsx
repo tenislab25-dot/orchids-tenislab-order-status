@@ -14,6 +14,7 @@ import {
   LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 
 interface MenuButtonProps {
   href: string;
@@ -55,7 +56,8 @@ export default function InternoPage() {
     setRole(savedRole);
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem("tenislab_role");
     router.push("/interno/login");
   };

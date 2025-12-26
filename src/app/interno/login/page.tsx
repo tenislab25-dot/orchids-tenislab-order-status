@@ -9,43 +9,59 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail, AlertCircle } from "lucide-react";
 
+import { supabase } from "@/lib/supabase";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
-    // SECTION 6 — ERROR HANDLING
     if (!email || !password) {
       setError("Preencha email e senha");
+      setLoading(false);
       return;
     }
 
-    // SECTION 3 — MOCK ROLE AUTHENTICATION
-    let role: "ADMIN" | "ATENDENTE" | "OPERACIONAL" | null = null;
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (email.startsWith("admin@")) {
-      role = "ADMIN";
-    } else if (email.startsWith("atendente@") || email.startsWith("os@")) {
-      role = "ATENDENTE";
-    } else if (email.startsWith("interno@") || email.startsWith("staff@")) {
-      role = "OPERACIONAL";
+      if (authError) {
+        setError("Email ou senha inválidos");
+        setLoading(false);
+        return;
+      }
+
+      if (authData.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authData.user.id)
+          .single();
+
+        if (profileError || !profileData) {
+          setError("Perfil não encontrado. Entre em contato com o administrador.");
+          setLoading(false);
+          return;
+        }
+
+        localStorage.setItem("tenislab_role", profileData.role);
+        router.push("/interno");
+      }
+    } catch (err) {
+      setError("Erro ao realizar login");
+    } finally {
+      setLoading(false);
     }
-
-    if (!role) {
-      setError("Acesso não autorizado");
-      return;
-    }
-
-    // Preserve role for future expansion (localStorage mock)
-    localStorage.setItem("tenislab_role", role);
-
-    // SECTION 4 — REDIRECT LOGIC
-    router.push("/interno");
   };
 
   return (
@@ -113,12 +129,13 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98] mt-2 shadow-lg shadow-slate-200"
-              >
-                Entrar
-              </Button>
+                <Button 
+                  type="submit" 
+                  className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98] mt-2 shadow-lg shadow-slate-200"
+                  disabled={loading}
+                >
+                  {loading ? "Entrando..." : "Entrar"}
+                </Button>
             </form>
           </CardContent>
           
