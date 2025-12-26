@@ -62,10 +62,15 @@ export default function OSViewPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   
-  useEffect(() => {
-    setRole(localStorage.getItem("tenislab_role"));
-    fetchOrder();
-  }, [osNumber]);
+    useEffect(() => {
+      const storedRole = localStorage.getItem("tenislab_role");
+      if (!storedRole) {
+        router.push("/interno/login");
+        return;
+      }
+      setRole(storedRole);
+      fetchOrder();
+    }, [osNumber]);
 
   const fetchOrder = async () => {
     setLoading(true);

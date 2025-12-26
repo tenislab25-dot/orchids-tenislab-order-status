@@ -90,23 +90,28 @@ export default function OSPage() {
   const [paymentMethod, setPaymentMethod] = useState("Pix");
   const [payOnEntry, setPayOnEntry] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const storedRole = localStorage.getItem("tenislab_role");
-    setRole(storedRole);
+    useEffect(() => {
+      setMounted(true);
+      const storedRole = localStorage.getItem("tenislab_role");
+      setRole(storedRole);
 
-    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/interno/dashboard");
-      return;
-    }
+      if (!storedRole) {
+        router.push("/interno/login");
+        return;
+      }
 
-    generateOSNumber();
-    
-    const today = new Date();
-    setEntryDate(today.toISOString().split('T')[0]);
+      if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+        router.push("/interno/dashboard");
+        return;
+      }
 
-    fetchClients();
-  }, []);
+      generateOSNumber();
+      
+      const today = new Date();
+      setEntryDate(today.toISOString().split('T')[0]);
+
+      fetchClients();
+    }, []);
 
   const generateOSNumber = async () => {
     const year = new Date().getFullYear();

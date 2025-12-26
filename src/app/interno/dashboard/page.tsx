@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   Search,
@@ -57,16 +58,24 @@ const statusWeight: Record<Status, number> = {
   "Cancelado": 4,
 };
 
-export default function DashboardPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [role, setRole] = useState<string | null>(null);
+  export default function DashboardPage() {
+    const router = useRouter();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [role, setRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    setRole(localStorage.getItem("tenislab_role"));
-    fetchOrders();
-  }, []);
+    useEffect(() => {
+      const storedRole = localStorage.getItem("tenislab_role");
+      
+      if (!storedRole) {
+        router.push("/interno/login");
+        return;
+      }
+
+      setRole(storedRole);
+      fetchOrders();
+    }, []);
 
   const fetchOrders = async () => {
     setLoading(true);

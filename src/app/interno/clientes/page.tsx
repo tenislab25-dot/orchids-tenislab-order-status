@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   Users, 
   Plus, 
@@ -43,24 +44,30 @@ interface Client {
   created_at: string;
 }
 
-export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    address: ""
-  });
+  export default function ClientsPage() {
+    const router = useRouter();
+    const [clients, setClients] = useState<Client[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingClient, setEditingClient] = useState<Client | null>(null);
+    
+    // Form state
+    const [formData, setFormData] = useState({
+      name: "",
+      phone: "",
+      email: "",
+      address: ""
+    });
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
+    useEffect(() => {
+      const storedRole = localStorage.getItem("tenislab_role");
+      if (!storedRole) {
+        router.push("/interno/login");
+        return;
+      }
+      fetchClients();
+    }, []);
 
   async function fetchClients() {
     try {
