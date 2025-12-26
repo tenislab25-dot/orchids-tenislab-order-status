@@ -8,14 +8,25 @@ import {
   Calendar,
   AlertTriangle,
   Package,
-  User,
-  Phone
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
+    User,
+    Phone,
+    CheckCircle2,
+    Clock,
+    Truck,
+    Bell
+  } from "lucide-react";
+  import { Button } from "@/components/ui/button";
+  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+  import { Badge } from "@/components/ui/badge";
+  import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select";
+  import {
+    Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -45,6 +56,8 @@ interface OrderData {
   delivery_fee: number;
   discount_percent: number;
   payment_confirmed: boolean;
+  machine_fee: number;
+  ready_for_pickup: boolean;
   clients: {
     name: string;
     phone: string;
@@ -61,7 +74,12 @@ export default function OSViewPage() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
+  
+  // Payment edit states
+  const [newPaymentMethod, setNewPaymentMethod] = useState("");
+  const [machineFee, setMachineFee] = useState("0");
   
     useEffect(() => {
       const storedRole = localStorage.getItem("tenislab_role");
@@ -95,17 +113,56 @@ export default function OSViewPage() {
     setLoading(false);
   };
 
-  const handlePaymentConfirm = async (confirmed: boolean) => {
+  const confirmPayment = async () => {
     const { error } = await supabase
       .from("service_orders")
-      .update({ payment_confirmed: confirmed })
+      .update({ 
+        payment_confirmed: true,
+        payment_method: newPaymentMethod || order?.payment_method,
+        machine_fee: Number(machineFee) || 0
+      })
       .eq("os_number", osNumber);
 
     if (error) {
-      toast.error("Erro ao atualizar pagamento: " + error.message);
+      toast.error("Erro ao confirmar pagamento: " + error.message);
     } else {
-      setOrder(prev => prev ? { ...prev, payment_confirmed: confirmed } : null);
-      toast.success(confirmed ? "Pagamento Confirmado!" : "Aguardando Pagamento");
+      setOrder(prev => prev ? { 
+        ...prev, 
+        payment_confirmed: true,
+        payment_method: newPaymentMethod || prev.payment_method,
+        machine_fee: Number(machineFee) || 0
+      } : null);
+      setPaymentModalOpen(false);
+      toast.success("Pagamento Confirmado!");
+    }
+  };
+
+  const handleRevertPayment = async () => {
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ payment_confirmed: false })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao reverter pagamento: " + error.message);
+    } else {
+      setOrder(prev => prev ? { ...prev, payment_confirmed: false } : null);
+      toast.success("Pagamento marcado como pendente");
+    }
+  };
+
+  const toggleReadyForPickup = async () => {
+    const newVal = !order?.ready_for_pickup;
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ ready_for_pickup: newVal })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao atualizar notificação: " + error.message);
+    } else {
+      setOrder(prev => prev ? { ...prev, ready_for_pickup: newVal } : null);
+      toast.success(newVal ? "Notificado: Pronto para retirada" : "Notificação removida");
     }
   };
 
@@ -296,78 +353,147 @@ export default function OSViewPage() {
           ))}
         </div>
 
-        {/* FINANCIAL SUMMARY */}
-        <section>
-          <Card className="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
-            <CardHeader className="py-4 px-6 border-b border-white/10">
-              <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo do Pedido</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 flex flex-col gap-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-white/60">Método de Pagamento</span>
-                <span className="font-bold">{order.payment_method}</span>
-              </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-white/60">Status de Pagamento</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold ${order.payment_confirmed || order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
-                      {order.payment_confirmed || order.pay_on_entry ? "Pago" : "Aguardando"}
-                    </span>
-                    <Badge variant="outline" className="text-[9px] border-white/20 text-white/40 uppercase">
-                      {order.pay_on_entry ? "Antecipado" : "Na Entrega"}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="h-px bg-white/10 my-2" />
-                <div className="flex flex-col gap-2 mb-2">
-                  {!order.payment_confirmed && !order.pay_on_entry ? (
+            {/* FINANCIAL SUMMARY */}
+            <section>
+              <Card className="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
+                <CardHeader className="py-4 px-6 border-b border-white/10 flex flex-row items-center justify-between">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo do Pedido</CardTitle>
+                  {!order.payment_confirmed && (
                     <Button 
-                      onClick={() => handlePaymentConfirm(true)}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-10 rounded-xl text-xs"
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 hover:bg-white/5"
+                      onClick={() => {
+                        setNewPaymentMethod(order.payment_method);
+                        setMachineFee(String(order.machine_fee || 0));
+                        setPaymentModalOpen(true);
+                      }}
                     >
-                      Confirmar Pagamento
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline"
-                      onClick={() => handlePaymentConfirm(false)}
-                      className="w-full border-white/20 bg-transparent text-white/60 hover:bg-white/5 font-bold h-10 rounded-xl text-xs"
-                    >
-                      Estornar / Marcar como Pendente
+                      Editar Pgto
                     </Button>
                   )}
-                </div>
-              <div className="flex justify-between items-end">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">Total Geral</span>
-                <span className="text-3xl font-black text-blue-400 tracking-tighter">
-                  R$ {Number(order.total).toFixed(2)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+                </CardHeader>
+                <CardContent className="p-6 flex flex-col gap-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-white/60">Método de Pagamento</span>
+                    <span className="font-bold">{order.payment_method}</span>
+                  </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-white/60">Status de Pagamento</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-bold ${order.payment_confirmed || order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
+                          {order.payment_confirmed || order.pay_on_entry ? "Pago" : "Aguardando"}
+                        </span>
+                        <Badge variant="outline" className="text-[9px] border-white/20 text-white/40 uppercase">
+                          {order.pay_on_entry ? "Antecipado" : "Na Entrega"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {(order.machine_fee > 0 || order.payment_confirmed) && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-white/60">Desconto Maquineta</span>
+                        <span className="font-bold text-red-400">- R$ {Number(order.machine_fee).toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    <div className="h-px bg-white/10 my-2" />
+                    
+                    <div className="flex flex-col gap-2 mb-2">
+                      {!order.payment_confirmed ? (
+                        <Button 
+                          onClick={() => {
+                            setNewPaymentMethod(order.payment_method);
+                            setMachineFee(String(order.machine_fee || 0));
+                            setPaymentModalOpen(true);
+                          }}
+                          className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-10 rounded-xl text-xs"
+                        >
+                          Confirmar Pagamento
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline"
+                          onClick={handleRevertPayment}
+                          className="w-full border-white/20 bg-transparent text-white/60 hover:bg-white/5 font-bold h-10 rounded-xl text-xs"
+                        >
+                          Estornar / Marcar como Pendente
+                        </Button>
+                      )}
+                    </div>
+
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">
+                      {order.payment_confirmed ? "Líquido Recebido" : "Total Geral"}
+                    </span>
+                    <span className="text-3xl font-black text-blue-400 tracking-tighter">
+                      R$ {(Number(order.total) - (order.payment_confirmed ? Number(order.machine_fee || 0) : 0)).toFixed(2)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+    
 
         {/* ACTIONS */}
         <div className="flex flex-col gap-3 mt-4">
           {order.status !== "Entregue" && order.status !== "Cancelado" && (
             <div className="flex flex-col gap-2">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
+              
+              {/* Special Button for Attendance Staff */}
+              {(role === "adm" || role === "atendente") && order.status === "Pronto" && (
+                <Button
+                  onClick={toggleReadyForPickup}
+                  className={`w-full h-14 rounded-2xl font-black text-xs gap-2 mb-2 transition-all shadow-lg ${
+                    order.ready_for_pickup 
+                    ? "bg-amber-100 text-amber-700 border-2 border-amber-200" 
+                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"
+                  }`}
+                >
+                  <Bell className={`w-4 h-4 ${order.ready_for_pickup ? "fill-current" : ""}`} />
+                  {order.ready_for_pickup 
+                    ? "NOTIFICADO: PRONTO P/ RETIRADA" 
+                    : "PEDIDO PRONTO P/ RETIRADA / ENTREGA HOJE"}
+                </Button>
+              )}
+
               <div className="grid grid-cols-2 gap-2">
-                {["Em serviço", "Pronto", "Entregue"].map((st) => (
+                {(role === "adm" || role === "interno") && (
                   <Button
-                    key={st}
-                    onClick={() => handleStatusUpdate(st as Status)}
-                    className={`h-12 rounded-xl font-bold transition-all ${
-                      st === "Entregue" 
-                      ? "bg-slate-900 text-white hover:bg-slate-800" 
-                      : "bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50"
-                    }`}
+                    onClick={() => handleStatusUpdate("Em serviço")}
+                    variant="outline"
+                    className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                   >
-                    Marcar como {st}
+                    <Clock className="w-4 h-4 mr-2" />
+                    Em Serviço
                   </Button>
-                ))}
+                )}
+                
+                {(role === "adm" || role === "interno" || role === "atendente") && (
+                  <Button
+                    onClick={() => handleStatusUpdate("Pronto")}
+                    variant="outline"
+                    className={`h-12 rounded-xl font-bold border-2 ${order.status === "Pronto" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    Pronto
+                  </Button>
+                )}
+
+                {(role === "adm" || role === "atendente") && (
+                  <Button
+                    onClick={() => handleStatusUpdate("Entregue")}
+                    className="h-12 rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    Entregue
+                  </Button>
+                )}
+
                 <Button
                   onClick={() => setCancelModalOpen(true)}
+                  variant="outline"
                   className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
                 >
                   Cancelar OS
@@ -376,17 +502,87 @@ export default function OSViewPage() {
             </div>
           )}
 
-          <Link href="/interno/dashboard" className="w-full mt-4">
+          <Link href={role === "atendente" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
             <Button 
               className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 font-black shadow-sm"
             >
               <LayoutDashboard className="w-5 h-5 mr-2" />
-              VOLTAR AO DASHBOARD
+              VOLTAR AO {role === "atendente" ? "LISTAGEM" : "DASHBOARD"}
             </Button>
           </Link>
         </div>
 
+        {/* PAYMENT MODAL */}
+        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+          <DialogContent className="rounded-3xl max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black">Confirmar Pagamento</DialogTitle>
+              <DialogDescription className="font-medium">
+                Ajuste os detalhes finais antes de confirmar.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex flex-col gap-5 py-4">
+              <div className="flex flex-col gap-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Método de Pagamento</Label>
+                <Select value={newPaymentMethod} onValueChange={setNewPaymentMethod}>
+                  <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                    <SelectValue placeholder="Selecione o método" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="Pix">Pix</SelectItem>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Taxa/Desconto Maquineta (R$)</Label>
+                <Input 
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={machineFee}
+                  onChange={(e) => setMachineFee(e.target.value)}
+                  className="h-12 rounded-xl border-slate-200 font-bold text-red-500"
+                />
+                <p className="text-[9px] text-slate-400 font-medium px-1">
+                  Este valor será subtraído do total bruto no relatório financeiro.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500">Valor Bruto</span>
+                  <span className="font-bold text-slate-700">R$ {Number(order.total).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500">Desconto Maquineta</span>
+                  <span className="font-bold text-red-500">- R$ {Number(machineFee || 0).toFixed(2)}</span>
+                </div>
+                <div className="h-px bg-slate-200 my-1" />
+                <div className="flex justify-between items-center text-sm font-black">
+                  <span className="text-slate-900">VALOR LÍQUIDO</span>
+                  <span className="text-blue-600">R$ {(Number(order.total) - Number(machineFee || 0)).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="flex flex-col gap-2">
+              <Button onClick={confirmPayment} className="w-full h-12 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold">
+                Confirmar Recebimento
+              </Button>
+              <Button variant="ghost" onClick={() => setPaymentModalOpen(false)} className="w-full h-12 rounded-xl">
+                Cancelar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* CANCELLATION DIALOG */}
+    
         <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
           <DialogContent className="rounded-3xl">
             <DialogHeader>

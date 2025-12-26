@@ -186,7 +186,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          {(role === "ADMIN") && (
+          {(role === "adm") && (
             <Link href="/interno/financeiro">
               <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-11">
                 <DollarSign className="w-4 h-4" />
@@ -194,7 +194,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
           )}
-          {(role === "ADMIN" || role === "ATENDENTE") && (
+          {(role === "adm" || role === "atendente") && (
             <>
               <Link href="/interno/clientes">
                 <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-11">

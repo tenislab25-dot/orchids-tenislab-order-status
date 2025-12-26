@@ -27,16 +27,16 @@ export default function LoginPage() {
     }
 
     // SECTION 3 — MOCK ROLE AUTHENTICATION
-    let role: "ADMIN" | "ATENDENTE" | "FUNCIONARIO" | null = null;
+    let role: "adm" | "atendente" | "interno" | null = null;
 
     if (email === "italoysampaio@gmial.com" && password === "33254442") {
-      role = "ADMIN";
+      role = "adm";
     } else if (email.startsWith("admin@")) {
-      role = "ADMIN";
-    } else if (email.startsWith("os@")) {
-      role = "ATENDENTE";
-    } else if (email.startsWith("staff@")) {
-      role = "FUNCIONARIO";
+      role = "adm";
+    } else if (email.startsWith("atendente@") || email.startsWith("os@")) {
+      role = "atendente";
+    } else if (email.startsWith("interno@") || email.startsWith("staff@")) {
+      role = "interno";
     }
 
     if (!role) {
@@ -48,11 +48,11 @@ export default function LoginPage() {
     localStorage.setItem("tenislab_role", role);
 
     // SECTION 4 — REDIRECT LOGIC
-    if (role === "ADMIN") {
+    if (role === "adm") {
       router.push("/interno/dashboard");
-    } else if (role === "ATENDENTE") {
+    } else if (role === "atendente") {
       router.push("/interno/os");
-    } else if (role === "FUNCIONARIO") {
+    } else if (role === "interno") {
       router.push("/interno/dashboard");
     }
   };

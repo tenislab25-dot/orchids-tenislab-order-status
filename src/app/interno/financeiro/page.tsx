@@ -31,86 +31,88 @@ import {
 
 type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
-interface Order {
-  id: string;
-  os_number: string;
-  status: Status;
-  entry_date: string;
-  total: number;
-  payment_method: string;
-  pay_on_entry: boolean;
-  payment_confirmed: boolean;
-  clients: {
-    name: string;
-  } | null;
-}
-
-export default function FinanceiroPage() {
-  const [role, setRole] = useState<string | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"confirmados" | "projecao">("confirmados");
-
-  useEffect(() => {
-    const storedRole = localStorage.getItem("tenislab_role");
-    setRole(storedRole);
-    if (storedRole === "ADMIN") {
-      fetchOrders();
-    }
-  }, []);
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        id,
-        os_number,
-        status,
-        entry_date,
-        total,
-        payment_method,
-        pay_on_entry,
-        payment_confirmed,
-        clients (
-          name
-        )
-      `)
-      .order("entry_date", { ascending: false });
-
-    if (error) {
-      toast.error("Erro ao buscar dados financeiros: " + error.message);
-    } else {
-      setOrders(data as unknown as Order[]);
-    }
-    setLoading(false);
-  };
-
-    const stats = useMemo(() => {
-      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
-      const totalCash = confirmedOrders.reduce((acc, o) => acc + Number(o.total || 0), 0);
-
-      const projectedRevenue = orders
-        .filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
-        .reduce((acc, o) => acc + Number(o.total || 0), 0);
-
-      const totalProjected = totalCash + projectedRevenue;
-
-      const lostRevenue = orders
-        .filter(o => o.status === "Cancelado")
-        .reduce((acc, o) => acc + Number(o.total || 0), 0);
-
-      const activeOrders = orders.filter(o => o.status !== "Cancelado");
-      const averageTicket = activeOrders.length > 0 
-        ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
-        : 0;
-
-      // Payment method breakdown
-      const paymentBreakdown: Record<string, number> = {};
-      confirmedOrders.forEach(o => {
-        const method = o.payment_method || "Não informado";
-        paymentBreakdown[method] = (paymentBreakdown[method] || 0) + Number(o.total || 0);
-      });
+  interface Order {
+    id: string;
+    os_number: string;
+    status: Status;
+    entry_date: string;
+    total: number;
+    payment_method: string;
+    pay_on_entry: boolean;
+    payment_confirmed: boolean;
+    machine_fee: number;
+    clients: {
+      name: string;
+    } | null;
+  }
+  
+  export default function FinanceiroPage() {
+    const [role, setRole] = useState<string | null>(null);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<"confirmados" | "projecao">("confirmados");
+  
+    useEffect(() => {
+      const storedRole = localStorage.getItem("tenislab_role");
+      setRole(storedRole);
+      if (storedRole === "adm") {
+        fetchOrders();
+      }
+    }, []);
+  
+    const fetchOrders = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          id,
+          os_number,
+          status,
+          entry_date,
+          total,
+          payment_method,
+          pay_on_entry,
+          payment_confirmed,
+          machine_fee,
+          clients (
+            name
+          )
+        `)
+        .order("entry_date", { ascending: false });
+  
+      if (error) {
+        toast.error("Erro ao buscar dados financeiros: " + error.message);
+      } else {
+        setOrders(data as unknown as Order[]);
+      }
+      setLoading(false);
+    };
+  
+      const stats = useMemo(() => {
+        const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+        const totalCash = confirmedOrders.reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
+  
+        const projectedRevenue = orders
+          .filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
+          .reduce((acc, o) => acc + Number(o.total || 0), 0);
+  
+        const totalProjected = totalCash + projectedRevenue;
+  
+        const lostRevenue = orders
+          .filter(o => o.status === "Cancelado")
+          .reduce((acc, o) => acc + Number(o.total || 0), 0);
+  
+        const activeOrders = orders.filter(o => o.status !== "Cancelado");
+        const averageTicket = activeOrders.length > 0 
+          ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
+          : 0;
+  
+        // Payment method breakdown
+        const paymentBreakdown: Record<string, number> = {};
+        confirmedOrders.forEach(o => {
+          const method = o.payment_method || "Não informado";
+          paymentBreakdown[method] = (paymentBreakdown[method] || 0) + (Number(o.total || 0) - Number(o.machine_fee || 0));
+        });
 
       // Status distribution
       const statusDistribution: Record<string, number> = {
@@ -130,7 +132,7 @@ export default function FinanceiroPage() {
       return { totalCash, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
     }, [orders]);
 
-  if (role !== "ADMIN") {
+  if (role !== "adm") {
     return (
       <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
         <header className="flex items-center gap-4 mb-12">
