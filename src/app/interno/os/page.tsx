@@ -78,9 +78,11 @@ interface OSItem {
   subtotal: number;
 }
 
-export default function OSPage() {
-  const [mounted, setMounted] = useState(false);
-  const [osNumber, setOsNumber] = useState("");
+  export default function OSPage() {
+    const router = useRouter();
+    const [mounted, setMounted] = useState(false);
+    const [role, setRole] = useState<string | null>(null);
+    const [osNumber, setOsNumber] = useState("");
   const [entryDate, setEntryDate] = useState("");
   
   // Client Data
@@ -97,9 +99,17 @@ export default function OSPage() {
   const [paymentMethod, setPaymentMethod] = useState("Pix");
   const [payOnEntry, setPayOnEntry] = useState(false);
 
-    useEffect(() => {
-      setMounted(true);
-      // Generate OS Number (Sequence 0001/YEAR)
+      useEffect(() => {
+        setMounted(true);
+        const storedRole = localStorage.getItem("tenislab_role");
+        setRole(storedRole);
+
+        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+          router.push("/interno/dashboard");
+          return;
+        }
+
+        // Generate OS Number (Sequence 0001/YEAR)
       const year = new Date().getFullYear();
       const sequence = "0001";
       setOsNumber(`${sequence}/${year}`);

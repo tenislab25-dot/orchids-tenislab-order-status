@@ -239,11 +239,13 @@ export default function DashboardPage() {
             Gerencie as ordens de serviço da TENISLAB
           </p>
         </div>
-        <Link href="/interno/os">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">
-            Nova OS
-          </Button>
-        </Link>
+        {(role === "ADMIN" || role === "ATENDENTE") && (
+          <Link href="/interno/os">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">
+              Nova OS
+            </Button>
+          </Link>
+        )}
       </header>
 
       {/* TABLE */}
