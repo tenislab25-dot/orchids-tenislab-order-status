@@ -81,27 +81,46 @@ export default function FinanceiroPage() {
     setLoading(false);
   };
 
-  const stats = useMemo(() => {
-    const delivered = orders.filter(o => o.status === "Entregue");
-    const totalCash = delivered.reduce((acc, o) => acc + Number(o.total || 0), 0);
+    const stats = useMemo(() => {
+      const delivered = orders.filter(o => o.status === "Entregue");
+      const totalCash = delivered.reduce((acc, o) => acc + Number(o.total || 0), 0);
 
-    const projectedRevenue = orders
-      .filter(o => o.status !== "Cancelado" && o.status !== "Entregue")
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+      const projectedRevenue = orders
+        .filter(o => o.status !== "Cancelado" && o.status !== "Entregue")
+        .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
-    const lostRevenue = orders
-      .filter(o => o.status === "Cancelado")
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+      const lostRevenue = orders
+        .filter(o => o.status === "Cancelado")
+        .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
-    // Payment method breakdown
-    const paymentBreakdown: Record<string, number> = {};
-    delivered.forEach(o => {
-      const method = o.payment_method || "Não informado";
-      paymentBreakdown[method] = (paymentBreakdown[method] || 0) + Number(o.total || 0);
-    });
+      const activeOrders = orders.filter(o => o.status !== "Cancelado");
+      const averageTicket = activeOrders.length > 0 
+        ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
+        : 0;
 
-    return { totalCash, projectedRevenue, lostRevenue, paymentBreakdown };
-  }, [orders]);
+      // Payment method breakdown
+      const paymentBreakdown: Record<string, number> = {};
+      delivered.forEach(o => {
+        const method = o.payment_method || "Não informado";
+        paymentBreakdown[method] = (paymentBreakdown[method] || 0) + Number(o.total || 0);
+      });
+
+      // Status distribution
+      const statusDistribution: Record<Status, number> = {
+        Recebido: 0,
+        "Em serviço": 0,
+        Pronto: 0,
+        Entregue: 0,
+        Cancelado: 0
+      };
+      orders.forEach(o => {
+        if (statusDistribution[o.status] !== undefined) {
+          statusDistribution[o.status]++;
+        }
+      });
+
+      return { totalCash, projectedRevenue, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
+    }, [orders]);
 
   if (role !== "ADMIN") {
     return (
@@ -153,82 +172,122 @@ export default function FinanceiroPage() {
         </div>
       ) : (
         <main className="flex flex-col gap-8">
-          {/* CARDS TOP */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden col-span-1 md:col-span-1">
-              <CardContent className="p-8">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Saldo em Caixa (Entregues)</span>
-                  <span className="text-4xl font-black tracking-tighter">R$ {stats.totalCash.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div className="mt-8 flex items-center gap-4">
-                  <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
+            {/* CARDS TOP */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden col-span-1 md:col-span-1">
+                <CardContent className="p-8">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Saldo em Caixa</span>
+                    <span className="text-3xl font-black tracking-tighter">R$ {stats.totalCash.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="mt-6 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full w-fit">
                     <div className="w-2 h-2 rounded-full bg-green-400" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Receita Realizada</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">Realizado</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                <div className="flex flex-col gap-2 h-full justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projetado</span>
+                    <span className="text-2xl font-black text-slate-900">R$ {stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Em andamento</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </Card>
 
-            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-              <div className="flex flex-col gap-4 h-full justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                <div className="flex flex-col gap-2 h-full justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Médio</span>
+                    <span className="text-2xl font-black text-slate-900">R$ {stats.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Por OS ativa</p>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita Projetada</span>
-                  <span className="text-3xl font-black text-slate-900">R$ {stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                  <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold">Ordens em andamento/prontas</p>
-                </div>
-              </div>
-            </Card>
+              </Card>
 
-            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-              <div className="flex flex-col gap-4 h-full justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center">
-                  <XCircle className="w-6 h-6 text-red-500" />
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                <div className="flex flex-col gap-2 h-full justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cancelado</span>
+                    <span className="text-2xl font-black text-red-600">R$ {stats.lostRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Total perdido</p>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita Cancelada</span>
-                  <span className="text-3xl font-black text-red-600">R$ {stats.lostRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                  <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold">Total de ordens canceladas</p>
-                </div>
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* PAYMENT METHODS */}
-            <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-1">
-              <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
-                <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-blue-500" />
-                  Métodos de Pagamento
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="flex flex-col gap-4">
-                  {Object.entries(stats.paymentBreakdown).length === 0 ? (
-                    <p className="text-center text-slate-400 text-sm py-4">Nenhum pagamento registrado</p>
-                  ) : (
-                    Object.entries(stats.paymentBreakdown)
-                      .sort(([, a], [, b]) => b - a)
-                      .map(([method, total]) => (
-                        <div key={method} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100/50">
-                          <div className="flex items-center gap-3">
-                            {method.toLowerCase().includes('pix') ? <Banknote className="w-4 h-4 text-emerald-500" /> : <CreditCard className="w-4 h-4 text-blue-500" />}
-                            <span className="text-sm font-bold text-slate-700">{method}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* STATUS DISTRIBUTION */}
+              <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-1">
+                <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
+                  <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                    <Package className="w-4 h-4 text-slate-400" />
+                    Status das Ordens
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="flex flex-col gap-4">
+                    {Object.entries(stats.statusDistribution).map(([status, count]) => (
+                      <div key={status} className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-500">{status}</span>
+                        <div className="flex items-center gap-3 flex-1 px-4">
+                          <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                status === "Entregue" ? "bg-green-500" :
+                                status === "Cancelado" ? "bg-red-400" :
+                                status === "Pronto" ? "bg-blue-500" : "bg-amber-400"
+                              }`}
+                              style={{ width: `${(count / orders.length) * 100}%` }}
+                            />
                           </div>
-                          <span className="text-sm font-black text-slate-900">R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
-                      ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                        <span className="text-xs font-black text-slate-900">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* RECENT TRANSACTIONS */}
-            <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-2">
+              {/* PAYMENT METHODS */}
+              <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-1">
+                <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
+                  <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                    <PieChart className="w-4 h-4 text-blue-500" />
+                    Por Pagamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="flex flex-col gap-3">
+                    {Object.entries(stats.paymentBreakdown).length === 0 ? (
+                      <p className="text-center text-slate-400 text-sm py-4">Sem dados</p>
+                    ) : (
+                      Object.entries(stats.paymentBreakdown)
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([method, total]) => (
+                          <div key={method} className="flex items-center justify-between p-3 rounded-xl bg-slate-50/50 border border-slate-100">
+                            <span className="text-[10px] font-bold text-slate-600 uppercase">{method}</span>
+                            <span className="text-xs font-black text-slate-900">R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* RECENT TRANSACTIONS */}
+              <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden lg:col-span-2">
               <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
                 <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-500" />

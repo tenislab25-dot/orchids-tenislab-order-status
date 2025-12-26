@@ -250,7 +250,7 @@ export default function OSPage() {
         clientId = newClient.id;
       }
 
-      const { error: osError } = await supabase
+      const { data: newOS, error: osError } = await supabase
         .from("service_orders")
         .insert([{
           os_number: osNumber,
@@ -264,11 +264,27 @@ export default function OSPage() {
           total: finalTotal,
           items: items,
           status: "Recebido"
-        }]);
+        }])
+        .select()
+        .single();
 
       if (osError) throw osError;
 
       toast.success("Ordem de Serviço criada com sucesso!");
+      
+      // WhatsApp Redirection
+      const cleanPhone = clientPhone.replace(/\D/g, "");
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      
+      const acceptanceLink = `${window.location.origin}/aceite/${newOS.id}`;
+      const message = encodeURIComponent(
+        `Olá ${clientName}! Sua Ordem de Serviço #${osNumber} foi criada na TENISLAB.\n\n` +
+        `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
+        `Qualquer dúvida, estamos à disposição!`
+      );
+      
+      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+
       router.push("/interno/dashboard");
     } catch (error: any) {
       toast.error("Erro ao criar OS: " + error.message);
