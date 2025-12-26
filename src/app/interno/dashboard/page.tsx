@@ -251,16 +251,23 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-        {(role === "ADMIN" || role === "ATENDENTE") && (
-          <div className="flex gap-2">
-            <Link href="/interno/os">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
-                <Plus className="w-4 h-4" />
-                Nova OS
-              </Button>
-            </Link>
-          </div>
-        )}
+          {(role === "ADMIN" || role === "ATENDENTE") && (
+            <div className="flex gap-2">
+              <Link href="/interno/clientes">
+                <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2">
+                  <Plus className="w-4 h-4" />
+                  Clientes
+                </Button>
+              </Link>
+              <Link href="/interno/os">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
+                  <Plus className="w-4 h-4" />
+                  Nova OS
+                </Button>
+              </Link>
+            </div>
+          )}
+
       </header>
 
       {/* TABLE */}

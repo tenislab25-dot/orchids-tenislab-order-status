@@ -202,24 +202,17 @@ export default function OSViewPage() {
             {getStatusBadge(osData.status)}
           </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> Entrada
-                </span>
-                <span className="text-sm font-bold text-slate-700">
-                  {new Date(osData.entryDate).toLocaleDateString('pt-BR')}
-                </span>
+              <div className="grid grid-cols-1 gap-4 pt-2 border-t border-slate-50">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <Calendar className="w-3 h-3" /> Entrada
+                  </span>
+                  <span className="text-sm font-bold text-slate-700">
+                    {new Date(osData.entryDate).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Camera className="w-3 h-3" /> Uso de Imagem
-                </span>
-                <Badge variant="outline" className={`w-fit font-bold text-[10px] px-2 py-0 h-5 ${osData.allowImageUse ? "border-green-100 text-green-600 bg-green-50" : "border-slate-100 text-slate-400 bg-slate-50"}`}>
-                  {osData.allowImageUse ? "AUTORIZADO" : "NÃO AUTORIZADO"}
-                </Badge>
-              </div>
-            </div>
+
           </section>
 
         {/* CANCELLED BANNER */}
