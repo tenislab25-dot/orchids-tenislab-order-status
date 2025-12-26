@@ -230,7 +230,7 @@ export default function DashboardPage() {
       Recebido: "bg-blue-100 text-blue-700",
       "Em espera": "bg-orange-100 text-orange-700",
       "Em serviço": "bg-amber-100 text-amber-700",
-      Pronto: "bg-green-100 text-green-700",
+      "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
       Entregue: "bg-slate-100 text-slate-700",
       Cancelado: "bg-red-100 text-red-700",
     };
@@ -346,9 +346,9 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                <TableRow>
-                  <TableHead className="font-bold text-slate-500 py-6 pl-8">OS</TableHead>
-                  <TableHead className="font-bold text-slate-500">Cliente</TableHead>
+                  <TableRow>
+                    <TableHead className="font-bold text-slate-500 py-6 pl-8">Nº</TableHead>
+                    <TableHead className="font-bold text-slate-500">Cliente</TableHead>
                   <TableHead className="font-bold text-slate-500 text-center">Pares</TableHead>
                   <TableHead className="font-bold text-slate-500">Entrada</TableHead>
                   <TableHead className="font-bold text-slate-500">Previsão</TableHead>
@@ -426,9 +426,9 @@ export default function DashboardPage() {
                                         <>
                                           <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
                                           <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                          <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                          <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto</SelectItem>
-                                        </>
+                                            <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                            <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto para entrega ou retirada</SelectItem>
+                                          </>
                                       )}
                                     {(role === "ADMIN" || role === "ATENDENTE") && (
                                       <>

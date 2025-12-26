@@ -88,20 +88,20 @@ function StatusSearchForm({
       exit={{ opacity: 0, y: -10 }}
       className="flex flex-col gap-6"
     >
-      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-slate-900">Consultar Pedido</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Número da OS</label>
-            <Input
-              type="text"
-              placeholder="Ex: 001/2025"
-              value={osNumber}
-              onChange={(e) => setOsNumber(e.target.value)}
-              className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
-              required
-            />
-          </div>
+        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
+          <h2 className="text-lg font-bold text-slate-900">Consultar Pedido</h2>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
+              <Input
+                type="text"
+                placeholder="Ex: 001/2025"
+                value={osNumber}
+                onChange={(e) => setOsNumber(e.target.value)}
+                className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
+                required
+              />
+            </div>
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
             <Input
@@ -160,7 +160,8 @@ function OrderContent() {
     
     let searchOs = os.trim();
     if (!searchOs.includes("/")) {
-      searchOs = `${searchOs.padStart(3, "0")}/2025`;
+      const year = new Date().getFullYear();
+      searchOs = `${searchOs.padStart(3, "0")}/${year}`;
     }
 
     const searchPhone = phone.replace(/\D/g, "");
@@ -217,11 +218,11 @@ function OrderContent() {
           exit={{ opacity: 0, y: -10 }}
           className="flex flex-col gap-6"
         >
-          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Número da OS</span>
-              <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
-            </div>
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nº do Pedido</span>
+                <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
+              </div>
 
             <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
               {(() => {

@@ -150,10 +150,10 @@ export default function TodosPedidosPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-slate-50/50">
-                <TableRow>
-                  <TableHead className="font-bold py-6 pl-8">OS</TableHead>
-                  <TableHead className="font-bold">Cliente</TableHead>
+                <TableHeader className="bg-slate-50/50">
+                  <TableRow>
+                    <TableHead className="font-bold py-6 pl-8">Nº</TableHead>
+                    <TableHead className="font-bold">Cliente</TableHead>
                   <TableHead className="font-bold">Entrada</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="font-bold pr-8">Ações</TableHead>

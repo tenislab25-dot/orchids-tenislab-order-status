@@ -119,7 +119,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
         Recebido: 0,
         "Em espera": 0,
         "Em serviço": 0,
-        Pronto: 0,
+        "Pronto para entrega ou retirada": 0,
         Entregue: 0,
         Cancelado: 0
       };
@@ -322,10 +322,10 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
                 <CardContent className="p-0">
                   <div className="max-h-[400px] overflow-y-auto">
                     <Table>
-                      <TableHeader className="bg-slate-50/50 sticky top-0 z-10">
-                        <TableRow>
-                          <TableHead className="pl-8 font-bold text-slate-500">OS</TableHead>
-                          <TableHead className="font-bold text-slate-500">Cliente</TableHead>
+                        <TableHeader className="bg-slate-50/50 sticky top-0 z-10">
+                          <TableRow>
+                            <TableHead className="pl-8 font-bold text-slate-500">Nº</TableHead>
+                            <TableHead className="font-bold text-slate-500">Cliente</TableHead>
                           <TableHead className="font-bold text-slate-500">Data</TableHead>
                           <TableHead className="font-bold text-slate-500">Pagamento</TableHead>
                           <TableHead className="pr-8 text-right font-bold text-slate-500">Valor</TableHead>
@@ -350,10 +350,10 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
                                 : (o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
                             )
                             .map((order) => (
-                            <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                              <TableCell className="pl-8 font-mono font-black text-blue-600">
-                                #{order.os_number}
-                              </TableCell>
+                              <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                                <TableCell className="pl-8 font-mono font-black text-blue-600">
+                                  {order.os_number}
+                                </TableCell>
                               <TableCell className="font-medium text-slate-700">
                                 {order.clients?.name || "N/A"}
                               </TableCell>

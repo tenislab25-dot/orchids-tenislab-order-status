@@ -656,14 +656,14 @@ export default function OSViewPage() {
                       Em Serviço
                     </Button>
                     
-                    <Button
-                      onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
-                      variant="outline"
-                      className={`h-12 rounded-xl font-bold border-2 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Pronto
-                    </Button>
+                      <Button
+                        onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
+                        variant="outline"
+                        className={`h-12 rounded-xl font-bold border-2 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Pronto para entrega ou retirada
+                      </Button>
                   </>
                 )}
   
