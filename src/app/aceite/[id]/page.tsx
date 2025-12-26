@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { 
   CheckCircle2, 
   Package, 
@@ -19,31 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-
-// MOCK DATA for the specific OS
-const MOCK_OS = {
-  number: "007/2025",
-  customer: "João Silva",
-  phone: "(82) 99999-9999",
-  entryDate: "25/12/2025",
-  deliveryDate: "30/12/2025",
-  status: "Recebido", // Can be "Cancelado"
-  items: [
-    {
-      number: "007/2025.1",
-      services: ["Higienização", "Pintura"],
-      notes: "Cuidado especial com o logo lateral.",
-      photos: ["/placeholder-shoe-1.jpg"], // Placeholder paths
-      value: 140.00
-    }
-  ],
-  financial: {
-    subtotal: 140.00,
-    deliveryFee: 15.00,
-    discount: 14.00, // 10%
-    total: 141.00
-  }
-};
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const TERMS_TEXT = `
 TERMOS DE SERVIÇO E GARANTIA - TENISLAB
@@ -105,99 +82,149 @@ Condições gerais da garantia
 `;
 
 export default function CustomerAcceptancePage() {
+  const params = useParams();
   const router = useRouter();
+  const id = params.id as string;
+
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [accepted, setAccepted] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
-  const handleConfirm = () => {
+  useEffect(() => {
+    fetchOrder();
+  }, [id]);
+
+  const fetchOrder = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    const { data, error } = await supabase
+      .from("service_orders")
+      .select(`
+        *,
+        clients (
+          name,
+          phone
+        )
+      `)
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      toast.error("Ordem de serviço não encontrada");
+    } else {
+      setOrder(data);
+      // If already accepted or in progress, show confirmed screen
+      if (data.status !== "Recebido" && data.status !== "Cancelado") {
+        setIsConfirmed(true);
+      }
+    }
+    setLoading(false);
+  };
+
+  const handleConfirm = async () => {
+    setConfirming(true);
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ status: "Em serviço" })
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Erro ao confirmar serviço");
+    } else {
       setIsConfirmed(true);
-      setLoading(false);
-    }, 1500);
+      toast.success("Serviço aceito com sucesso!");
+    }
+    setConfirming(false);
   };
 
   const handleTrackOrder = () => {
-    router.push(`/?os=${MOCK_OS.number}`);
+    router.push(`/consulta?os=${order.os_number}&phone=${order.clients?.phone}`);
   };
 
-    if (MOCK_OS.status === "Cancelado") {
-      return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-          <div className="relative w-32 h-16 mb-8">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-              alt="TENISLAB Logo"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
-            <ShieldCheck className="w-12 h-12 text-red-500" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
-          <p className="text-slate-500 mb-8 max-w-[280px]">
-            Esta ordem de serviço ({MOCK_OS.number}) foi cancelada e não pode mais ser aceita. Entre em contato conosco para mais informações.
-          </p>
-          <Button 
-            variant="outline"
-            onClick={() => router.push("/")}
-            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
-          >
-            Voltar para Home
-          </Button>
-        </div>
-      );
-    }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
+    </div>
+  );
 
-    if (isConfirmed) {
-      return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
-          <div className="relative w-32 h-16 mb-8">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-              alt="TENISLAB Logo"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
-            <CheckCircle2 className="w-12 h-12 text-green-500" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Serviço Aceito!</h1>
-          <p className="text-slate-500 mb-8 max-w-[280px]">
-            Obrigado, {MOCK_OS.customer.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
-          </p>
-          <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
-            <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
-              Recebido (confirmado pelo cliente)
-            </Badge>
-          </div>
+  if (!order) return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+      <h1 className="text-xl font-bold">Ordem não encontrada</h1>
+      <Button asChild className="mt-4">
+        <button onClick={() => router.push("/")}>Voltar ao Início</button>
+      </Button>
+    </div>
+  );
 
-          <Button 
-            variant="outline"
-            onClick={handleTrackOrder}
-            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
-          >
-            <Search className="w-5 h-5" />
-            Acompanhar status do pedido
-          </Button>
-          
-            <footer className="mt-12 flex flex-col items-center gap-4">
-              <p className="text-[10px] text-slate-300 uppercase tracking-[0.2em] font-bold">
-                © 2025 TENISLAB
-              </p>
-            </footer>
+  if (order.status === "Cancelado") {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="relative w-32 h-16 mb-8">
+          <Image 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
+            alt="TENISLAB Logo"
+            fill
+            className="object-contain"
+          />
         </div>
-      );
-    }
+        <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
+          <ShieldCheck className="w-12 h-12 text-red-500" />
+        </div>
+        <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
+        <p className="text-slate-500 mb-8 max-w-[280px]">
+          Esta ordem de serviço ({order.os_number}) foi cancelada e não pode mais ser aceita.
+        </p>
+        <Button 
+          variant="outline"
+          onClick={() => router.push("/")}
+          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
+        >
+          Voltar para Home
+        </Button>
+      </div>
+    );
+  }
+
+  if (isConfirmed) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
+        <div className="relative w-32 h-16 mb-8">
+          <Image 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
+            alt="TENISLAB Logo"
+            fill
+            className="object-contain"
+          />
+        </div>
+        <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
+          <CheckCircle2 className="w-12 h-12 text-green-500" />
+        </div>
+        <h1 className="text-3xl font-black text-slate-900 mb-2">Serviço Aceito!</h1>
+        <p className="text-slate-500 mb-8 max-w-[280px]">
+          Obrigado, {order.clients?.name.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
+        </p>
+        <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
+          <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
+            {order.status === "Recebido" ? "Em serviço" : order.status}
+          </Badge>
+        </div>
+
+        <Button 
+          variant="outline"
+          onClick={handleTrackOrder}
+          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+        >
+          <Search className="w-5 h-5" />
+          Acompanhar status do pedido
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
         <div className="relative w-32 h-12">
           <Image 
@@ -213,50 +240,50 @@ export default function CustomerAcceptancePage() {
       </header>
 
       <main className="max-w-md mx-auto p-4 flex flex-col gap-6 mt-2">
-        
-        {/* ORDER SUMMARY */}
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Número da OS</span>
-              <span className="text-2xl font-black text-slate-900">{MOCK_OS.number}</span>
+              <span className="text-2xl font-black text-slate-900">{order.os_number}</span>
             </div>
             <Badge variant="outline" className="border-blue-100 text-blue-600 bg-blue-50 font-bold px-3 py-1">
               Aguardando Aceite
             </Badge>
           </div>
 
-            <div className="grid grid-cols-1 gap-4 pt-2 border-t border-slate-50">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
-                    <User className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Cliente</span>
-                    <span className="text-sm font-bold text-slate-800">{MOCK_OS.customer}</span>
-                  </div>
+          <div className="grid grid-cols-1 gap-4 pt-2 border-t border-slate-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-slate-400" />
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
-                    <Phone className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">WhatsApp</span>
-                    <span className="text-sm font-bold text-slate-800">{MOCK_OS.phone}</span>
-                  </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Cliente</span>
+                  <span className="text-sm font-bold text-slate-800">{order.clients?.name}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">WhatsApp</span>
+                  <span className="text-sm font-bold text-slate-800">{order.clients?.phone}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
                   <Package className="w-5 h-5 text-slate-400" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrada</span>
-                  <span className="text-sm font-bold text-slate-800">{MOCK_OS.entryDate}</span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {new Date(order.entry_date).toLocaleDateString('pt-BR')}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -265,14 +292,15 @@ export default function CustomerAcceptancePage() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrega Prevista</span>
-                  <span className="text-sm font-bold text-slate-800">{MOCK_OS.deliveryDate}</span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'A definir'}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ITEMS */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 px-1">
             <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
@@ -281,36 +309,24 @@ export default function CustomerAcceptancePage() {
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Seus Itens</h2>
           </div>
 
-          {MOCK_OS.items.map((item) => (
-            <Card key={item.number} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden border-none">
+          {order.items.map((item: any) => (
+            <Card key={item.itemNumber} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden border-none">
               <CardHeader className="bg-slate-50/50 py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between">
                 <CardTitle className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                  ITEM {item.number}
+                  ITEM {item.itemNumber}
                 </CardTitle>
                 <span className="text-xs font-black text-slate-900">
-                  R$ {item.value.toFixed(2)}
+                  R$ {Number(item.value).toFixed(2)}
                 </span>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
-                {/* Photos View */}
-                <div className="flex gap-2">
-                  <div className="w-full h-40 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden relative group">
-                    <ImageIcon className="w-8 h-8 text-slate-300" />
-                    <div className="absolute inset-0 bg-slate-900/10 flex items-end p-4">
-                      <span className="text-[10px] font-bold text-white uppercase tracking-widest bg-slate-900/40 backdrop-blur-md px-3 py-1 rounded-full">
-                        Foto de Entrada
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços Contratados</Label>
                     <div className="flex flex-wrap gap-2">
-                      {item.services.map(s => (
-                        <Badge key={s} className="bg-blue-50 text-blue-600 border-none hover:bg-blue-50 px-4 py-1.5 rounded-xl font-bold text-xs">
-                          {s}
+                      {item.services.map((s: any) => (
+                        <Badge key={s.name} className="bg-blue-50 text-blue-600 border-none hover:bg-blue-50 px-4 py-1.5 rounded-xl font-bold text-xs">
+                          {s.name}
                         </Badge>
                       ))}
                     </div>
@@ -330,7 +346,6 @@ export default function CustomerAcceptancePage() {
           ))}
         </div>
 
-        {/* FINANCIAL SUMMARY */}
         <section className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl text-white flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-black uppercase tracking-widest text-white/50">Resumo de Valores</h2>
@@ -340,18 +355,18 @@ export default function CustomerAcceptancePage() {
           <div className="space-y-3 pb-6 border-b border-white/10">
             <div className="flex justify-between text-xs font-bold text-white/60">
               <span>Subtotal</span>
-              <span>R$ {MOCK_OS.financial.subtotal.toFixed(2)}</span>
+              <span>R$ {(Number(order.total) + Number(order.discount_percent || 0) - Number(order.delivery_fee || 0)).toFixed(2)}</span>
             </div>
-            {MOCK_OS.financial.deliveryFee > 0 && (
+            {order.delivery_fee > 0 && (
               <div className="flex justify-between text-xs font-bold text-white/60">
                 <span>Taxa de Entrega</span>
-                <span>R$ {MOCK_OS.financial.deliveryFee.toFixed(2)}</span>
+                <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
               </div>
             )}
-            {MOCK_OS.financial.discount > 0 && (
+            {order.discount_percent > 0 && (
               <div className="flex justify-between text-xs font-bold text-green-400">
                 <span>Desconto</span>
-                <span>- R$ {MOCK_OS.financial.discount.toFixed(2)}</span>
+                <span>- R$ {Number(order.discount_percent).toFixed(2)}</span>
               </div>
             )}
           </div>
@@ -359,12 +374,11 @@ export default function CustomerAcceptancePage() {
           <div className="flex items-baseline justify-between">
             <span className="text-xs text-white/40 font-black uppercase tracking-widest">Total Final</span>
             <span className="text-4xl font-black tracking-tighter text-white">
-              R$ {MOCK_OS.financial.total.toFixed(2)}
+              R$ {Number(order.total).toFixed(2)}
             </span>
           </div>
         </section>
 
-        {/* TERMS & WARRANTY */}
         <section className="flex flex-col gap-4 pt-2">
           <div className="flex items-center gap-2 px-1">
             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
@@ -373,7 +387,7 @@ export default function CustomerAcceptancePage() {
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Termos & Garantia</h2>
           </div>
           
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 h-48 overflow-y-auto">
             <pre className="text-[11px] text-slate-500 whitespace-pre-wrap font-sans leading-relaxed">
               {TERMS_TEXT}
             </pre>
@@ -392,14 +406,13 @@ export default function CustomerAcceptancePage() {
           </div>
         </section>
 
-        {/* PRIMARY ACTION */}
         <div className="flex flex-col gap-3 mt-4 mb-10">
           <Button 
-            disabled={!accepted || loading}
+            disabled={!accepted || confirming}
             onClick={handleConfirm}
             className="h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-2xl transition-all active:scale-[0.97] disabled:opacity-50 disabled:grayscale"
           >
-            {loading ? (
+            {confirming ? (
               <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <div className="flex items-center gap-2">
@@ -418,10 +431,8 @@ export default function CustomerAcceptancePage() {
             Ver status do pedido
           </Button>
         </div>
-
       </main>
 
-      {/* Footer */}
       <footer className="py-12 text-center bg-white flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
           tenislab o laboratorio do seu tenis
