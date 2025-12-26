@@ -33,6 +33,14 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -91,10 +99,13 @@ export default function OSPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("Pix");
-  const [payOnEntry, setPayOnEntry] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState("Pix");
+    const [payOnEntry, setPayOnEntry] = useState(false);
+    
+    const [createdOS, setCreatedOS] = useState<any>(null);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-    useEffect(() => {
+      useEffect(() => {
       setMounted(true);
       const storedRole = localStorage.getItem("tenislab_role");
       setRole(storedRole);
@@ -334,15 +345,23 @@ export default function OSPage() {
         .select()
         .single();
 
-      if (osError) throw osError;
+        if (osError) throw osError;
 
-      toast.success("Ordem de Serviço criada com sucesso!");
+        setCreatedOS(newOS);
+        setShowSuccessDialog(true);
+        toast.success("Ordem de Serviço criada com sucesso!");
+      } catch (error: any) {
+        toast.error("Erro ao criar OS: " + error.message);
+      }
+    };
+
+    const sendWhatsAppLink = () => {
+      if (!createdOS) return;
       
-      // WhatsApp Redirection
       const cleanPhone = clientPhone.replace(/\D/g, "");
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       
-      const acceptanceLink = `${window.location.origin}/aceite/${newOS.id}`;
+      const acceptanceLink = `${window.location.origin}/aceite/${createdOS.id}`;
       const message = encodeURIComponent(
         `Olá ${clientName}! Sua Ordem de Serviço #${osNumber} foi criada na TENISLAB.\n\n` +
         `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
@@ -350,12 +369,8 @@ export default function OSPage() {
       );
       
       window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-
       router.push("/interno/dashboard");
-    } catch (error: any) {
-      toast.error("Erro ao criar OS: " + error.message);
-    }
-  };
+    };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
@@ -779,6 +794,38 @@ export default function OSPage() {
             <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
           </Button>
         </section>
+  
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <DialogContent className="rounded-[2.5rem] max-w-sm">
+            <DialogHeader className="items-center text-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-green-500" />
+              </div>
+              <div className="space-y-1">
+                <DialogTitle className="text-2xl font-black">OS Criada!</DialogTitle>
+                <DialogDescription className="font-medium">
+                  A Ordem de Serviço <strong>{osNumber}</strong> foi registrada com sucesso.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+            <DialogFooter className="flex-col gap-2 pt-4">
+              <Button 
+                onClick={sendWhatsAppLink}
+                className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
+              >
+                <QrCode className="w-5 h-5" />
+                Enviar Link via WhatsApp
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => router.push("/interno/dashboard")}
+                className="w-full h-12 rounded-2xl text-slate-500 font-bold"
+              >
+                Ir para o Dashboard
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       </main>
 

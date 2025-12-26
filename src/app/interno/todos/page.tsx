@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import {
   Search,
   Package,
-  Eye,
-  ArrowLeft,
-  Calendar,
-  User as UserIcon
-} from "lucide-react";
+    Eye,
+    ArrowLeft,
+    Calendar,
+    User as UserIcon,
+    MessageCircle
+  } from "lucide-react";
 
 import {
   Table,
@@ -41,6 +42,7 @@ interface Order {
   items: any[];
   clients: {
     name: string;
+    phone: string;
   } | null;
 }
 
@@ -74,7 +76,8 @@ export default function TodosPedidosPage() {
       .select(`
         *,
         clients (
-          name
+          name,
+          phone
         )
       `)
       .order("updated_at", { ascending: false });
@@ -92,6 +95,25 @@ export default function TodosPedidosPage() {
       setOrders(filtered as Order[]);
     }
     setLoading(false);
+  };
+
+  const handleShareLink = (order: Order) => {
+    if (!order.clients?.phone) {
+      toast.error("Cliente sem telefone cadastrado");
+      return;
+    }
+    
+    const cleanPhone = order.clients.phone.replace(/\D/g, "");
+    const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+    
+    const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
+    const message = encodeURIComponent(
+      `Olá ${order.clients.name}! Sua Ordem de Serviço #${order.os_number} está no sistema da TENISLAB.\n\n` +
+      `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
+      `Qualquer dúvida, estamos à disposição!`
+    );
+    
+    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
   };
 
   const filteredOrders = useMemo(() => {
@@ -174,11 +196,21 @@ export default function TodosPedidosPage() {
                       </TableCell>
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
                       <TableCell className="pr-8">
-                        <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
-                          <Button variant="ghost" size="icon" className="rounded-xl hover:bg-blue-50 hover:text-blue-600">
-                            <Eye className="w-4 h-4" />
+                        <div className="flex items-center gap-2">
+                          <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
+                            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-blue-50 hover:text-blue-600">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleShareLink(order)}
+                            className="rounded-xl hover:bg-green-50 hover:text-green-600"
+                          >
+                            <MessageCircle className="w-4 h-4" />
                           </Button>
-                        </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

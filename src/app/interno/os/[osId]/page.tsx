@@ -9,12 +9,13 @@ import {
   Package,
     User,
     Phone,
-    CheckCircle2,
-    Clock,
-    Truck,
-    Bell,
-    Printer
-  } from "lucide-react";
+    CheckCircle2, 
+    Clock, 
+    Truck, 
+    Bell, 
+    Printer,
+    Share2
+    } from "lucide-react";
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
   import { Badge } from "@/components/ui/badge";
@@ -76,9 +77,25 @@ export default function OSViewPage() {
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [cancellationReason, setCancellationReason] = useState("");
-  
-  // Payment edit states
+    const [cancellationReason, setCancellationReason] = useState("");
+    
+    const handleShareLink = () => {
+      if (!order) return;
+      
+      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      
+      const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da TENISLAB.\n\n` +
+        `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
+        `Qualquer dúvida, estamos à disposição!`
+      );
+      
+      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+    };
+    
+    // Payment edit states
     const [newPaymentMethod, setNewPaymentMethod] = useState("");
     const [machineFee, setMachineFee] = useState("0");
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
@@ -419,10 +436,18 @@ export default function OSViewPage() {
                 {order.clients?.phone}
               </div>
             </div>
-            {getStatusBadge(order.status)}
-          </div>
+              {getStatusBadge(order.status)}
+            </div>
 
-            <div className="flex flex-col gap-4 pt-4 border-t border-slate-50">
+            <Button 
+              onClick={handleShareLink}
+              className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
+            >
+              <Share2 className="w-4 h-4" />
+              Gerar link para aceite
+            </Button>
+
+              <div className="flex flex-col gap-4 pt-4 border-t border-slate-50">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> Entrada
