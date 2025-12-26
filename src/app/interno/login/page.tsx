@@ -29,7 +29,9 @@ export default function LoginPage() {
     // SECTION 3 — MOCK ROLE AUTHENTICATION
     let role: "ADMIN" | "ATENDENTE" | "FUNCIONARIO" | null = null;
 
-    if (email.startsWith("admin@")) {
+    if (email === "italoysampaio@gmial.com" && password === "33254442") {
+      role = "ADMIN";
+    } else if (email.startsWith("admin@")) {
       role = "ADMIN";
     } else if (email.startsWith("os@")) {
       role = "ATENDENTE";
