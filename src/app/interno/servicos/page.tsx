@@ -233,5 +233,6 @@ import { Service } from "@/lib/services-data";
         </p>
       </div>
     </div>
+  </div>
   );
 }
