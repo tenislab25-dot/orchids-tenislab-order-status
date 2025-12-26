@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import Image from "next/image";
 import { 
   ArrowLeft, 
   LayoutDashboard,
@@ -10,7 +11,8 @@ import {
   AlertTriangle,
   Info,
   XCircle,
-  X
+  X,
+  Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +51,8 @@ interface OSData {
   items: OSItem[];
   cancellationReason?: string;
   cancellationDate?: string;
-  createdBy: string; // ID or name of the employee who created the OS
+  createdBy: string; 
+  allowImageUse: boolean;
 }
 
 // Mock function to get OS data
@@ -67,6 +70,7 @@ const getOSMockData = (osId: string): OSData => {
       cancellationReason: "Cliente desistiu do serviço por conta do prazo.",
       cancellationDate: "2025-12-13",
       createdBy: "func_123",
+      allowImageUse: true,
       items: [
         {
           id: "item1",
@@ -86,6 +90,7 @@ const getOSMockData = (osId: string): OSData => {
     entryDate: "2025-12-20",
     deliveryDate: "2025-12-27",
     createdBy: "func_123",
+    allowImageUse: true,
     items: [
       {
         id: "item1",
@@ -175,9 +180,13 @@ export default function OSViewPage() {
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{osData.osNumber}</span>
           </div>
         </div>
-        <div className="flex items-baseline gap-0.5">
-          <span className="text-sm font-black text-slate-900 tracking-tighter">TENIS</span>
-          <span className="text-sm font-light text-blue-500 tracking-tighter">LAB</span>
+        <div className="relative w-24 h-8">
+          <Image 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
+            alt="TENISLAB"
+            fill
+            className="object-contain"
+          />
         </div>
       </header>
 
@@ -193,27 +202,25 @@ export default function OSViewPage() {
             {getStatusBadge(osData.status)}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> Entrada
-              </span>
-              <span className="text-sm font-bold text-slate-700">
-                {new Date(osData.entryDate).toLocaleDateString('pt-BR')}
-              </span>
-            </div>
-            {osData.deliveryDate && (
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Package className="w-3 h-3" /> Previsão
+                  <Calendar className="w-3 h-3" /> Entrada
                 </span>
                 <span className="text-sm font-bold text-slate-700">
-                  {new Date(osData.deliveryDate).toLocaleDateString('pt-BR')}
+                  {new Date(osData.entryDate).toLocaleDateString('pt-BR')}
                 </span>
               </div>
-            )}
-          </div>
-        </section>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <Camera className="w-3 h-3" /> Uso de Imagem
+                </span>
+                <Badge variant="outline" className={`w-fit font-bold text-[10px] px-2 py-0 h-5 ${osData.allowImageUse ? "border-green-100 text-green-600 bg-green-50" : "border-slate-100 text-slate-400 bg-slate-50"}`}>
+                  {osData.allowImageUse ? "AUTORIZADO" : "NÃO AUTORIZADO"}
+                </Badge>
+              </div>
+            </div>
+          </section>
 
         {/* CANCELLED BANNER */}
         {osData.status === "Cancelado" && (

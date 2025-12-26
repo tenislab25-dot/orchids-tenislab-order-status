@@ -2,11 +2,14 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Search,
   MoreHorizontal,
   Package,
   Eye,
+  LogOut,
+  Plus
 } from "lucide-react";
 
 import {
@@ -229,22 +232,34 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* HEADER */}
       <header className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900">
-            Dashboard Interno
-          </h1>
-          <p className="text-slate-500">
-            Gerencie as ordens de serviço da TENISLAB
-          </p>
+        <div className="flex flex-col gap-4">
+          <div className="relative w-32 h-12">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
+              alt="TENISLAB Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900">
+              Dashboard Interno
+            </h1>
+            <p className="text-slate-500">
+              Gerencie as ordens de serviço da TENISLAB
+            </p>
+          </div>
         </div>
         {(role === "ADMIN" || role === "ATENDENTE") && (
-          <Link href="/interno/os">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">
-              Nova OS
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/interno/os">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
+                <Plus className="w-4 h-4" />
+                Nova OS
+              </Button>
+            </Link>
+          </div>
         )}
       </header>
 

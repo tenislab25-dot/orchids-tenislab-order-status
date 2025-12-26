@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { 
   ChevronLeft, 
   Plus, 
@@ -33,36 +35,22 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { INITIAL_SERVICES } from "@/lib/services-data";
 
-// MOCKED SERVICES CATALOG
-const SERVICE_CATALOG = {
-  "Higienização": [
-    { id: "1", name: "Higienização Basic", price: 38 },
-    { id: "2", name: "Higienização Basic - 24h", price: 85 },
-    { id: "3", name: "Higienização Basic - 72h", price: 55 },
-    { id: "4", name: "Higienização Pro", price: 55 },
-    { id: "5", name: "Higienização Pro - 24h", price: 110 },
-    { id: "6", name: "Higienização Pro - 72h", price: 70 },
-    { id: "7", name: "Higienização Premium", price: 70 },
-    { id: "8", name: "Higienização Premium - 24h", price: 125 },
-    { id: "9", name: "Higienização Premium - 72h", price: 85 },
-  ],
-  "Pintura": [
-    { id: "10", name: "Pintura Parcial", price: 85 },
-    { id: "11", name: "Pintura Completa", price: 120 },
-  ],
-  "Costura": [
-    { id: "12", name: "Costura Cabedal", price: 75 },
-  ],
-  "Restauração": [
-    { id: "13", name: "Clareamento da Mid (Entre Sola)", price: 80 },
-    { id: "14", name: "Colagem Simples", price: 70 },
-    { id: "15", name: "Remoção de Crease", price: 30 },
-  ],
-  "Extra / Avulso": [
-    { id: "16", name: "Impermeabilização", price: 25 },
-  ]
-};
+// Group services by category for the selector
+const SERVICE_CATALOG = INITIAL_SERVICES.reduce((acc, service) => {
+  if (service.status === "Inactive") return acc;
+  // Skip special items that have dedicated inputs
+  if (service.id === "17") return acc; 
+  
+  if (!acc[service.category]) acc[service.category] = [];
+  acc[service.category].push({
+    id: service.id,
+    name: service.name,
+    price: service.defaultPrice
+  });
+  return acc;
+}, {} as Record<string, { id: string, name: string, price: number }[]>);
 
 interface SelectedService {
   id: string;
@@ -100,10 +88,11 @@ interface OSItem {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("Pix");
-  const [payOnEntry, setPayOnEntry] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState("Pix");
+    const [payOnEntry, setPayOnEntry] = useState(false);
+    const [allowImageUse, setAllowImageUse] = useState(true);
 
-      useEffect(() => {
+        useEffect(() => {
         setMounted(true);
         const storedRole = localStorage.getItem("tenislab_role");
         setRole(storedRole);
@@ -195,15 +184,24 @@ interface OSItem {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
-      {/* SECTION 1 — OS IDENTIFICATION */}
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
-        <div className="flex items-center relative justify-center mb-2">
-          <Link href="/interno/dashboard" className="absolute left-0 p-2 rounded-full active:bg-white/10">
+        <div className="flex items-center justify-between max-w-md mx-auto">
+          <Link href="/interno/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10">
             <ChevronLeft className="w-6 h-6" />
           </Link>
-          <div className="text-center">
-            <span className="text-[10px] uppercase tracking-widest text-white/50 block">Ordem de Serviço</span>
-            <h1 className="text-xl font-black tracking-tighter">#{osNumber}</h1>
+          
+          <div className="relative w-24 h-10">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
+              alt="TENISLAB"
+              fill
+              className="object-contain brightness-0 invert"
+            />
+          </div>
+
+          <div className="text-right">
+            <span className="text-[10px] uppercase tracking-widest text-white/50 block">OS</span>
+            <h1 className="text-lg font-black tracking-tighter">#{osNumber}</h1>
           </div>
         </div>
       </header>
@@ -529,7 +527,33 @@ interface OSItem {
           </Card>
         </section>
 
-        {/* SECTION 8 — CONTRACT & GUARANTEE */}
+        {/* SECTION 8 — IMAGE AUTHORIZATION */}
+        <section>
+          <Card className="border-none shadow-sm overflow-hidden">
+            <CardHeader className="bg-white border-b border-slate-100 py-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                Autorização de Imagem
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                <div className="flex-1 pr-4">
+                  <h4 className="text-sm font-bold text-slate-900">Uso de Imagem</h4>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium leading-relaxed mt-1">
+                    Autorizo o uso de imagens "antes e depois" para divulgação em redes sociais (@tenislabr).
+                  </p>
+                </div>
+                <Switch 
+                  checked={allowImageUse}
+                  onCheckedChange={setAllowImageUse}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* SECTION 9 — CONTRACT & GUARANTEE */}
         <section className="px-1">
           <div className="flex gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
             <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
