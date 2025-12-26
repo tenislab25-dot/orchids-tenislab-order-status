@@ -9,12 +9,16 @@ import {
   Package,
   Eye,
   Plus,
-  Bell,
-  CheckCircle2,
-  Calendar,
-  User as UserIcon,
-  DollarSign
-} from "lucide-react";
+    Bell,
+    CheckCircle2,
+    Calendar,
+    User as UserIcon,
+    DollarSign,
+    Database,
+    History,
+    ArrowRight
+  } from "lucide-react";
+
 
 import {
   Table,
@@ -86,6 +90,9 @@ export default function DashboardPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const { data, error } = await supabase
       .from("service_orders")
       .select(`
@@ -99,7 +106,14 @@ export default function DashboardPage() {
     if (error) {
       toast.error("Erro ao buscar ordens: " + error.message);
     } else {
-      setOrders(data as Order[]);
+      // Filter out archived ones for the dashboard
+      const dashboardOrders = data?.filter((o: any) => {
+        const isDone = o.status === "Entregue" || o.status === "Cancelado";
+        if (!isDone) return true;
+        const updatedAt = new Date(o.updated_at || o.created_at);
+        return updatedAt > thirtyDaysAgo;
+      });
+      setOrders(dashboardOrders as Order[]);
     }
     setLoading(false);
   };
@@ -137,7 +151,8 @@ export default function DashboardPage() {
           new Date(b.updated_at || b.entry_date).getTime() -
           new Date(a.updated_at || a.entry_date).getTime()
         );
-      });
+      })
+      .slice(0, 20);
   }, [orders, search]);
 
   const recentConfirmations = useMemo(() => {
@@ -306,71 +321,97 @@ export default function DashboardPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sortedAndFilteredOrders.map((order) => (
-                    <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
-                      <TableCell className="pl-8 py-5">
-                          <div className="flex flex-col">
-                            <span className="font-mono font-black text-blue-600 text-base">#{order.os_number}</span>
-                            {(order.status === "Em espera" || order.status === "Em serviço") && (
-                              <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
-                                <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
-                              </span>
-                            )}
+                  <>
+                    {sortedAndFilteredOrders.map((order) => (
+                      <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
+                        <TableCell className="pl-8 py-5">
+                            <div className="flex flex-col">
+                              <span className="font-mono font-black text-blue-600 text-base">#{order.os_number}</span>
+                              {(order.status === "Em espera" || order.status === "Em serviço") && (
+                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
+                                  <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
+                                </span>
+                              )}
+                            </div>
+                        </TableCell>
+                        <TableCell className="font-bold text-slate-700">
+                          {order.clients?.name || "Cliente não encontrado"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline" className="rounded-lg font-black text-slate-500 border-slate-200">
+                            {order.items?.length || 0}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-slate-500 text-xs font-bold">
+                          {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                        </TableCell>
+                        <TableCell className="text-slate-500 text-xs font-bold">
+                          {order.delivery_date
+                            ? new Date(order.delivery_date).toLocaleDateString("pt-BR")
+                            : "-"}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell className="pr-8">
+                          <div className="flex gap-2">
+                            <Select
+                              value={order.status}
+                              disabled={
+                                order.status === "Entregue" ||
+                                order.status === "Cancelado"
+                              }
+                              onValueChange={(v) =>
+                                handleStatusChange(order.id, v as Status)
+                              }
+                            >
+                              <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                                <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                                  <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                  <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                  <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                  <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
+                                  <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                                  <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                                </SelectContent>
+                            </Select>
+    
+                            <Link
+                              href={`/interno/os/${order.os_number.replace("/", "-")}`}
+                            >
+                              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </Link>
                           </div>
-                      </TableCell>
-                      <TableCell className="font-bold text-slate-700">
-                        {order.clients?.name || "Cliente não encontrado"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="rounded-lg font-black text-slate-500 border-slate-200">
-                          {order.items?.length || 0}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-slate-500 text-xs font-bold">
-                        {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-slate-500 text-xs font-bold">
-                        {order.delivery_date
-                          ? new Date(order.delivery_date).toLocaleDateString("pt-BR")
-                          : "-"}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell className="pr-8">
-                        <div className="flex gap-2">
-                          <Select
-                            value={order.status}
-                            disabled={
-                              order.status === "Entregue" ||
-                              order.status === "Cancelado"
-                            }
-                            onValueChange={(v) =>
-                              handleStatusChange(order.id, v as Status)
-                            }
-                          >
-                            <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                              <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
-                                <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                                <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                              </SelectContent>
-                          </Select>
-  
-                          <Link
-                            href={`/interno/os/${order.os_number.replace("/", "-")}`}
-                          >
-                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-slate-50/30">
+                      <TableCell colSpan={7} className="py-6 px-8">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            Mostrando as 20 ordens mais recentes
+                          </p>
+                          <div className="flex gap-3">
+                            <Link href="/interno/todos">
+                              <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                <History className="w-3.5 h-3.5" />
+                                Ver Todos os Pedidos
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </Button>
+                            </Link>
+                            <Link href="/interno/banco-de-dados">
+                              <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                <Database className="w-3.5 h-3.5" />
+                                Banco de Dados (Arquivo)
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                  </>
                 )}
               </TableBody>
             </Table>

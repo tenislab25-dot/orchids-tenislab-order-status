@@ -78,10 +78,12 @@ export default function OSViewPage() {
   const [cancellationReason, setCancellationReason] = useState("");
   
   // Payment edit states
-  const [newPaymentMethod, setNewPaymentMethod] = useState("");
-  const [machineFee, setMachineFee] = useState("0");
-  
-    useEffect(() => {
+    const [newPaymentMethod, setNewPaymentMethod] = useState("");
+    const [machineFee, setMachineFee] = useState("0");
+    const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+    
+      useEffect(() => {
+
       const storedRole = localStorage.getItem("tenislab_role");
       if (!storedRole) {
         router.push("/interno/login");
@@ -114,6 +116,11 @@ export default function OSViewPage() {
   };
 
   const confirmPayment = async () => {
+    if (!isConfirmingPayment) {
+      setIsConfirmingPayment(true);
+      return;
+    }
+
     const { error } = await supabase
       .from("service_orders")
       .update({ 
@@ -125,6 +132,7 @@ export default function OSViewPage() {
 
     if (error) {
       toast.error("Erro ao confirmar pagamento: " + error.message);
+      setIsConfirmingPayment(false);
     } else {
       setOrder(prev => prev ? { 
         ...prev, 
@@ -133,6 +141,7 @@ export default function OSViewPage() {
         machine_fee: Number(machineFee) || 0
       } : null);
       setPaymentModalOpen(false);
+      setIsConfirmingPayment(false);
       toast.success("Pagamento Confirmado!");
     }
   };
@@ -177,6 +186,26 @@ export default function OSViewPage() {
     } else {
       setOrder(prev => prev ? { ...prev, status: newStatus } : null);
       toast.success("Status atualizado!");
+    }
+  };
+
+  const toggleItemStatus = async (itemIdx: number) => {
+    if (!order) return;
+    
+    const newItems = [...order.items];
+    const currentStatus = newItems[itemIdx].status || "Pendente";
+    newItems[itemIdx].status = currentStatus === "Pendente" ? "Pronto" : "Pendente";
+
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ items: newItems })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao atualizar item: " + error.message);
+    } else {
+      setOrder({ ...order, items: newItems });
+      toast.success(`Item marcado como ${newItems[itemIdx].status}`);
     }
   };
 
@@ -297,17 +326,31 @@ export default function OSViewPage() {
             </div>
         </section>
 
-        {/* ITEMS */}
-        <div className="flex flex-col gap-4">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Pares de Tênis</h3>
-          
-          {order.items.map((item: any, idx: number) => (
-            <Card key={idx} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
-              <CardHeader className="bg-slate-50/50 py-3 px-6 border-b border-slate-100">
-                <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
-                  ITEM {idx + 1} - {item.itemNumber}
-                </CardTitle>
-              </CardHeader>
+          {/* ITEMS */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Pares de Tênis</h3>
+            
+            {order.items.map((item: any, idx: number) => (
+              <Card key={idx} className={`rounded-3xl border-slate-200 shadow-sm overflow-hidden transition-all ${item.status === 'Pronto' ? 'ring-2 ring-green-400/30' : ''}`}>
+                <CardHeader className={`py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between ${item.status === 'Pronto' ? 'bg-green-50/50' : 'bg-slate-50/50'}`}>
+                  <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
+                    ITEM {idx + 1} - {item.itemNumber}
+                  </CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => toggleItemStatus(idx)}
+                    className={`h-7 px-3 rounded-full text-[10px] font-black uppercase tracking-tighter gap-1.5 transition-all ${
+                      item.status === 'Pronto' 
+                      ? 'bg-green-500 text-white hover:bg-green-600' 
+                      : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                    }`}
+                  >
+                    {item.status === 'Pronto' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                    {item.status || 'Pendente'}
+                  </Button>
+                </CardHeader>
+
                 <CardContent className="p-6 space-y-6">
                   {item.photos && item.photos.length > 0 && (
                     <div className="grid grid-cols-2 gap-2 pb-2">
@@ -570,14 +613,25 @@ export default function OSViewPage() {
               </div>
             </div>
 
-            <DialogFooter className="flex flex-col gap-2">
-              <Button onClick={confirmPayment} className="w-full h-12 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold">
-                Confirmar Recebimento
-              </Button>
-              <Button variant="ghost" onClick={() => setPaymentModalOpen(false)} className="w-full h-12 rounded-xl">
-                Cancelar
-              </Button>
-            </DialogFooter>
+              <DialogFooter className="flex flex-col gap-2">
+                <Button 
+                  onClick={confirmPayment} 
+                  className={`w-full h-12 rounded-xl font-bold transition-all ${isConfirmingPayment ? 'bg-amber-500 hover:bg-amber-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                >
+                  {isConfirmingPayment ? "Clique novamente para confirmar" : "Confirmar Recebimento"}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setPaymentModalOpen(false);
+                    setIsConfirmingPayment(false);
+                  }} 
+                  className="w-full h-12 rounded-xl"
+                >
+                  Cancelar
+                </Button>
+              </DialogFooter>
+
           </DialogContent>
         </Dialog>
 

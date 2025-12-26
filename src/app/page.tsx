@@ -7,8 +7,11 @@ import {
   MessageCircle, 
   Instagram, 
   ChevronRight,
-  MapPin
+  MapPin,
+  Sparkles
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useState, useEffect } from "react";
 
 interface ActionButtonProps {
   href: string;
@@ -46,10 +49,27 @@ function ActionButton({ href, title, icon: Icon, external }: ActionButtonProps) 
 }
 
 export default function Home() {
+  const [processedCount, setProcessedCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function fetchCount() {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select("items")
+        .eq("status", "Entregue");
+
+      if (!error && data) {
+        const total = data.reduce((acc, order: any) => acc + (order.items?.length || 0), 0);
+        setProcessedCount(452 + total);
+      }
+    }
+    fetchCount();
+  }, []);
+
   return (
     <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* SECTION 1 — BRAND / HEADER */}
-      <header className="flex flex-col items-center gap-6 mb-16">
+      <header className="flex flex-col items-center gap-6 mb-12">
         <div className="relative w-48 h-24">
           <Image 
             src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
@@ -59,6 +79,20 @@ export default function Home() {
             priority
           />
         </div>
+
+        {processedCount !== null && (
+          <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <span className="text-3xl font-black text-white tracking-tighter">
+                {processedCount}
+              </span>
+            </div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
+              tênis higienizados<br/>& restaurados
+            </p>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 flex flex-col gap-12">
