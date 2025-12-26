@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { 
   ArrowLeft, 
   LayoutDashboard,
@@ -278,14 +277,7 @@ export default function OSViewPage() {
             <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{order.os_number}</span>
           </div>
         </div>
-        <div className="relative w-24 h-8">
-          <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-            alt="TENISLAB"
-            fill
-            className="object-contain"
-          />
-        </div>
+        <h1 className="font-black text-xl">TENISLAB</h1>
       </header>
 
       <main className="max-w-md mx-auto p-4 flex flex-col gap-5 animate-in fade-in duration-500">
@@ -397,7 +389,7 @@ export default function OSViewPage() {
         </div>
 
             {/* FINANCIAL SUMMARY */}
-            {role !== "interno" && (
+            {role !== "OPERACIONAL" && (
               <section>
                 <Card className="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
                   <CardHeader className="py-4 px-6 border-b border-white/10 flex flex-row items-center justify-between">
@@ -487,7 +479,7 @@ export default function OSViewPage() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
               
               {/* Special Button for Attendance Staff */}
-              {(role === "adm" || role === "atendente") && order.status === "Pronto" && (
+              {(role === "ADMIN" || role === "ATENDENTE") && order.status === "Pronto" && (
                 <Button
                   onClick={toggleReadyForPickup}
                   className={`w-full h-14 rounded-2xl font-black text-xs gap-2 mb-2 transition-all shadow-lg ${
@@ -504,7 +496,7 @@ export default function OSViewPage() {
               )}
 
                 <div className="grid grid-cols-2 gap-2">
-                  {(role === "adm" || role === "atendente" || role === "interno") && (
+                  {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
                     <>
                       <Button
                         onClick={() => handleStatusUpdate("Em serviço")}
@@ -526,7 +518,7 @@ export default function OSViewPage() {
                     </>
                   )}
   
-                  {(role === "adm" || role === "atendente") && (
+                  {(role === "ADMIN" || role === "ATENDENTE") && (
                     <>
                       <Button
                         onClick={() => handleStatusUpdate("Entregue")}
@@ -549,12 +541,12 @@ export default function OSViewPage() {
               </div>
             )}
 
-            <Link href={role === "atendente" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
+            <Link href={role === "ATENDENTE" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
             <Button 
               className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 font-black shadow-sm"
             >
               <LayoutDashboard className="w-5 h-5 mr-2" />
-              VOLTAR AO {role === "atendente" ? "LISTAGEM" : "DASHBOARD"}
+              VOLTAR AO {role === "ATENDENTE" ? "LISTAGEM" : "DASHBOARD"}
             </Button>
           </Link>
         </div>

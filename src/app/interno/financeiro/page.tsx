@@ -52,13 +52,13 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"confirmados" | "projecao">("confirmados");
   
-    useEffect(() => {
-      const storedRole = localStorage.getItem("tenislab_role");
-      setRole(storedRole);
-      if (storedRole === "adm") {
-        fetchOrders();
-      }
-    }, []);
+      useEffect(() => {
+        const storedRole = localStorage.getItem("tenislab_role");
+        setRole(storedRole);
+        if (storedRole === "ADMIN") {
+          fetchOrders();
+        }
+      }, []);
   
     const fetchOrders = async () => {
       setLoading(true);
@@ -132,7 +132,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
       return { totalCash, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
     }, [orders]);
 
-  if (role !== "adm") {
+  if (role !== "ADMIN") {
     return (
       <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
         <header className="flex items-center gap-4 mb-12">
@@ -141,7 +141,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900">Financeiro</h1>
+          <h1 className="font-black text-2xl">TENISLAB</h1>
         </header>
 
         <main className="flex-1 flex flex-col items-center justify-center text-center gap-6">
@@ -170,10 +170,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
           </Link>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Financeiro</h1>
         </div>
-        <div className="flex items-baseline gap-0.5">
-          <span className="text-xl font-black text-slate-900 tracking-tighter">TENIS</span>
-          <span className="text-xl font-light text-blue-500 tracking-tighter">LAB</span>
-        </div>
+        <h1 className="font-black text-xl">TENISLAB</h1>
       </header>
 
       {loading ? (

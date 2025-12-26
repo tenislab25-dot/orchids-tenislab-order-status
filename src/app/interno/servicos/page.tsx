@@ -28,18 +28,20 @@ import { toast } from "sonner";
 
 import { Service } from "@/lib/services-data";
 
-export default function ServicesManagement() {
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingService, setEditingService] = useState<any | null>(null);
-  
-  // Simulation of Admin access
-  const isAdmin = true;
+  export default function ServicesManagement() {
+    const [services, setServices] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [editingService, setEditingService] = useState<any | null>(null);
+    const [role, setRole] = useState<string | null>(null);
+    
+    useEffect(() => {
+      const storedRole = localStorage.getItem("tenislab_role");
+      setRole(storedRole);
+      fetchServices();
+    }, []);
 
-  useEffect(() => {
-    fetchServices();
-  }, []);
+    const isAdmin = role === "ADMIN";
 
   const fetchServices = async () => {
     setLoading(true);

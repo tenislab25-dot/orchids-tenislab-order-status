@@ -44,15 +44,16 @@ interface Client {
   created_at: string;
 }
 
-  export default function ClientsPage() {
-    const router = useRouter();
-    const [clients, setClients] = useState<Client[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [editingClient, setEditingClient] = useState<Client | null>(null);
-    
-    // Form state
+    export default function ClientsPage() {
+      const router = useRouter();
+      const [clients, setClients] = useState<Client[]>([]);
+      const [loading, setLoading] = useState(true);
+      const [search, setSearch] = useState("");
+      const [isDialogOpen, setIsDialogOpen] = useState(false);
+      const [editingClient, setEditingClient] = useState<Client | null>(null);
+      const [role, setRole] = useState<string | null>(null);
+      
+      // Form state
     const [formData, setFormData] = useState({
       name: "",
       phone: "",
@@ -60,19 +61,19 @@ interface Client {
       address: ""
     });
 
-    useEffect(() => {
-      const storedRole = localStorage.getItem("tenislab_role");
-      if (!storedRole) {
-        router.push("/interno/login");
-        return;
-      }
-      if (storedRole !== "adm" && storedRole !== "atendente") {
-        router.push("/interno/dashboard");
-        return;
-      }
-      setRole(storedRole);
-      fetchClients();
-    }, []);
+      useEffect(() => {
+        const storedRole = localStorage.getItem("tenislab_role");
+        if (!storedRole) {
+          router.push("/interno/login");
+          return;
+        }
+        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+          router.push("/interno/dashboard");
+          return;
+        }
+        setRole(storedRole);
+        fetchClients();
+      }, []);
 
   async function fetchClients() {
     try {

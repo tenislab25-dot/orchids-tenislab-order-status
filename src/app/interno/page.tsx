@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -72,14 +71,14 @@ export default function InternoPage() {
           <div className="text-center">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
-              Bem-vindo, {role === 'adm' ? 'Administrador' : role === 'atendente' ? 'Atendente' : 'Operacional'}
+              Bem-vindo, {role === 'ADMIN' ? 'Administrador' : role === 'ATENDENTE' ? 'Atendente' : 'Operacional'}
             </p>
           </div>
         </header>
 
         {/* MENU */}
         <main className="flex flex-col gap-4">
-            {(role === 'adm' || role === 'atendente' || role === 'interno') && (
+            {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
               <MenuButton 
                 href="/interno/dashboard"
                 title="Dashboard"
@@ -88,7 +87,7 @@ export default function InternoPage() {
               />
             )}
 
-            {(role === 'adm' || role === 'atendente') && (
+            {(role === 'ADMIN' || role === 'ATENDENTE') && (
               <MenuButton 
                 href="/interno/os"
                 title="Ordens de Serviço"
@@ -97,7 +96,7 @@ export default function InternoPage() {
               />
             )}
 
-            {(role === 'adm' || role === 'atendente') && (
+            {(role === 'ADMIN' || role === 'ATENDENTE') && (
               <MenuButton 
                 href="/interno/clientes"
                 title="Clientes"
@@ -106,7 +105,7 @@ export default function InternoPage() {
               />
             )}
 
-            {role === 'adm' && (
+            {role === 'ADMIN' && (
               <MenuButton 
                 href="/interno/financeiro"
                 title="Financeiro"
@@ -115,7 +114,7 @@ export default function InternoPage() {
               />
             )}
 
-            {role === 'adm' && (
+            {role === 'ADMIN' && (
               <MenuButton 
                 href="/interno/servicos"
                 title="Serviços"
@@ -124,7 +123,7 @@ export default function InternoPage() {
               />
             )}
 
-            {role === 'adm' && (
+            {role === 'ADMIN' && (
               <MenuButton 
                 href="/interno/banco-de-dados"
                 title="Banco de Dados"

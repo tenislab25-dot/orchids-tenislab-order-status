@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { 
   ArrowLeft, 
   Plus, 
@@ -104,10 +103,10 @@ export default function OSPage() {
         return;
       }
 
-      if (storedRole !== "adm" && storedRole !== "atendente") {
-        router.push("/interno/dashboard");
-        return;
-      }
+        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+          router.push("/interno/dashboard");
+          return;
+        }
 
       generateOSNumber();
       
@@ -365,14 +364,7 @@ export default function OSPage() {
             <ArrowLeft className="w-6 h-6" />
           </Link>
           
-          <div className="relative w-24 h-10">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-              alt="TENISLAB"
-              fill
-              className="object-contain brightness-0 invert"
-            />
-          </div>
+            <h1 className="font-black text-xl">TENISLAB</h1>
 
           <div className="text-right">
             <span className="text-[10px] uppercase tracking-widest text-white/50 block">OS</span>

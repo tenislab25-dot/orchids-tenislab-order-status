@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,16 +26,16 @@ export default function LoginPage() {
     }
 
     // SECTION 3 — MOCK ROLE AUTHENTICATION
-    let role: "adm" | "atendente" | "interno" | null = null;
+    let role: "ADMIN" | "ATENDENTE" | "OPERACIONAL" | null = null;
 
     if (email === "italoysampaio@gmial.com" && password === "33254442") {
-      role = "adm";
+      role = "ADMIN";
     } else if (email.startsWith("admin@")) {
-      role = "adm";
+      role = "ADMIN";
     } else if (email.startsWith("atendente@") || email.startsWith("os@")) {
-      role = "atendente";
+      role = "ATENDENTE";
     } else if (email.startsWith("interno@") || email.startsWith("staff@")) {
-      role = "interno";
+      role = "OPERACIONAL";
     }
 
     if (!role) {

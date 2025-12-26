@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import {
   Search,
   Database,
@@ -51,18 +50,18 @@ export default function BancoDadosPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-    useEffect(() => {
-      const storedRole = localStorage.getItem("tenislab_role");
-      if (!storedRole) {
-        router.push("/interno/login");
-        return;
-      }
-      if (storedRole !== "adm" && storedRole !== "atendente") {
-        router.push("/interno/dashboard");
-        return;
-      }
-      fetchOrders();
-    }, []);
+      useEffect(() => {
+        const storedRole = localStorage.getItem("tenislab_role");
+        if (!storedRole) {
+          router.push("/interno/login");
+          return;
+        }
+        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+          router.push("/interno/dashboard");
+          return;
+        }
+        fetchOrders();
+      }, []);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -115,15 +114,8 @@ export default function BancoDadosPage() {
             <p className="text-sm text-slate-500 font-medium italic">Histórico de pedidos concluídos há mais de 30 dias</p>
           </div>
         </div>
-        <div className="relative w-24 h-8">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
-              alt="TENISLAB"
-              fill
-              className="object-contain"
-            />
-          </div>
-      </header>
+          <h1 className="font-black text-xl">TENISLAB</h1>
+        </header>
 
       <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white grayscale-[0.5]">
         <CardHeader className="bg-white border-b border-slate-50 p-8">

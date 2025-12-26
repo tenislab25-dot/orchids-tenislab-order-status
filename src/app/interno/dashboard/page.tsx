@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Link from "next/link";
 import {
   Search,
   Package,
@@ -193,32 +192,32 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3">
-          {(role === "adm") && (
-            <Link href="/interno/financeiro">
-              <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-11">
-                <DollarSign className="w-4 h-4" />
-                Financeiro
-              </Button>
-            </Link>
-          )}
-          {(role === "adm" || role === "atendente") && (
-            <>
-              <Link href="/interno/clientes">
-                <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-11">
-                  <UserIcon className="w-4 h-4" />
-                  Clientes
+          <div className="flex flex-wrap gap-3">
+            {(role === "ADMIN") && (
+              <Link href="/interno/financeiro">
+                <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-11">
+                  <DollarSign className="w-4 h-4" />
+                  Financeiro
                 </Button>
               </Link>
-              <Link href="/interno/os">
-                <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-11 px-6 shadow-lg shadow-slate-200">
-                  <Plus className="w-4 h-4" />
-                  Nova OS
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
+            )}
+            {(role === "ADMIN" || role === "ATENDENTE") && (
+              <>
+                <Link href="/interno/clientes">
+                  <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-11">
+                    <UserIcon className="w-4 h-4" />
+                    Clientes
+                  </Button>
+                </Link>
+                <Link href="/interno/os">
+                  <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-11 px-6 shadow-lg shadow-slate-200">
+                    <Plus className="w-4 h-4" />
+                    Nova OS
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
       </header>
 
       {/* RECENT NOTIFICATIONS / CONFIRMATIONS */}
@@ -360,7 +359,7 @@ export default function DashboardPage() {
                                 <SelectValue />
                               </SelectTrigger>
                                   <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                    {(role === "adm" || role === "atendente" || role === "interno") && (
+                                    {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
                                       <>
                                         <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
                                         <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
@@ -368,7 +367,7 @@ export default function DashboardPage() {
                                         <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
                                       </>
                                     )}
-                                    {(role === "adm" || role === "atendente") && (
+                                    {(role === "ADMIN" || role === "ATENDENTE") && (
                                       <>
                                         <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
                                         <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
@@ -394,23 +393,23 @@ export default function DashboardPage() {
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                             Mostrando as 20 ordens mais recentes
                           </p>
-                            {(role === "adm" || role === "atendente") && (
-                              <div className="flex gap-3">
-                                <Link href="/interno/todos">
-                                  <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                    <History className="w-3.5 h-3.5" />
-                                    Ver Todos os Pedidos
-                                    <ArrowRight className="w-3.5 h-3.5" />
-                                  </Button>
-                                </Link>
-                                <Link href="/interno/banco-de-dados">
-                                  <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                    <Database className="w-3.5 h-3.5" />
-                                    Banco de Dados (Arquivo)
-                                  </Button>
-                                </Link>
-                              </div>
-                            )}
+                            {(role === "ADMIN" || role === "ATENDENTE") && (
+                                <div className="flex gap-3">
+                                  <Link href="/interno/todos">
+                                    <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                      <History className="w-3.5 h-3.5" />
+                                      Ver Todos os Pedidos
+                                      <ArrowRight className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </Link>
+                                  <Link href="/interno/banco-de-dados">
+                                    <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                      <Database className="w-3.5 h-3.5" />
+                                      Banco de Dados (Arquivo)
+                                    </Button>
+                                  </Link>
+                                </div>
+                              )}
                         </div>
                       </TableCell>
                     </TableRow>
