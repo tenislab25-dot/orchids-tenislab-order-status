@@ -102,7 +102,7 @@ export default function OSPage() {
         return;
       }
 
-      if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+      if (storedRole !== "adm" && storedRole !== "atendente") {
         router.push("/interno/dashboard");
         return;
       }

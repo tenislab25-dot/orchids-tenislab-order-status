@@ -51,14 +51,18 @@ export default function BancoDadosPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const storedRole = localStorage.getItem("tenislab_role");
-    if (!storedRole) {
-      router.push("/interno/login");
-      return;
-    }
-    fetchOrders();
-  }, []);
+    useEffect(() => {
+      const storedRole = localStorage.getItem("tenislab_role");
+      if (!storedRole) {
+        router.push("/interno/login");
+        return;
+      }
+      if (storedRole !== "adm" && storedRole !== "atendente") {
+        router.push("/interno/dashboard");
+        return;
+      }
+      fetchOrders();
+    }, []);
 
   const fetchOrders = async () => {
     setLoading(true);

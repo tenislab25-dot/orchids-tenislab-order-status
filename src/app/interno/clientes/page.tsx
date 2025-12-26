@@ -66,6 +66,11 @@ interface Client {
         router.push("/interno/login");
         return;
       }
+      if (storedRole !== "adm" && storedRole !== "atendente") {
+        router.push("/interno/dashboard");
+        return;
+      }
+      setRole(storedRole);
       fetchClients();
     }, []);
 
@@ -219,12 +224,14 @@ interface Client {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleOpenDialog(client)} className="gap-2">
-                          <Pencil className="w-4 h-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(client.id)} className="gap-2 text-red-600 focus:text-red-600">
-                          <Trash2 className="w-4 h-4" /> Excluir
-                        </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenDialog(client)} className="gap-2">
+                            <Pencil className="w-4 h-4" /> Editar
+                          </DropdownMenuItem>
+                          {localStorage.getItem("tenislab_role") === "adm" && (
+                            <DropdownMenuItem onClick={() => handleDelete(client.id)} className="gap-2 text-red-600 focus:text-red-600">
+                              <Trash2 className="w-4 h-4" /> Excluir
+                            </DropdownMenuItem>
+                          )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

@@ -366,26 +366,22 @@ export default function DashboardPage() {
                               <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
                                 <SelectValue />
                               </SelectTrigger>
-                                <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                  {(role === "adm" || role === "atendente") && (
-                                    <>
-                                      <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                      <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                    </>
-                                  )}
-                                  {(role === "adm" || role === "atendente" || role === "interno") && (
-                                    <>
-                                      <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                      <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
-                                    </>
-                                  )}
-                                  {(role === "adm" || role === "atendente") && (
-                                    <>
-                                      <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                                      <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                                    </>
-                                  )}
-                                </SelectContent>
+                                  <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                                    {(role === "adm" || role === "atendente" || role === "interno") && (
+                                      <>
+                                        <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                        <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                        <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                        <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
+                                      </>
+                                    )}
+                                    {(role === "adm" || role === "atendente") && (
+                                      <>
+                                        <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                                        <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                                      </>
+                                    )}
+                                  </SelectContent>
                             </Select>
     
                             <Link
@@ -405,21 +401,23 @@ export default function DashboardPage() {
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                             Mostrando as 20 ordens mais recentes
                           </p>
-                          <div className="flex gap-3">
-                            <Link href="/interno/todos">
-                              <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                <History className="w-3.5 h-3.5" />
-                                Ver Todos os Pedidos
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </Button>
-                            </Link>
-                            <Link href="/interno/banco-de-dados">
-                              <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                <Database className="w-3.5 h-3.5" />
-                                Banco de Dados (Arquivo)
-                              </Button>
-                            </Link>
-                          </div>
+                            {(role === "adm" || role === "atendente") && (
+                              <div className="flex gap-3">
+                                <Link href="/interno/todos">
+                                  <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                    <History className="w-3.5 h-3.5" />
+                                    Ver Todos os Pedidos
+                                    <ArrowRight className="w-3.5 h-3.5" />
+                                  </Button>
+                                </Link>
+                                <Link href="/interno/banco-de-dados">
+                                  <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                    <Database className="w-3.5 h-3.5" />
+                                    Banco de Dados (Arquivo)
+                                  </Button>
+                                </Link>
+                              </div>
+                            )}
                         </div>
                       </TableCell>
                     </TableRow>
