@@ -97,17 +97,17 @@ export default function OSPage() {
   const [paymentMethod, setPaymentMethod] = useState("Pix");
   const [payOnEntry, setPayOnEntry] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    // Generate OS Number
-    const year = new Date().getFullYear();
-    const randomNum = Math.floor(Math.random() * 900) + 100;
-    setOsNumber(`${randomNum}/${year}`);
-    
-    // Set Entry Date
-    const today = new Date();
-    setEntryDate(today.toISOString().split('T')[0]);
-  }, []);
+    useEffect(() => {
+      setMounted(true);
+      // Generate OS Number (Sequence 0001/YEAR)
+      const year = new Date().getFullYear();
+      const sequence = "0001";
+      setOsNumber(`${sequence}/${year}`);
+      
+      // Set Entry Date
+      const today = new Date();
+      setEntryDate(today.toISOString().split('T')[0]);
+    }, []);
 
   if (!mounted) return null;
 
@@ -183,11 +183,11 @@ export default function OSPage() {
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       {/* SECTION 1 — OS IDENTIFICATION */}
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <Link href="/interno/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10">
+        <div className="flex items-center relative justify-center mb-2">
+          <Link href="/interno/dashboard" className="absolute left-0 p-2 rounded-full active:bg-white/10">
             <ChevronLeft className="w-6 h-6" />
           </Link>
-          <div className="text-right">
+          <div className="text-center">
             <span className="text-[10px] uppercase tracking-widest text-white/50 block">Ordem de Serviço</span>
             <h1 className="text-xl font-black tracking-tighter">#{osNumber}</h1>
           </div>

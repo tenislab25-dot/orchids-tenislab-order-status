@@ -1,31 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Package, 
-  Clock, 
-  CheckCircle2, 
-  Truck,
+import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
+import {
+  Search,
+  MoreHorizontal,
+  Package,
   Eye,
-  ArrowUpDown,
-  XCircle,
   Trash2,
   AlertTriangle,
-  X
 } from "lucide-react";
-import Link from "next/link";
-import { useEffect } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+
 import {
   Select,
   SelectContent,
@@ -33,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,11 +35,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -53,6 +50,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+
 import { Textarea } from "@/components/ui/textarea";
 
 type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
@@ -66,6 +64,7 @@ interface Order {
   entryDate: string;
   deliveryDate?: string;
   cancellationReason?: string;
+  cancellationDate?: string;
   total?: number;
 }
 
@@ -78,17 +77,17 @@ const initialOrders: Order[] = [
     status: "Entregue",
     entryDate: "2025-12-01",
     deliveryDate: "2025-12-05",
-    total: 141.00,
+    total: 141,
   },
   {
     id: "2",
     osNumber: "002/2025",
     clientName: "Maria Oliveira",
     pairsCount: 1,
-      status: "Pronto",
+    status: "Pronto",
     entryDate: "2025-12-05",
     deliveryDate: "2025-12-08",
-    total: 80.00,
+    total: 80,
   },
   {
     id: "3",
@@ -98,7 +97,7 @@ const initialOrders: Order[] = [
     status: "Em serviço",
     entryDate: "2025-12-10",
     deliveryDate: "2025-12-15",
-    total: 210.00,
+    total: 210,
   },
   {
     id: "4",
@@ -108,7 +107,7 @@ const initialOrders: Order[] = [
     status: "Recebido",
     entryDate: "2025-12-15",
     deliveryDate: "2025-12-20",
-    total: 45.00,
+    total: 45,
   },
   {
     id: "5",
@@ -118,7 +117,7 @@ const initialOrders: Order[] = [
     status: "Em serviço",
     entryDate: "2025-12-08",
     deliveryDate: "2025-12-13",
-    total: 120.00,
+    total: 120,
   },
   {
     id: "6",
@@ -128,14 +127,15 @@ const initialOrders: Order[] = [
     status: "Cancelado",
     entryDate: "2025-12-12",
     cancellationReason: "Cliente desistiu do serviço por conta do prazo.",
-    total: 65.00,
+    cancellationDate: "2025-12-12",
+    total: 65,
   },
 ];
 
 const statusWeight: Record<Status, number> = {
+  "Em serviço": 0,
   "Recebido": 1,
-  "Em serviço": 0, // Should appear first or among first
-    "Pronto": 2,
+  "Pronto": 2,
   "Entregue": 3,
   "Cancelado": 4,
 };
@@ -145,346 +145,306 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string | null>(null);
 
-  // Cancellation Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
-    const [cancellationReason, setCancellationReason] = useState("");
-
-    const isReasonValid = cancellationReason.trim().length >= 10;
-
-    // Deletion Modal State
+  const [cancellationReason, setCancellationReason] = useState("");
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+
+  const isReasonValid = cancellationReason.trim().length >= 10;
 
   useEffect(() => {
     setRole(localStorage.getItem("tenislab_role"));
   }, []);
 
   const handleStatusChange = (orderId: string, newStatus: Status) => {
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find((o) => o.id === orderId);
     if (order?.status === "Cancelado" || order?.status === "Entregue") return;
 
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-  };
-
-  const handleCancelClick = (orderId: string) => {
-    setOrderToCancel(orderId);
-    setCancelModalOpen(true);
-    setCancellationReason("");
-  };
-
-    const confirmCancel = () => {
-      if (!isReasonValid || !orderToCancel) return;
-
-      setOrders(prev => prev.map(order => 
-        order.id === orderToCancel 
-          ? { 
-              ...order, 
-              status: "Cancelado", 
-              cancellationReason, 
-              cancellationDate: new Date().toISOString() 
-            } 
-          : order
-      ));
-      setCancelModalOpen(false);
-      setOrderToCancel(null);
-    };
-
-
-  const handleDeleteClick = (orderId: string) => {
-    setOrderToDelete(orderId);
-    setDeleteModalOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (!orderToDelete) return;
-    setOrders(prev => prev.filter(order => order.id !== orderToDelete));
-    setDeleteModalOpen(false);
-    setOrderToDelete(null);
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId ? { ...order, status: newStatus } : order
+      )
+    );
   };
 
   const sortedAndFilteredOrders = useMemo(() => {
     return orders
-      .filter(order => 
-        order.osNumber.toLowerCase().includes(search.toLowerCase()) ||
-        order.clientName.toLowerCase().includes(search.toLowerCase())
+      .filter(
+        (order) =>
+          order.osNumber.toLowerCase().includes(search.toLowerCase()) ||
+          order.clientName.toLowerCase().includes(search.toLowerCase())
       )
       .sort((a, b) => {
-        // First sort by status weight (Em serviço & Recebido first)
         const weightA = statusWeight[a.status];
         const weightB = statusWeight[b.status];
-        
-        if (weightA !== weightB) {
-          return weightA - weightB;
-        }
-        
-        // Then sort by oldest date first
-        return new Date(a.entryDate).getTime() - new Date(b.entryDate).getTime();
+        if (weightA !== weightB) return weightA - weightB;
+        return (
+          new Date(a.entryDate).getTime() -
+          new Date(b.entryDate).getTime()
+        );
       });
   }, [orders, search]);
 
+  const confirmCancel = () => {
+    if (!isReasonValid || !orderToCancel) return;
+
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderToCancel
+          ? {
+              ...order,
+              status: "Cancelado",
+              cancellationReason,
+              cancellationDate: new Date().toISOString(),
+            }
+          : order
+      )
+    );
+    setCancelModalOpen(false);
+    setOrderToCancel(null);
+    setCancellationReason("");
+  };
+
+  const confirmDelete = () => {
+    if (!orderToDelete) return;
+    setOrders((prev) => prev.filter((o) => o.id !== orderToDelete));
+    setDeleteModalOpen(false);
+    setOrderToDelete(null);
+  };
+
   const getStatusBadge = (status: Status) => {
-    switch (status) {
-      case "Recebido":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-3 py-1">Recebido</Badge>;
-      case "Em serviço":
-        return <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none px-3 py-1">Em serviço</Badge>;
-      case "Pronto":
-        return <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none px-3 py-1">Pronto</Badge>;
-      case "Entregue":
-        return <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-100 border-none px-3 py-1">Entregue</Badge>;
-      case "Cancelado":
-        return <Badge variant="secondary" className="bg-red-100 text-red-700 hover:bg-red-100 border-none px-3 py-1">Cancelado</Badge>;
-    }
+    const styles = {
+      Recebido: "bg-blue-100 text-blue-700",
+      "Em serviço": "bg-amber-100 text-amber-700",
+      Pronto: "bg-green-100 text-green-700",
+      Entregue: "bg-slate-100 text-slate-700",
+      Cancelado: "bg-red-100 text-red-700",
+    };
+    return (
+      <Badge className={`${styles[status]} border-none px-3 py-1`}>
+        {status}
+      </Badge>
+    );
   };
 
   return (
     <div className="flex flex-col gap-8">
-        <header className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Dashboard Interno</h1>
-            <p className="text-slate-500 font-medium">Gerencie as ordens de serviço da TENISLAB</p>
-          </div>
-          <div className="flex flex-col items-end gap-3">
-            <div className="flex gap-1 items-baseline">
-              <span className="text-2xl font-black text-slate-900">TENIS</span>
-              <span className="text-2xl font-light text-blue-500">LAB</span>
-            </div>
-            <Link href="/interno/os">
-              <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 shadow-lg shadow-blue-100">
-                Nova OS
-              </Button>
-            </Link>
-          </div>
-        </header>
+      {/* HEADER */}
+      <header className="flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900">
+            Dashboard Interno
+          </h1>
+          <p className="text-slate-500">
+            Gerencie as ordens de serviço da TENISLAB
+          </p>
+        </div>
+        <Link href="/interno/os">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">
+            Nova OS
+          </Button>
+        </Link>
+      </header>
 
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50 border-b border-slate-200 py-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <Package className="w-5 h-5 text-blue-500" />
-              Ordens de Serviço
-            </CardTitle>
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input 
-                placeholder="Buscar por OS ou cliente..." 
-                className="pl-9 bg-white border-slate-200 rounded-xl"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+      {/* TABLE */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-blue-500" />
+            Ordens de Serviço
+          </CardTitle>
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por OS ou cliente..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </CardHeader>
+
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-slate-50/50">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[120px] font-bold text-slate-600">OS</TableHead>
-                  <TableHead className="font-bold text-slate-600">Cliente</TableHead>
-                  <TableHead className="font-bold text-slate-600 text-center">Pares</TableHead>
-                  <TableHead className="font-bold text-slate-600">Data de Entrada</TableHead>
-                  <TableHead className="font-bold text-slate-600">Data de Entrega</TableHead>
-                  <TableHead className="font-bold text-slate-600">Status</TableHead>
-                  <TableHead className="w-[180px] font-bold text-slate-600">Ações</TableHead>
-                </TableRow>
+            <TableHeader>
+              <TableRow>
+                <TableHead>OS</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Pares</TableHead>
+                <TableHead>Entrada</TableHead>
+                <TableHead>Entrega</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {sortedAndFilteredOrders.map((order) => (
-                <TableRow key={order.id} className="group hover:bg-slate-50/50 transition-colors">
-                  <TableCell className="font-mono font-bold text-slate-900">
+                <TableRow key={order.id}>
+                  <TableCell className="font-mono font-bold">
                     {order.osNumber}
                   </TableCell>
-                  <TableCell className="font-medium text-slate-700">
-                    {order.clientName}
+                  <TableCell>{order.clientName}</TableCell>
+                  <TableCell className="text-center">
+                    {order.pairsCount}
                   </TableCell>
-                  <TableCell className="text-center font-medium">
-                    <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-600 text-xs font-bold">
-                      {order.pairsCount}
-                    </span>
+                  <TableCell>
+                    {new Date(order.entryDate).toLocaleDateString("pt-BR")}
                   </TableCell>
-                    <TableCell className="text-slate-500 font-medium">
-                      {new Date(order.entryDate).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell className="text-slate-500 font-medium">
-                      {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('pt-BR') : "-"}
-                    </TableCell>
-                    <TableCell>
-                    {getStatusBadge(order.status)}
+                  <TableCell>
+                    {order.deliveryDate
+                      ? new Date(order.deliveryDate).toLocaleDateString("pt-BR")
+                      : "-"}
                   </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Select 
-                            value={order.status} 
-                            onValueChange={(value) => handleStatusChange(order.id, value as Status)}
-                            disabled={order.status === "Cancelado" || order.status === "Entregue"}
-                          >
-                            <SelectTrigger className="h-9 w-[130px] text-[10px] font-bold uppercase tracking-wider border-slate-200 rounded-lg">
-                              <SelectValue placeholder="Mudar status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Recebido">Recebido</SelectItem>
-                              <SelectItem value="Em serviço">Em serviço</SelectItem>
-                                <SelectItem value="Pronto">Pronto</SelectItem>
-                              <SelectItem value="Entregue">Entregue</SelectItem>
-                            </SelectContent>
-                          </Select>
+                  <TableCell>{getStatusBadge(order.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Select
+                        value={order.status}
+                        disabled={
+                          order.status === "Entregue" ||
+                          order.status === "Cancelado"
+                        }
+                        onValueChange={(v) =>
+                          handleStatusChange(order.id, v as Status)
+                        }
+                      >
+                        <SelectTrigger className="w-[130px] h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Recebido">Recebido</SelectItem>
+                          <SelectItem value="Em serviço">
+                            Em serviço
+                          </SelectItem>
+                          <SelectItem value="Pronto">Pronto</SelectItem>
+                          <SelectItem value="Entregue">Entregue</SelectItem>
+                        </SelectContent>
+                      </Select>
 
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-slate-100">
-                                <MoreHorizontal className="w-4 h-4 text-slate-400" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 rounded-xl p-2">
-                              <DropdownMenuItem className="rounded-lg cursor-pointer py-2" asChild>
-                                <Link href={`/interno/os/${order.osNumber.replace("/", "-")}`} className="flex items-center gap-2">
-                                  <Eye className="w-4 h-4 text-slate-400" />
-                                  <span className="font-bold text-xs text-slate-600">👁️ Ver detalhes</span>
-                                </Link>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/interno/os/${order.osNumber.replace(
+                                "/",
+                                "-"
+                              )}`}
+                              className="flex items-center gap-2"
+                            >
+                              <Eye className="w-4 h-4" /> Ver detalhes
+                            </Link>
+                          </DropdownMenuItem>
+
+                          {(role === "ADMIN" || role === "ATENDENTE") &&
+                            order.status !== "Entregue" &&
+                            order.status !== "Cancelado" && (
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => {
+                                  setOrderToCancel(order.id);
+                                  setCancelModalOpen(true);
+                                }}
+                              >
+                                <AlertTriangle className="w-4 h-4" />
+                                Cancelar OS
                               </DropdownMenuItem>
-                              
-                              {(role === "ADMIN" || role === "ATENDENTE") && order.status !== "Entregue" && order.status !== "Cancelado" && (
-                                <DropdownMenuItem 
-                                  className="rounded-lg cursor-pointer py-2 text-red-600 focus:text-red-600 focus:bg-red-50 flex items-center gap-2"
-                                  onClick={() => handleCancelClick(order.id)}
-                                >
-                                  <AlertTriangle className="w-4 h-4" />
-                                  <span className="font-bold text-xs">❌ Cancelar OS</span>
-                                </DropdownMenuItem>
-                              )}
+                            )}
 
-                              {role === "ADMIN" && (
-                                <>
-                                  <DropdownMenuSeparator className="my-1" />
-                                  <DropdownMenuItem 
-                                    className="rounded-lg cursor-pointer py-2 text-slate-400 focus:text-red-600 focus:bg-red-50 flex items-center gap-2"
-                                    onClick={() => handleDeleteClick(order.id)}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    <span className="font-bold text-[10px] uppercase">🗑️ Excluir permanentemente</span>
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        {order.status === "Cancelado" && order.cancellationReason && (
-                          <p className="text-[10px] text-red-500 font-medium mt-1 italic max-w-[200px] truncate">
-                            Motivo: {order.cancellationReason}
-                          </p>
-                        )}
-                      </TableCell>
-                  </TableRow>
-                ))}
-                  {sortedAndFilteredOrders.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-32 text-center text-slate-400 font-medium">
-                        Nenhuma ordem de serviço encontrada.
-                      </TableCell>
-                    </TableRow>
-                  )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                          {role === "ADMIN" && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => {
+                                  setOrderToDelete(order.id);
+                                  setDeleteModalOpen(true);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Excluir permanentemente
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-          <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
-            <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-black flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                  Cancelar Ordem de Serviço
-                </DialogTitle>
-                <DialogDescription className="font-bold text-slate-600">
-                  Esta ação é irreversível. A OS será marcada como cancelada.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4 space-y-4">
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="cancelDate" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
-                    Data do cancelamento
-                  </Label>
-                  <Input 
-                    id="cancelDate" 
-                    value={new Date().toLocaleDateString('pt-BR')} 
-                    disabled 
-                    className="rounded-xl bg-slate-50 border-slate-200 font-bold text-slate-500"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Label htmlFor="reason" className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">
-                    Motivo do cancelamento *
-                  </Label>
-                  <Textarea 
-                    id="reason"
-                    placeholder="Informe detalhadamente o motivo do cancelamento..."
-                    value={cancellationReason}
-                    onChange={(e) => setCancellationReason(e.target.value)}
-                    className="mt-1 rounded-2xl border-slate-200 min-h-[100px] text-sm resize-none focus-visible:ring-red-500/20"
-                    required
-                  />
-                  {!isReasonValid && cancellationReason.length > 0 && (
-                    <p className="text-[10px] text-red-500 mt-1 font-medium italic">
-                      O motivo deve ter pelo menos 10 caracteres para confirmar.
-                    </p>
-                  )}
-                </div>
-              </div>
-              <DialogFooter className="flex gap-2 sm:gap-0">
-                <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="rounded-xl font-bold">
-                  Voltar
-                </Button>
-                <Button 
-                  onClick={confirmCancel} 
-                  disabled={!isReasonValid}
-                  className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold disabled:opacity-50"
-                >
-                  Confirmar cancelamento
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+      {/* CANCEL MODAL */}
+      <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar Ordem de Serviço</DialogTitle>
+            <DialogDescription>
+              Informe o motivo do cancelamento.
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* DELETE CONFIRMATION DIALOG */}
-        <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-          <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-black flex items-center gap-2 text-red-600">
-                <AlertTriangle className="w-5 h-5" />
-                Excluir Permanentemente
-              </DialogTitle>
-              <DialogDescription className="font-bold text-slate-600">
-                Essa ação é permanente e não poderá ser desfeita.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-2">
-              <p className="text-sm text-slate-500 leading-relaxed">
-                A Ordem de Serviço será removida completamente do sistema, incluindo registros financeiros e visibilidade para o cliente.
-              </p>
-            </div>
-            <DialogFooter className="flex gap-2 sm:gap-0">
-              <Button variant="ghost" onClick={() => setDeleteModalOpen(false)} className="rounded-xl font-bold">
-                Cancelar
-              </Button>
-              <Button 
-                onClick={confirmDelete} 
-                className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
-              >
-                Sim, excluir permanentemente
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        
-        <footer className="text-center py-4 border-t border-slate-100">
-        <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          Painel de Controle Interno • Acesso Restrito
-        </p>
-      </footer>
+          <Label>Motivo *</Label>
+          <Textarea
+            value={cancellationReason}
+            onChange={(e) => setCancellationReason(e.target.value)}
+          />
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setCancelModalOpen(false)}
+            >
+              Voltar
+            </Button>
+            <Button
+              onClick={confirmCancel}
+              disabled={!isReasonValid}
+              className="bg-red-600 text-white"
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DELETE MODAL */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">
+              Excluir Permanentemente
+            </DialogTitle>
+            <DialogDescription>
+              Essa ação não poderá ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              className="bg-red-600 text-white"
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
