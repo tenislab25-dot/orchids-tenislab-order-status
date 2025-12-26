@@ -7,8 +7,6 @@ import {
   MoreHorizontal,
   Package,
   Eye,
-  Trash2,
-  AlertTriangle,
 } from "lucide-react";
 
 import {
@@ -323,59 +321,18 @@ export default function DashboardPage() {
                         </SelectContent>
                       </Select>
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <Link
+                          href={`/interno/os/${order.osNumber.replace(
+                            "/",
+                            "-"
+                          )}`}
+                        >
                           <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="w-4 h-4" />
+                            <Eye className="w-4 h-4 text-slate-400 hover:text-blue-500 transition-colors" />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/interno/os/${order.osNumber.replace(
-                                "/",
-                                "-"
-                              )}`}
-                              className="flex items-center gap-2"
-                            >
-                              <Eye className="w-4 h-4" /> Ver detalhes
-                            </Link>
-                          </DropdownMenuItem>
-
-                          {(role === "ADMIN" || role === "ATENDENTE") &&
-                            order.status !== "Entregue" &&
-                            order.status !== "Cancelado" && (
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => {
-                                  setOrderToCancel(order.id);
-                                  setCancelModalOpen(true);
-                                }}
-                              >
-                                <AlertTriangle className="w-4 h-4" />
-                                Cancelar OS
-                              </DropdownMenuItem>
-                            )}
-
-                          {role === "ADMIN" && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => {
-                                  setOrderToDelete(order.id);
-                                  setDeleteModalOpen(true);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Excluir permanentemente
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
+                        </Link>
+                      </div>
+                    </TableCell>
                 </TableRow>
               ))}
             </TableBody>
