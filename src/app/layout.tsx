@@ -25,11 +25,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="pt-BR">
-        <body
-          className={`${plusJakartaSans.variable} font-sans antialiased bg-white`}
-        >
+    return (
+      <html lang="pt-BR" suppressHydrationWarning>
+          <body
+            className={`${plusJakartaSans.variable} font-sans antialiased bg-white`}
+          >
           <main className="min-h-screen flex flex-col items-center justify-center p-4">
             {children}
           </main>

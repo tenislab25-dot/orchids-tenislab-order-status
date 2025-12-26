@@ -76,6 +76,8 @@ export default function OSPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [role, setRole] = useState<string | null>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [osNumber, setOsNumber] = useState("");
   const [entryDate, setEntryDate] = useState("");
   
@@ -113,7 +115,36 @@ export default function OSPage() {
       setEntryDate(today.toISOString().split('T')[0]);
 
       fetchClients();
+      fetchServices();
     }, []);
+
+  const fetchServices = async () => {
+    setLoadingServices(true);
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("status", "Active")
+      .neq("name", "Taxa de entrega");
+    
+    if (error) {
+      toast.error("Erro ao carregar serviços");
+    } else {
+      setServices(data || []);
+    }
+    setLoadingServices(false);
+  };
+
+  const serviceCatalog = useMemo(() => {
+    return services.reduce((acc, service) => {
+      if (!acc[service.category]) acc[service.category] = [];
+      acc[service.category].push({
+        id: service.id,
+        name: service.name,
+        price: service.default_price
+      });
+      return acc;
+    }, {} as Record<string, { id: string, name: string, price: number }[]>);
+  }, [services]);
 
   const generateOSNumber = async () => {
     const year = new Date().getFullYear();
@@ -213,7 +244,7 @@ export default function OSPage() {
     setItems(items.map(item => {
       if (item.id === itemId) {
         let foundService: SelectedService | undefined;
-        Object.values(SERVICE_CATALOG).forEach(category => {
+        Object.values(serviceCatalog).forEach(category => {
           const service = category.find(s => s.id === serviceId);
           if (service) foundService = service;
         });
@@ -480,29 +511,29 @@ export default function OSPage() {
                     </div>
                   </div>
 
-                <div className="space-y-2">
-                  <Label>Serviços</Label>
-                  <Select onValueChange={(val) => updateItemService(item.id, val)}>
-                    <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl">
-                      <SelectValue placeholder="Selecionar serviço" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(SERVICE_CATALOG).map(([category, services]) => (
-                        <SelectGroup key={category}>
-                          <SelectLabel>{category}</SelectLabel>
-                          {services.map(service => (
-                            <SelectItem key={service.id} value={service.id}>
-                              <div className="flex justify-between w-full gap-4">
-                                <span>{service.name}</span>
-                                <span className="text-slate-500 font-bold">R$ {service.price}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label>Serviços</Label>
+                    <Select onValueChange={(val) => updateItemService(item.id, val)}>
+                      <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl">
+                        <SelectValue placeholder="Selecionar serviço" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(serviceCatalog).map(([category, services]) => (
+                          <SelectGroup key={category}>
+                            <SelectLabel>{category}</SelectLabel>
+                            {services.map((service: any) => (
+                              <SelectItem key={service.id} value={service.id}>
+                                <div className="flex justify-between w-full gap-4">
+                                  <span>{service.name}</span>
+                                  <span className="text-slate-500 font-bold">R$ {service.price}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                 {item.services.length > 0 && (
                   <div className="flex flex-wrap gap-2">
