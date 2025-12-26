@@ -15,7 +15,8 @@ import {
   CreditCard,
   Banknote,
   QrCode,
-  Users
+  Users,
+  Loader2
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ interface OSItem {
   };
   notes: string;
   subtotal: number;
+  photos?: string[];
 }
 
 export default function OSPage() {
@@ -157,6 +159,39 @@ export default function OSPage() {
   };
 
   if (!mounted) return null;
+
+  const handleFileChange = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    try {
+      toast.loading("Enviando foto...", { id: "upload" });
+      const { data, error } = await supabase.storage
+        .from('photos')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filePath);
+
+      setItems(items.map(item => {
+        if (item.id === itemId) {
+          const photos = [...(item.photos || []), publicUrl];
+          return { ...item, photos };
+        }
+        return item;
+      }));
+      toast.success("Foto enviada!", { id: "upload" });
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message, { id: "upload" });
+    }
+  };
 
   const addItem = () => {
     const nextItemIndex = items.length + 1;
@@ -409,11 +444,41 @@ export default function OSPage() {
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
-                <div className="aspect-video w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 active:bg-slate-200 transition-colors cursor-pointer">
-                  <Camera className="w-8 h-8" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Tirar foto do par</span>
-                </div>
+                <CardContent className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Fotos do par</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {item.photos?.map((photo, pIdx) => (
+                        <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group">
+                          <Image src={photo} alt="Foto do par" fill className="object-cover" />
+                          <button 
+                            onClick={() => {
+                              setItems(items.map(it => {
+                                if (it.id === item.id) {
+                                  return { ...it, photos: it.photos?.filter((_, i) => i !== pIdx) };
+                                }
+                                return it;
+                              }));
+                            }}
+                            className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      <label className="aspect-video w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:bg-slate-200 hover:border-slate-300 transition-all cursor-pointer">
+                        <Camera className="w-8 h-8" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Adicionar foto</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          capture="environment"
+                          className="hidden" 
+                          onChange={(e) => handleFileChange(item.id, e)}
+                        />
+                      </label>
+                    </div>
+                  </div>
 
                 <div className="space-y-2">
                   <Label>Serviços</Label>
@@ -518,7 +583,7 @@ export default function OSPage() {
               <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4">
                 <div className="space-y-2">
                   <Label>Data de Entrada</Label>
                   <Input 

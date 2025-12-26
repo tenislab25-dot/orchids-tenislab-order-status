@@ -203,26 +203,26 @@ export default function OSViewPage() {
             {getStatusBadge(order.status)}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> Entrada
-              </span>
-              <span className="text-sm font-bold text-slate-700">
-                {new Date(order.entry_date).toLocaleDateString('pt-BR')}
-              </span>
-            </div>
-            {order.delivery_date && (
+            <div className="flex flex-col gap-4 pt-4 border-t border-slate-50">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Package className="w-3 h-3" /> Previsão
+                  <Calendar className="w-3 h-3" /> Entrada
                 </span>
                 <span className="text-sm font-bold text-slate-700">
-                  {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                  {new Date(order.entry_date).toLocaleDateString('pt-BR')}
                 </span>
               </div>
-            )}
-          </div>
+              {order.delivery_date && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <Package className="w-3 h-3" /> Previsão
+                  </span>
+                  <span className="text-sm font-bold text-slate-700">
+                    {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              )}
+            </div>
         </section>
 
         {/* ITEMS */}
@@ -236,8 +236,17 @@ export default function OSViewPage() {
                   ITEM {idx + 1} - {item.itemNumber}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="space-y-2">
+                <CardContent className="p-6 space-y-6">
+                  {item.photos && item.photos.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 pb-2">
+                      {item.photos.map((photo: string, pIdx: number) => (
+                        <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200">
+                          <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="space-y-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços</span>
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                     <ul className="space-y-2">

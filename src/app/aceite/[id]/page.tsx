@@ -320,8 +320,17 @@ export default function CustomerAcceptancePage() {
                   R$ {Number(item.value).toFixed(2)}
                 </span>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="space-y-4">
+                <CardContent className="p-6 space-y-6">
+                  {item.photos && item.photos.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 pb-2">
+                      {item.photos.map((photo: string, pIdx: number) => (
+                        <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200">
+                          <Image src={photo} alt={`Foto do item ${item.itemNumber}`} fill className="object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços Contratados</Label>
                     <div className="flex flex-wrap gap-2">
