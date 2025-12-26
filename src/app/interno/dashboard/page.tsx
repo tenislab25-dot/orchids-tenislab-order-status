@@ -8,7 +8,12 @@ import {
   Search,
   Package,
   Eye,
-  Plus
+  Plus,
+  Bell,
+  CheckCircle2,
+  Calendar,
+  User as UserIcon,
+  DollarSign
 } from "lucide-react";
 
 import {
@@ -44,6 +49,7 @@ interface Order {
   entry_date: string;
   delivery_date?: string;
   total?: number;
+  updated_at?: string;
   items: any[];
   clients: {
     name: string;
@@ -58,24 +64,24 @@ const statusWeight: Record<Status, number> = {
   "Cancelado": 4,
 };
 
-  export default function DashboardPage() {
-    const router = useRouter();
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
-    const [role, setRole] = useState<string | null>(null);
+export default function DashboardPage() {
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [role, setRole] = useState<string | null>(null);
 
-    useEffect(() => {
-      const storedRole = localStorage.getItem("tenislab_role");
-      
-      if (!storedRole) {
-        router.push("/interno/login");
-        return;
-      }
+  useEffect(() => {
+    const storedRole = localStorage.getItem("tenislab_role");
+    
+    if (!storedRole) {
+      router.push("/interno/login");
+      return;
+    }
 
-      setRole(storedRole);
-      fetchOrders();
-    }, []);
+    setRole(storedRole);
+    fetchOrders();
+  }, []);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -87,7 +93,7 @@ const statusWeight: Record<Status, number> = {
           name
         )
       `)
-      .order("created_at", { ascending: false });
+      .order("updated_at", { ascending: false });
 
     if (error) {
       toast.error("Erro ao buscar ordens: " + error.message);
@@ -127,11 +133,19 @@ const statusWeight: Record<Status, number> = {
         const weightB = statusWeight[b.status];
         if (weightA !== weightB) return weightA - weightB;
         return (
-          new Date(b.entry_date).getTime() -
-          new Date(a.entry_date).getTime()
+          new Date(b.updated_at || b.entry_date).getTime() -
+          new Date(a.updated_at || a.entry_date).getTime()
         );
       });
   }, [orders, search]);
+
+  const recentConfirmations = useMemo(() => {
+    // Orders that are "Em serviço" and were updated recently
+    return orders
+      .filter(o => o.status === "Em serviço")
+      .sort((a, b) => new Date(b.updated_at || "").getTime() - new Date(a.updated_at || "").getTime())
+      .slice(0, 3);
+  }, [orders]);
 
   const getStatusBadge = (status: Status) => {
     const styles = {
@@ -149,8 +163,8 @@ const statusWeight: Record<Status, number> = {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-10">
-      <header className="flex justify-between items-end">
+    <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
         <div className="flex flex-col gap-4">
           <div className="relative w-32 h-12">
             <Image 
@@ -161,141 +175,211 @@ const statusWeight: Record<Status, number> = {
             />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-slate-900">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
               Dashboard Interno
             </h1>
-            <p className="text-slate-500">
-              Gerencie as ordens de serviço da TENISLAB
+            <p className="text-slate-500 font-medium">
+              Gestão de ordens de serviço TENISLAB
             </p>
           </div>
         </div>
+        <div className="flex flex-wrap gap-3">
+          {(role === "ADMIN") && (
+            <Link href="/interno/financeiro">
+              <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-11">
+                <DollarSign className="w-4 h-4" />
+                Financeiro
+              </Button>
+            </Link>
+          )}
           {(role === "ADMIN" || role === "ATENDENTE") && (
-            <div className="flex gap-2">
+            <>
               <Link href="/interno/clientes">
-                <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2">
+                <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-11">
+                  <UserIcon className="w-4 h-4" />
                   Clientes
                 </Button>
               </Link>
               <Link href="/interno/os">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
+                <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-11 px-6 shadow-lg shadow-slate-200">
                   <Plus className="w-4 h-4" />
                   Nova OS
                 </Button>
               </Link>
-            </div>
+            </>
           )}
+        </div>
       </header>
 
-      {/* TABLE */}
-      <Card className="border-none shadow-xl shadow-slate-200/50 rounded-3xl overflow-hidden">
-        <CardHeader className="bg-white border-b border-slate-50 p-6">
-          <CardTitle className="flex items-center gap-2 text-slate-900 font-bold">
-            <Package className="w-5 h-5 text-blue-500" />
-            Ordens de Serviço
-          </CardTitle>
-          <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Buscar por OS ou cliente..."
-              className="pl-9 h-12 bg-slate-50 border-slate-100 rounded-xl"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      {/* RECENT NOTIFICATIONS / CONFIRMATIONS */}
+      {recentConfirmations.length > 0 && (
+        <section className="animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="w-5 h-5 text-amber-500 fill-amber-500" />
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Ações Necessárias: Pedidos Confirmados</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {recentConfirmations.map((order) => (
+              <Card key={order.id} className="border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white hover:ring-2 ring-amber-400/30 transition-all cursor-pointer group" onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pedido Aceito em: {new Date(order.updated_at || "").toLocaleDateString('pt-BR')}</span>
+                      <span className="text-xl font-black text-blue-600">#{order.os_number}</span>
+                    </div>
+                    <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
+                      ACEITO PELO CLIENTE
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
+                      <UserIcon className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-700 truncate max-w-[150px]">{order.clients?.name}</span>
+                      <span className="text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" className="w-full justify-between rounded-xl bg-slate-50 group-hover:bg-blue-50 group-hover:text-blue-600 font-bold text-xs transition-colors">
+                    Iniciar Produção
+                    <CheckCircle2 className="w-4 h-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* MAIN LIST */}
+      <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
+        <CardHeader className="bg-white border-b border-slate-50 p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <CardTitle className="flex items-center gap-3 text-slate-900 font-black text-xl uppercase tracking-tight">
+              <Package className="w-6 h-6 text-blue-500" />
+              Gestão de Ordens
+            </CardTitle>
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Buscar por OS ou cliente..."
+                className="pl-11 h-12 bg-slate-50 border-none rounded-2xl focus-visible:ring-2 ring-blue-500/20 font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
         </CardHeader>
-
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-slate-50/50">
-              <TableRow>
-                <TableHead className="font-bold text-slate-500 py-4">OS</TableHead>
-                <TableHead className="font-bold text-slate-500">Cliente</TableHead>
-                <TableHead className="font-bold text-slate-500 text-center">Pares</TableHead>
-                <TableHead className="font-bold text-slate-500">Entrada</TableHead>
-                <TableHead className="font-bold text-slate-500">Entrega</TableHead>
-                <TableHead className="font-bold text-slate-500">Status</TableHead>
-                <TableHead className="font-bold text-slate-500">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50/50 border-b border-slate-100">
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-slate-400">
-                    Carregando ordens...
-                  </TableCell>
+                  <TableHead className="font-bold text-slate-500 py-6 pl-8">OS</TableHead>
+                  <TableHead className="font-bold text-slate-500">Cliente</TableHead>
+                  <TableHead className="font-bold text-slate-500 text-center">Pares</TableHead>
+                  <TableHead className="font-bold text-slate-500">Entrada</TableHead>
+                  <TableHead className="font-bold text-slate-500">Previsão</TableHead>
+                  <TableHead className="font-bold text-slate-500">Status</TableHead>
+                  <TableHead className="font-bold text-slate-500 pr-8">Ações</TableHead>
                 </TableRow>
-              ) : sortedAndFilteredOrders.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-slate-400">
-                    Nenhuma ordem encontrada.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sortedAndFilteredOrders.map((order) => (
-                  <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                    <TableCell className="font-mono font-black text-blue-600">
-                      #{order.os_number}
-                    </TableCell>
-                    <TableCell className="font-medium text-slate-700">
-                      {order.clients?.name || "Cliente não encontrado"}
-                    </TableCell>
-                    <TableCell className="text-center font-bold">
-                      {order.items?.length || 0}
-                    </TableCell>
-                    <TableCell className="text-slate-500">
-                      {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell className="text-slate-500">
-                      {order.delivery_date
-                        ? new Date(order.delivery_date).toLocaleDateString("pt-BR")
-                        : "-"}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Select
-                          value={order.status}
-                          disabled={
-                            order.status === "Entregue" ||
-                            order.status === "Cancelado"
-                          }
-                          onValueChange={(v) =>
-                            handleStatusChange(order.id, v as Status)
-                          }
-                        >
-                          <SelectTrigger className="w-[130px] h-9 text-xs rounded-lg border-slate-200">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Recebido">Recebido</SelectItem>
-                            <SelectItem value="Em serviço">
-                              Em serviço
-                            </SelectItem>
-                            <SelectItem value="Pronto">Pronto</SelectItem>
-                            <SelectItem value="Entregue">Entregue</SelectItem>
-                            <SelectItem value="Cancelado">Cancelado</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Link
-                          href={`/interno/os/${order.os_number.replace(
-                            "/",
-                            "-"
-                          )}`}
-                        >
-                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </Link>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
+                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sincronizando...</span>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : sortedAndFilteredOrders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-20 text-slate-400">
+                      <div className="flex flex-col items-center gap-2">
+                        <Package className="w-12 h-12 opacity-10" />
+                        <span className="font-bold uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedAndFilteredOrders.map((order) => (
+                    <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
+                      <TableCell className="pl-8 py-5">
+                        <div className="flex flex-col">
+                          <span className="font-mono font-black text-blue-600 text-base">#{order.os_number}</span>
+                          {order.status === "Em serviço" && (
+                            <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
+                              <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-bold text-slate-700">
+                        {order.clients?.name || "Cliente não encontrado"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="rounded-lg font-black text-slate-500 border-slate-200">
+                          {order.items?.length || 0}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-500 text-xs font-bold">
+                        {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-slate-500 text-xs font-bold">
+                        {order.delivery_date
+                          ? new Date(order.delivery_date).toLocaleDateString("pt-BR")
+                          : "-"}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(order.status)}</TableCell>
+                      <TableCell className="pr-8">
+                        <div className="flex gap-2">
+                          <Select
+                            value={order.status}
+                            disabled={
+                              order.status === "Entregue" ||
+                              order.status === "Cancelado"
+                            }
+                            onValueChange={(v) =>
+                              handleStatusChange(order.id, v as Status)
+                            }
+                          >
+                            <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                              <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                              <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                              <SelectItem value="Pronto" className="font-bold text-xs">Pronto</SelectItem>
+                              <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                              <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+  
+                          <Link
+                            href={`/interno/os/${order.os_number.replace("/", "-")}`}
+                          >
+                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
+
+      <footer className="mt-auto text-center pt-8 opacity-30">
+        <p className="text-slate-900 text-[10px] uppercase tracking-[0.3em] font-black">
+          tenislab o laboratorio do seu tenis
+        </p>
+      </footer>
     </div>
   );
 }
