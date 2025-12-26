@@ -67,12 +67,12 @@ export default function Home() {
             title="Consultar pedido"
             icon={Search}
           />
-          <ActionButton 
-            href="https://wa.me/5582999438997"
-            title="Falar no WhatsApp"
-            icon={MessageCircle}
-            external
-          />
+            <ActionButton 
+              href="https://wa.me/message/FNQNTD6CIDFMI1"
+              title="Falar no WhatsApp"
+              icon={MessageCircle}
+              external
+            />
           <ActionButton 
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             title="Instagram"
