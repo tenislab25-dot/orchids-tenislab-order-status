@@ -256,7 +256,7 @@ export default function StatusPage() {
       <header className="flex flex-col items-center gap-6 mb-4">
         <div className="relative w-40 h-20">
           <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
             alt="TENISLAB Logo"
             fill
             className="object-contain"

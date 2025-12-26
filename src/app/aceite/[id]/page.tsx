@@ -128,7 +128,7 @@ export default function CustomerAcceptancePage() {
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
           <div className="relative w-32 h-16 mb-8">
             <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
               alt="TENISLAB Logo"
               fill
               className="object-contain"
@@ -157,7 +157,7 @@ export default function CustomerAcceptancePage() {
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
           <div className="relative w-32 h-16 mb-8">
             <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
               alt="TENISLAB Logo"
               fill
               className="object-contain"
@@ -201,7 +201,7 @@ export default function CustomerAcceptancePage() {
       <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
         <div className="relative w-32 h-12">
           <Image 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8884-resized-1766752730276.webp?width=8000&height=8000&resize=contain"
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/IMG_8889-1766755171009.JPG?width=8000&height=8000&resize=contain"
             alt="TENISLAB Logo"
             fill
             className="object-contain"
