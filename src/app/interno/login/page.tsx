@@ -48,13 +48,7 @@ export default function LoginPage() {
     localStorage.setItem("tenislab_role", role);
 
     // SECTION 4 — REDIRECT LOGIC
-    if (role === "adm") {
-      router.push("/interno/dashboard");
-    } else if (role === "atendente") {
-      router.push("/interno/os");
-    } else if (role === "interno") {
-      router.push("/interno/dashboard");
-    }
+    router.push("/interno");
   };
 
   return (
