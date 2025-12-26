@@ -409,7 +409,7 @@ export default function OSViewPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
-        <div className="grid grid-cols-3 items-center max-w-md mx-auto">
+        <div className="grid grid-cols-3 items-center max-w-6xl mx-auto">
           <Link href="/interno/dashboard" className="w-fit">
             <Button variant="ghost" size="icon" className="rounded-full -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
@@ -423,10 +423,11 @@ export default function OSViewPage() {
         </div>
       </header>
 
-      <main className="max-w-md mx-auto p-4 flex flex-col gap-5 animate-in fade-in duration-500">
+      <main className="max-w-6xl mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-8 items-start animate-in fade-in duration-500">
         
         {/* CLIENT INFO */}
-        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
+        <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-5 mb-5 lg:mb-0">
+          <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cliente</span>
@@ -465,13 +466,14 @@ export default function OSViewPage() {
                     {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
                   </span>
                 </div>
-              )}
-            </div>
-        </section>
+                )}
+              </div>
+          </section>
+        </div>
 
-            {/* ITEMS */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between mx-2">
+        {/* ITEMS */}
+        <div className="lg:col-span-8 lg:row-start-1 lg:row-span-10 flex flex-col gap-4">
+          <div className="flex items-center justify-between mx-2">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pares de Tênis</h3>
                 <Button 
                   variant="outline" 
@@ -562,9 +564,10 @@ export default function OSViewPage() {
           ))}
         </div>
 
-            {/* FINANCIAL SUMMARY */}
-            {role !== "OPERACIONAL" && (
-              <section>
+        {/* FINANCIAL SUMMARY */}
+        {role !== "OPERACIONAL" && (
+          <div className="lg:col-span-4 lg:col-start-9">
+            <section>
                 <Card className="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
                   <CardHeader className="py-4 px-6 border-b border-white/10 flex flex-row items-center justify-between">
                     <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo do Pedido</CardTitle>
@@ -643,12 +646,12 @@ export default function OSViewPage() {
                   </CardContent>
                 </Card>
               </section>
-            )}
-    
-
-        {/* ACTIONS */}
-        <div className="flex flex-col gap-3 mt-4">
-          {order.status !== "Entregue" && order.status !== "Cancelado" && (
+            </div>
+          )}
+  
+          {/* ACTIONS */}
+          <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
+            {order.status !== "Entregue" && order.status !== "Cancelado" && (
             <div className="flex flex-col gap-2">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
               
