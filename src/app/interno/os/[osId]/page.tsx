@@ -12,7 +12,8 @@ import {
     CheckCircle2,
     Clock,
     Truck,
-    Bell
+    Bell,
+    Printer
   } from "lucide-react";
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -232,6 +234,128 @@ export default function OSViewPage() {
     }
   };
 
+    const handlePrintLabel = (itemsToPrint: any[]) => {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
+  
+      const labelsHtml = itemsToPrint.map((item, idx) => {
+        const servicesText = item.services.map((s: any) => s.name).join(', ') + 
+          (item.customService?.name ? `, ${item.customService.name}` : '');
+        
+        return `
+          <div class="label-container ${idx < itemsToPrint.length - 1 ? 'page-break' : ''}">
+            <div class="header">
+              <span class="os-label">OS</span>
+              <span class="os-value">${order?.os_number}</span>
+            </div>
+            <div class="item-info">Item: ${item.itemNumber || (idx + 1)}</div>
+            <div class="services">Srv: ${servicesText}</div>
+            <div class="dates">
+              <div class="date-box">
+                <span class="date-label">ENTRADA</span>
+                <span class="date-value">${new Date(order?.entry_date || '').toLocaleDateString('pt-BR')}</span>
+              </div>
+              <div class="date-box">
+                <span class="date-label">SAÍDA</span>
+                <span class="date-value">${order?.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : '--/--'}</span>
+              </div>
+            </div>
+            <div class="footer">TENISLAB</div>
+          </div>
+        `;
+      }).join('');
+  
+      const html = `
+        <html>
+          <head>
+            <title>Etiquetas OS ${order?.os_number}</title>
+            <style>
+              @page {
+                size: 80mm 40mm;
+                margin: 0;
+              }
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                width: 80mm;
+                background: white;
+              }
+              .label-container {
+                padding: 4mm;
+                height: 40mm;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                border-bottom: 1px dashed #eee;
+              }
+              .page-break {
+                page-break-after: always;
+              }
+              .header {
+                display: flex;
+                align-items: baseline;
+                gap: 2mm;
+                border-bottom: 2px solid black;
+                padding-bottom: 1mm;
+                margin-bottom: 1mm;
+              }
+              .os-label { font-size: 10pt; font-weight: 800; }
+              .os-value { font-size: 18pt; font-weight: 900; }
+              .item-info {
+                font-size: 11pt;
+                font-weight: 800;
+                margin-bottom: 1mm;
+              }
+              .services {
+                font-size: 9pt;
+                font-weight: 600;
+                line-height: 1.1;
+                flex-grow: 1;
+                overflow: hidden;
+                text-transform: uppercase;
+              }
+              .dates {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 1mm;
+                padding-top: 1mm;
+                border-top: 1px solid black;
+              }
+              .date-box {
+                display: flex;
+                flex-direction: column;
+              }
+              .date-label { font-size: 6pt; font-weight: 800; color: #666; }
+              .date-value { font-size: 9pt; font-weight: 800; }
+              .footer {
+                font-size: 6pt;
+                text-align: center;
+                margin-top: 1mm;
+                font-weight: 800;
+                letter-spacing: 1px;
+              }
+              @media print {
+                .label-container { border-bottom: none; }
+              }
+            </style>
+          </head>
+          <body>
+            ${labelsHtml}
+            <script>
+              window.onload = function() {
+                window.print();
+                setTimeout(() => window.close(), 500);
+              };
+            </script>
+          </body>
+        </html>
+      `;
+  
+      printWindow.document.write(html);
+      printWindow.document.close();
+    };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
@@ -318,30 +442,53 @@ export default function OSViewPage() {
             </div>
         </section>
 
-          {/* ITEMS */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Pares de Tênis</h3>
-            
-            {order.items.map((item: any, idx: number) => (
-              <Card key={idx} className={`rounded-3xl border-slate-200 shadow-sm overflow-hidden transition-all ${item.status === 'Pronto' ? 'ring-2 ring-green-400/30' : ''}`}>
-                <CardHeader className={`py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between ${item.status === 'Pronto' ? 'bg-green-50/50' : 'bg-slate-50/50'}`}>
-                  <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
-                    ITEM {idx + 1} - {item.itemNumber}
-                  </CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => toggleItemStatus(idx)}
-                    className={`h-7 px-3 rounded-full text-[10px] font-black uppercase tracking-tighter gap-1.5 transition-all ${
-                      item.status === 'Pronto' 
-                      ? 'bg-green-500 text-white hover:bg-green-600' 
-                      : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
-                    }`}
-                  >
-                    {item.status === 'Pronto' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                    {item.status || 'Pendente'}
-                  </Button>
-                </CardHeader>
+            {/* ITEMS */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between mx-2">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pares de Tênis</h3>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handlePrintLabel(order.items)}
+                  className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1.5 bg-white border-slate-200"
+                >
+                  <Printer className="w-3 h-3" />
+                  Imprimir Todas
+                </Button>
+              </div>
+              
+              {order.items.map((item: any, idx: number) => (
+                <Card key={idx} className={`rounded-3xl border-slate-200 shadow-sm overflow-hidden transition-all ${item.status === 'Pronto' ? 'ring-2 ring-green-400/30' : ''}`}>
+                  <CardHeader className={`py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between ${item.status === 'Pronto' ? 'bg-green-50/50' : 'bg-slate-50/50'}`}>
+                    <div className="flex flex-col">
+                      <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
+                        ITEM {idx + 1} - {item.itemNumber}
+                      </CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePrintLabel([item])}
+                        className="h-7 px-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleItemStatus(idx)}
+                        className={`h-7 px-3 rounded-full text-[10px] font-black uppercase tracking-tighter gap-1.5 transition-all ${
+                          item.status === 'Pronto' 
+                          ? 'bg-green-500 text-white hover:bg-green-600' 
+                          : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                        }`}
+                      >
+                        {item.status === 'Pronto' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                        {item.status || 'Pendente'}
+                      </Button>
+                    </div>
+                  </CardHeader>
 
                 <CardContent className="p-6 space-y-6">
                   {item.photos && item.photos.length > 0 && (
