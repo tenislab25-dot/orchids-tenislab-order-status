@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   Search,
