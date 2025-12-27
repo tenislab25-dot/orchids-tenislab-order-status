@@ -258,8 +258,12 @@ function OrderContent() {
 export default function StatusPage() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
-      <header className="flex flex-col items-center gap-6 mb-4">
-        <h1 className="font-black text-2xl">TENISLAB</h1>
+      <header className="flex flex-col items-center gap-6 mb-8">
+        <img 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844155821.PNG?width=8000&height=8000&resize=contain" 
+          alt="TENISLAB Logo" 
+          className="h-24 w-auto object-contain"
+        />
       </header>
 
       <Suspense fallback={

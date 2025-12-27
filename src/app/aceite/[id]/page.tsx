@@ -159,7 +159,11 @@ export default function CustomerAcceptancePage() {
   if (order.status === "Cancelado") {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="font-black text-2xl mb-8">TENISLAB</h1>
+        <img 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844155821.PNG?width=8000&height=8000&resize=contain" 
+          alt="TENISLAB Logo" 
+          className="h-24 w-auto object-contain mb-8"
+        />
         <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
           <ShieldCheck className="w-12 h-12 text-red-500" />
         </div>
@@ -181,7 +185,11 @@ export default function CustomerAcceptancePage() {
   if (isConfirmed) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
-        <h1 className="font-black text-2xl mb-8">TENISLAB</h1>
+        <img 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844155821.PNG?width=8000&height=8000&resize=contain" 
+          alt="TENISLAB Logo" 
+          className="h-24 w-auto object-contain mb-8"
+        />
         <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
           <CheckCircle2 className="w-12 h-12 text-green-500" />
         </div>
@@ -211,7 +219,11 @@ export default function CustomerAcceptancePage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
-        <h1 className="font-black text-2xl">TENISLAB</h1>
+        <img 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844155821.PNG?width=8000&height=8000&resize=contain" 
+          alt="TENISLAB Logo" 
+          className="h-16 w-auto object-contain"
+        />
         <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">
           Confira os detalhes do seu serviço antes de confirmar
         </p>
