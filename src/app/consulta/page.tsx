@@ -2,17 +2,22 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Package, Clock, CheckCircle2, Truck, ArrowLeft, AlertCircle, XCircle } from "lucide-react";
+import { Search, Package, Clock, CheckCircle2, Truck, ArrowLeft, AlertCircle, XCircle, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface OrderData {
   os_number: string;
   status: Status;
+  items: any[];
   clients: {
     phone: string;
   } | null;
@@ -153,6 +158,7 @@ function OrderContent() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleSearch = async (os: string, phone: string) => {
     setLoading(true);
@@ -171,6 +177,7 @@ function OrderContent() {
       .select(`
         os_number,
         status,
+        items,
         clients (
           phone
         )
@@ -211,45 +218,100 @@ function OrderContent() {
           initialOs={initialOs}
         />
       ) : (
-        <motion.div
-          key="result"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="flex flex-col gap-6"
-        >
-              <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
-                <div className="flex flex-col gap-1">
-                  <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nº da OS</span>
-                  <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
+<motion.div
+            key="result"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex flex-col gap-6"
+          >
+                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nº da OS</span>
+                    <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
+                  </div>
+
+              <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
+                {(() => {
+                  const Icon = statusConfig[order.status as keyof typeof statusConfig].icon;
+                  return <Icon className={`w-10 h-10 ${statusConfig[order.status as keyof typeof statusConfig].color}`} />;
+                })()}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className={`text-2xl font-bold ${statusConfig[order.status as keyof typeof statusConfig].color}`}>
+                  {order.status}
+                </span>
+                <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
+                  {statusConfig[order.status as keyof typeof statusConfig].message}
+                </p>
+              </div>
+
+              {order.items && order.items.length > 0 && (
+                <div className="w-full pt-4 border-t border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Seus Itens</span>
+                  <div className="flex flex-col gap-4 mt-3">
+                    {order.items.map((item: any, idx: number) => (
+                      <div key={idx} className="flex flex-col gap-2">
+                        <span className="text-xs font-bold text-slate-600">Item {idx + 1}</span>
+                        {item.photos && item.photos.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {item.photos.map((photo: string, pIdx: number) => (
+                              <div 
+                                key={pIdx} 
+                                className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
+                                onClick={() => setSelectedImage(photo)}
+                              >
+                                <img src={photo} alt={`Foto do item ${idx + 1}`} className="object-cover w-full h-full" />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                  <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+                                    <ZoomIn className="w-5 h-5 text-slate-700" />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
 
-            <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
-              {(() => {
-                const Icon = statusConfig[order.status as keyof typeof statusConfig].icon;
-                return <Icon className={`w-10 h-10 ${statusConfig[order.status as keyof typeof statusConfig].color}`} />;
-              })()}
+              <Button 
+                variant="ghost" 
+                onClick={reset}
+                className="mt-4 text-slate-400 hover:text-slate-900 flex gap-2 items-center"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Nova consulta
+              </Button>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className={`text-2xl font-bold ${statusConfig[order.status as keyof typeof statusConfig].color}`}>
-                {order.status}
-              </span>
-              <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
-                {statusConfig[order.status as keyof typeof statusConfig].message}
-              </p>
-            </div>
-
-            <Button 
-              variant="ghost" 
-              onClick={reset}
-              className="mt-4 text-slate-400 hover:text-slate-900 flex gap-2 items-center"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Nova consulta
-            </Button>
-          </div>
-        </motion.div>
+            <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+              <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+                {selectedImage && (
+                  <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
+                    <div className="absolute top-4 right-4 z-50">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
+                        onClick={() => setSelectedImage(null)}
+                      >
+                        <X className="w-6 h-6" />
+                      </Button>
+                    </div>
+                    <img 
+                      src={selectedImage} 
+                      alt="Visualização ampliada" 
+                      className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                    />
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </motion.div>
       )}
     </AnimatePresence>
   );

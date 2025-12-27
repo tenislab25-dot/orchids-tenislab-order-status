@@ -17,7 +17,8 @@ import {
   Share2,
   Search,
   X,
-  Trash2
+  Trash2,
+  Pencil
 } from "lucide-react";
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,7 +82,9 @@ export default function OSViewPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [deliveryModalOpen, setDeliveryModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
     
     const handleShareLink = () => {
@@ -199,6 +202,11 @@ export default function OSViewPage() {
   };
 
   const handleStatusUpdate = async (newStatus: Status) => {
+    if (newStatus === "Entregue" && order && !(order.payment_confirmed || order.pay_on_entry)) {
+      setDeliveryModalOpen(true);
+      return;
+    }
+    
     const { error } = await supabase
       .from("service_orders")
       .update({ status: newStatus })
@@ -209,6 +217,37 @@ export default function OSViewPage() {
     } else {
       setOrder(prev => prev ? { ...prev, status: newStatus } : null);
       toast.success("Status atualizado!");
+    }
+  };
+
+  const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ status: "Entregue" })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao atualizar status: " + error.message);
+      return;
+    }
+
+    setOrder(prev => prev ? { ...prev, status: "Entregue" } : null);
+    setDeliveryModalOpen(false);
+    toast.success("Pedido marcado como entregue!");
+
+    if (sendPaymentLink && order) {
+      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
+        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+        `Para realizar o pagamento via Pix:\n` +
+        `Chave: [SUA_CHAVE_PIX]\n\n` +
+        `Obrigado pela preferência! 🏆`
+      );
+      
+      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
     }
   };
 
@@ -484,13 +523,25 @@ export default function OSViewPage() {
               {getStatusBadge(order.status)}
             </div>
 
-            <Button 
-              onClick={handleShareLink}
-              className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
-            >
-              <Share2 className="w-4 h-4" />
-              Gerar link para aceite
-            </Button>
+<Button 
+                onClick={handleShareLink}
+                className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
+              >
+                <Share2 className="w-4 h-4" />
+                Gerar link para aceite
+              </Button>
+
+              {(role === "ADMIN" || role === "ATENDENTE") && (
+                <Link href={`/interno/os/${osIdRaw}/editar`} className="w-full">
+                  <Button 
+                    variant="outline"
+                    className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Editar OS
+                  </Button>
+                </Link>
+              )}
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
                   <div className="flex flex-col gap-1">
@@ -566,30 +617,48 @@ export default function OSViewPage() {
                 <CardContent className="p-6 space-y-6">
 {item.photos && item.photos.length > 0 && (
                           <div className="grid grid-cols-2 gap-2 pb-2">
-                              {item.photos.map((photo: string, pIdx: number) => (
-                                <div 
-                                  key={pIdx} 
-                                  className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
-                                  onClick={() => setSelectedImage(photo)}
-                                >
-                                  <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 transform scale-75 group-hover:scale-100 transition-transform">
-                                      <Search className="w-6 h-6 text-white" />
+                              {item.photos.map((photo: string, pIdx: number) => {
+                                const isActive = activePhotoIndex?.itemIdx === idx && activePhotoIndex?.photoIdx === pIdx;
+                                return (
+                                  <div 
+                                    key={pIdx} 
+                                    className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group"
+                                    onClick={() => {
+                                      if (isActive) {
+                                        setActivePhotoIndex(null);
+                                      } else {
+                                        setActivePhotoIndex({itemIdx: idx, photoIdx: pIdx});
+                                      }
+                                    }}
+                                  >
+                                    <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover" />
+                                    <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-3 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                      <button 
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedImage(photo);
+                                          setActivePhotoIndex(null);
+                                        }}
+                                        className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 hover:bg-white/30 transition-colors"
+                                      >
+                                        <Search className="w-6 h-6 text-white" />
+                                      </button>
+                                      <button 
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeletePhoto(idx, pIdx);
+                                          setActivePhotoIndex(null);
+                                        }}
+                                        className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-2xl hover:bg-red-600 transition-colors"
+                                      >
+                                        <Trash2 className="w-6 h-6 text-white" />
+                                      </button>
                                     </div>
-                                    <button 
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeletePhoto(idx, pIdx);
-                                      }}
-                                      className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-2xl hover:bg-red-600 transform scale-75 group-hover:scale-100 transition-transform"
-                                    >
-                                      <Trash2 className="w-6 h-6 text-white" />
-                                    </button>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                           </div>
                       )}
                   <div className="space-y-2">
@@ -955,32 +1024,71 @@ export default function OSViewPage() {
               </DialogContent>
             </Dialog>
   
-          {/* IMAGE LIGHTBOX */}
-          <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-            <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
-              {selectedImage && (
-                <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
-                  <div className="absolute top-4 right-4 z-50">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
-                      onClick={() => setSelectedImage(null)}
-                    >
-                      <X className="w-6 h-6" />
-                    </Button>
+{/* IMAGE LIGHTBOX */}
+            <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+              <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+                {selectedImage && (
+                  <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
+                    <div className="absolute top-4 right-4 z-50">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
+                        onClick={() => setSelectedImage(null)}
+                      >
+                        <X className="w-6 h-6" />
+                      </Button>
+                    </div>
+                    <img 
+                      src={selectedImage} 
+                      alt="Visualização ampliada" 
+                      className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                    />
                   </div>
-                  <img 
-                    src={selectedImage} 
-                    alt="Visualização ampliada" 
-                    className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
-                  />
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-  
-        </main>
-      </div>
-    );
-  }
+                )}
+              </DialogContent>
+            </Dialog>
+
+            {/* DELIVERY CONFIRMATION MODAL */}
+            <Dialog open={deliveryModalOpen} onOpenChange={setDeliveryModalOpen}>
+              <DialogContent className="rounded-[2.5rem] max-w-sm">
+                <DialogHeader className="items-center text-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
+                    <Truck className="w-8 h-8 text-amber-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <DialogTitle className="text-xl font-black text-slate-900">Pagamento Pendente</DialogTitle>
+                    <DialogDescription className="font-medium">
+                      Este pedido ainda não foi pago. Deseja enviar o link de pagamento ao cliente?
+                    </DialogDescription>
+                  </div>
+                </DialogHeader>
+                <DialogFooter className="flex-col gap-2 pt-4">
+                  <Button 
+                    onClick={() => handleDeliveryConfirm(true)}
+                    className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold"
+                  >
+                    Sim, enviar link
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleDeliveryConfirm(false)}
+                    className="w-full h-12 rounded-2xl border-slate-200 text-slate-600 font-bold"
+                  >
+                    Não, apenas marcar como entregue
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setDeliveryModalOpen(false)}
+                    className="w-full h-10 rounded-2xl text-slate-400 font-bold"
+                  >
+                    Cancelar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+    
+          </main>
+        </div>
+      );
+    }

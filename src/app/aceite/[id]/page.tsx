@@ -10,7 +10,9 @@ import {
   FileText,
   ShieldCheck,
   Phone,
-  Search
+  Search,
+  X,
+  ZoomIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,6 +21,10 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 const TERMS_TEXT = `
 TERMOS DE SERVIÇO E GARANTIA - tenislab.
@@ -89,6 +95,7 @@ export default function CustomerAcceptancePage() {
   const [accepted, setAccepted] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrder();
@@ -306,16 +313,25 @@ export default function CustomerAcceptancePage() {
                   ITEM {item.itemNumber}
                 </CardTitle>
               </CardHeader>
-                  <CardContent className="p-6 space-y-6">
-                    {item.photos && item.photos.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 pb-2">
-                        {item.photos.map((photo: string, pIdx: number) => (
-                          <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200">
-                            <img src={photo} alt={`Foto do item ${item.itemNumber}`} className="object-cover w-full h-full" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
+<CardContent className="p-6 space-y-6">
+                      {item.photos && item.photos.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 pb-2">
+                          {item.photos.map((photo: string, pIdx: number) => (
+                            <div 
+                              key={pIdx} 
+                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
+                              onClick={() => setSelectedImage(photo)}
+                            >
+                              <img src={photo} alt={`Foto do item ${item.itemNumber}`} className="object-cover w-full h-full" />
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+                                  <ZoomIn className="w-5 h-5 text-slate-700" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                   <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços Contratados</Label>
@@ -427,6 +443,30 @@ export default function CustomerAcceptancePage() {
             Ver status do pedido
           </Button>
         </div>
+
+        <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+          <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+            {selectedImage && (
+              <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
+                <div className="absolute top-4 right-4 z-50">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <X className="w-6 h-6" />
+                  </Button>
+                </div>
+                <img 
+                  src={selectedImage} 
+                  alt="Visualização ampliada" 
+                  className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
 
       <footer className="py-12 text-center bg-white flex flex-col gap-4">
