@@ -80,6 +80,22 @@ function StatusSearchForm({
     if (initialOs) setOsNumber(initialOs);
   }, [initialOs]);
 
+  const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 5) value = value.slice(0, 5);
+    
+    if (value.length > 3) {
+      value = `${value.slice(0, 3)}/20${value.slice(3)}`;
+    }
+    setOsNumber(value);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 11) value = value.slice(0, 11);
+    setPhone(value);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(osNumber, phone);
@@ -100,9 +116,9 @@ function StatusSearchForm({
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº da OS</label>
               <Input
                 type="text"
-                placeholder="Ex: 001/2025"
+                placeholder="Ex: 00125 (001/25)"
                 value={osNumber}
-                onChange={(e) => setOsNumber(e.target.value)}
+                onChange={handleOsChange}
                 className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
                 required
               />
@@ -111,9 +127,9 @@ function StatusSearchForm({
             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
             <Input
               type="tel"
-              placeholder="Ex: 82999999999 (DDD + Número)"
+              placeholder="Ex: 82999999999"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={handlePhoneChange}
               className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
               required
             />

@@ -220,36 +220,63 @@ export default function OSViewPage() {
     }
   };
 
-  const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ status: "Entregue" })
-      .eq("os_number", osNumber);
+    const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
+    const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number} | null>(null);
 
-    if (error) {
-      toast.error("Erro ao atualizar status: " + error.message);
-      return;
-    }
+    const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ status: "Entregue" })
+        .eq("os_number", osNumber);
 
-    setOrder(prev => prev ? { ...prev, status: "Entregue" } : null);
-    setDeliveryModalOpen(false);
-    toast.success("Pedido marcado como entregue!");
+      if (error) {
+        toast.error("Erro ao atualizar status: " + error.message);
+        return;
+      }
 
-    if (sendPaymentLink && order) {
-      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      setOrder(prev => prev ? { ...prev, status: "Entregue" } : null);
+      setDeliveryModalOpen(false);
+      toast.success("Pedido marcado como entregue!");
+
+      if (sendPaymentLink && order) {
+        const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+        const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
+        
+        const message = encodeURIComponent(
+          `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
+          `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+          `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+          `Obrigado pela preferência! 🏆`
+        );
+        
+        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+      }
+    };
+
+    const handleDeletePhoto = async () => {
+      if (!order || !photoToDelete) return;
       
-      const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
-        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-        `Para realizar o pagamento via Pix:\n` +
-        `Chave: [SUA_CHAVE_PIX]\n\n` +
-        `Obrigado pela preferência! 🏆`
-      );
-      
-      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-    }
-  };
+      const { itemIdx, photoIdx } = photoToDelete;
+      const newItems = [...order.items];
+      const photos = [...(newItems[itemIdx].photos || [])];
+      photos.splice(photoIdx, 1);
+      newItems[itemIdx].photos = photos;
+
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ items: newItems })
+        .eq("os_number", osNumber);
+
+      if (error) {
+        toast.error("Erro ao excluir foto: " + error.message);
+      } else {
+        setOrder({ ...order, items: newItems });
+        toast.success("Foto excluída com sucesso!");
+      }
+      setDeletePhotoModalOpen(false);
+      setPhotoToDelete(null);
+    };
 
   const toggleItemStatus = async (itemIdx: number) => {
     if (!order) return;
@@ -644,17 +671,18 @@ export default function OSViewPage() {
                                       >
                                         <Search className="w-6 h-6 text-white" />
                                       </button>
-                                      <button 
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeletePhoto(idx, pIdx);
-                                          setActivePhotoIndex(null);
-                                        }}
-                                        className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-2xl hover:bg-red-600 transition-colors"
-                                      >
-                                        <Trash2 className="w-6 h-6 text-white" />
-                                      </button>
+                                        <button 
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPhotoToDelete({itemIdx: idx, photoIdx: pIdx});
+                                            setDeletePhotoModalOpen(true);
+                                            setActivePhotoIndex(null);
+                                          }}
+                                          className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-2xl hover:bg-red-600 transition-colors"
+                                        >
+                                          <Trash2 className="w-6 h-6 text-white" />
+                                        </button>
                                     </div>
                                   </div>
                                 );
@@ -988,6 +1016,42 @@ export default function OSViewPage() {
                 <Button variant="ghost" onClick={() => setCancelModalOpen(false)}>Voltar</Button>
                 <Button onClick={confirmCancel} className="bg-red-600 text-white">Confirmar Cancelamento</Button>
               </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* DELETE PHOTO DIALOG */}
+            <Dialog open={deletePhotoModalOpen} onOpenChange={setDeletePhotoModalOpen}>
+              <DialogContent className="rounded-[2.5rem] max-w-sm">
+                <DialogHeader className="items-center text-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-red-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <DialogTitle className="text-xl font-black text-slate-900">Excluir esta foto?</DialogTitle>
+                    <DialogDescription className="font-medium">
+                      Tem certeza que deseja remover esta foto da Ordem de Serviço?
+                    </DialogDescription>
+                  </div>
+                </DialogHeader>
+                <DialogFooter className="flex-col gap-2 pt-4">
+                  <Button 
+                    variant="destructive"
+                    onClick={handleDeletePhoto}
+                    className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold"
+                  >
+                    Sim, excluir foto
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      setDeletePhotoModalOpen(false);
+                      setPhotoToDelete(null);
+                    }}
+                    className="w-full h-12 rounded-2xl text-slate-500 font-bold"
+                  >
+                    Cancelar
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
 
