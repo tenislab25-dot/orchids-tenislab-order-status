@@ -272,30 +272,36 @@ function OrderContent() {
                           
                           <div className="flex flex-col gap-1 my-1">
                             {item.services?.map((s: any, sIdx: number) => (
-                              <div key={sIdx} className="flex flex-col items-start bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                <span className="text-xs font-bold text-slate-900">{s.name}</span>
-                                {s.description && (
-                                  <span className="text-[10px] text-slate-500 text-left mt-0.5 leading-tight">{s.description}</span>
-                                )}
-                              </div>
+                                <div key={sIdx} className="flex flex-col items-start bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                    <span className="text-xs font-bold text-slate-900">{s.name}</span>
+                                  </div>
+                                  {s.description && (
+                                    <span className="text-[10px] text-slate-500 text-left mt-1 ml-2.5 leading-tight">{s.description}</span>
+                                  )}
+                                </div>
+
                             ))}
                           </div>
 
                           {item.photos && item.photos.length > 0 && (
                           <div className="grid grid-cols-2 gap-2">
                               {item.photos.map((photo: string, pIdx: number) => (
-                                <div 
-                                  key={pIdx} 
-                                  className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
-                                  onClick={() => setSelectedImage(photo)}
-                                >
-                                  <Image 
-                                    src={photo} 
-                                    alt={`Foto do item ${idx + 1}`} 
-                                    fill
-                                    className="object-cover"
-                                    sizes="(max-width: 768px) 50vw, 33vw"
-                                  />
+                                  <div 
+                                    key={pIdx} 
+                                    className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all bg-slate-100"
+                                    onClick={() => setSelectedImage(photo)}
+                                  >
+                                    <Image 
+                                      src={photo} 
+                                      alt={`Foto do item ${idx + 1}`} 
+                                      fill
+                                      unoptimized
+                                      className="object-cover"
+                                      sizes="(max-width: 768px) 50vw, 33vw"
+                                    />
+
                                   <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                                     <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
                                       <ZoomIn className="w-5 h-5 text-slate-700" />

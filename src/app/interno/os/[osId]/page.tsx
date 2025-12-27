@@ -250,7 +250,12 @@ export default function OSViewPage() {
         `Obrigado pela preferência! 🏆`
       );
       
-      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+      const waUrl = `https://wa.me/${whatsappPhone}?text=${message}`;
+      
+      // Use a small delay or direct open to avoid blocker
+      setTimeout(() => {
+        window.open(waUrl, "_blank");
+      }, 100);
     }
   };
 
@@ -672,12 +677,20 @@ export default function OSViewPage() {
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços</span>
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                     <ul className="space-y-2">
-                      {item.services.map((service: any, i: number) => (
-                        <li key={i} className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                          {service.name}
-                        </li>
-                      ))}
+                        {item.services.map((service: any, i: number) => (
+                          <li key={i} className="flex flex-col gap-0.5 py-1 first:pt-0 last:pb-0 border-b border-slate-100 last:border-0">
+                            <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                              {service.name}
+                            </div>
+                            {service.description && (
+                              <p className="text-[10px] text-slate-500 ml-3.5 leading-tight">
+                                {service.description}
+                              </p>
+                            )}
+                          </li>
+                        ))}
+
                       {item.customService?.name && (
                         <li className="flex items-center gap-2 text-sm font-bold text-blue-600">
                           <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
