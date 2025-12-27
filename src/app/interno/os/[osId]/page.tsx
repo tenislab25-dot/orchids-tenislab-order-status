@@ -298,27 +298,6 @@ export default function OSViewPage() {
     }
   };
 
-  const handleDeletePhoto = async (itemIdx: number, photoIdx: number) => {
-    if (!order) return;
-    
-    const newItems = [...order.items];
-    const photos = [...(newItems[itemIdx].photos || [])];
-    photos.splice(photoIdx, 1);
-    newItems[itemIdx].photos = photos;
-
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ items: newItems })
-      .eq("os_number", osNumber);
-
-    if (error) {
-      toast.error("Erro ao excluir foto: " + error.message);
-    } else {
-      setOrder({ ...order, items: newItems });
-      toast.success("Foto excluída com sucesso!");
-    }
-  };
-
   const handleDeleteOS = async () => {
     try {
       const { error } = await supabase

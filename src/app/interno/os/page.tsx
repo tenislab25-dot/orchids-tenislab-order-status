@@ -726,13 +726,13 @@ export default function OSPage() {
                   onChange={(e) => setDeliveryFee(Number(e.target.value))}
                   className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold"
                 />
-                <p className="text-[9px] text-slate-400 font-medium px-1">
-                  A taxa de entrega NÃO sofre desconto e é adicionada ao total.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+                  <p className="text-[9px] text-slate-400 font-medium px-1">
+                    A taxa de entrega NÃO sofre desconto e é adicionada ao total.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
 
         <section>
           <Card className="border-none shadow-md bg-slate-900 text-white overflow-hidden rounded-[2.5rem]">

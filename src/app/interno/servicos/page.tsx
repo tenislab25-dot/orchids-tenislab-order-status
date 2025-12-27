@@ -34,10 +34,10 @@ import { Service } from "@/lib/services-data";
       const [searchTerm, setSearchTerm] = useState("");
       const [editingService, setEditingService] = useState<any | null>(null);
       const [isAdding, setIsAdding] = useState(false);
-      const [newService, setNewService] = useState({ name: "", category: "Higienização", default_price: 0 });
-      const [role, setRole] = useState<string | null>(null);
-    
-    useEffect(() => {
+        const [newService, setNewService] = useState({ name: "", category: "Higienização", default_price: 0, description: "" });
+        const [role, setRole] = useState<string | null>(null);
+      
+      useEffect(() => {
       const storedRole = localStorage.getItem("tenislab_role");
       setRole(storedRole);
       fetchServices();
@@ -87,13 +87,14 @@ import { Service } from "@/lib/services-data";
     const handleEditSave = async () => {
       if (!editingService) return;
       
-      const { error } = await supabase
-        .from("services")
-        .update({ 
-          name: editingService.name,
-          default_price: editingService.default_price
-        })
-        .eq("id", editingService.id);
+        const { error } = await supabase
+          .from("services")
+          .update({ 
+            name: editingService.name,
+            default_price: editingService.default_price,
+            description: editingService.description
+          })
+          .eq("id", editingService.id);
   
       if (error) {
         toast.error("Erro ao salvar alterações");
@@ -189,16 +190,24 @@ import { Service } from "@/lib/services-data";
                             <option value="Extra / Avulso">Extra / Avulso</option>
                           </select>
                         </div>
-                        <div className="grid gap-2">
-                          <label className="text-sm font-bold">Preço Padrão (R$)</label>
-                          <Input 
-                            type="number" 
-                            placeholder="0.00"
-                            value={newService.default_price} 
-                            onChange={(e) => setNewService({...newService, default_price: Number(e.target.value)})}
-                          />
+                          <div className="grid gap-2">
+                            <label className="text-sm font-bold">Preço Padrão (R$)</label>
+                            <Input 
+                              type="number" 
+                              placeholder="0.00"
+                              value={newService.default_price} 
+                              onChange={(e) => setNewService({...newService, default_price: Number(e.target.value)})}
+                            />
+                          </div>
+                          <div className="grid gap-2">
+                            <label className="text-sm font-bold">Descrição</label>
+                            <Input 
+                              placeholder="Ex: Limpeza profunda e detalhada..."
+                              value={newService.description} 
+                              onChange={(e) => setNewService({...newService, description: e.target.value})}
+                            />
+                          </div>
                         </div>
-                      </div>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setIsAdding(false)}>Cancelar</Button>
                         <Button onClick={handleAddService} className="bg-slate-900 text-white hover:bg-slate-800">Criar Serviço</Button>
@@ -287,12 +296,19 @@ import { Service } from "@/lib/services-data";
                               <Input 
                                 type="number" 
                                 disabled={!isAdmin}
-                                value={editingService.default_price} 
-                                onChange={(e) => setEditingService({...editingService, default_price: Number(e.target.value)})}
-                              />
-                              {!isAdmin && <p className="text-xs text-amber-600">Apenas administradores podem alterar preços.</p>}
+                                  value={editingService.default_price} 
+                                  onChange={(e) => setEditingService({...editingService, default_price: Number(e.target.value)})}
+                                />
+                                {!isAdmin && <p className="text-xs text-amber-600">Apenas administradores podem alterar preços.</p>}
+                              </div>
+                              <div className="grid gap-2">
+                                <label className="text-sm font-bold">Descrição</label>
+                                <Input 
+                                  value={editingService.description || ""} 
+                                  onChange={(e) => setEditingService({...editingService, description: e.target.value})}
+                                />
+                              </div>
                             </div>
-                          </div>
                           <DialogFooter>
                             <Button variant="outline" onClick={() => setEditingService(null)}>Cancelar</Button>
                             <Button onClick={handleEditSave}>Salvar Alterações</Button>
