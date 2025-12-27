@@ -63,111 +63,106 @@ const statusConfig = {
   },
 };
 
-function StatusSearchForm({ 
-  onSearch, 
-  loading, 
-  error,
-  initialOs 
-}: { 
-  onSearch: (os: string, phone: string) => void; 
-  loading: boolean;
-  error: string | null;
-  initialOs: string;
-}) {
-  const [osNumber, setOsNumber] = useState(initialOs.split("/")[0] || "");
-  const [phone, setPhone] = useState("");
-  const currentYear = new Date().getFullYear();
+  function StatusSearchForm({ 
+    onSearch, 
+    loading, 
+    error,
+    initialOs 
+  }: { 
+    onSearch: (os: string, phone: string) => void; 
+    loading: boolean;
+    error: string | null;
+    initialOs: string;
+  }) {
+    const [osNumber, setOsNumber] = useState(initialOs || "");
+    const [phone, setPhone] = useState("");
 
-  useEffect(() => {
-    if (initialOs) setOsNumber(initialOs.split("/")[0]);
-  }, [initialOs]);
+    useEffect(() => {
+      if (initialOs) setOsNumber(initialOs);
+    }, [initialOs]);
 
-  const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    if (value.length > 3) return;
-    setOsNumber(value);
-  };
+    const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setOsNumber(e.target.value);
+    };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 11) value = value.slice(0, 11);
-    setPhone(value);
-  };
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      let value = e.target.value.replace(/\D/g, "");
+      if (value.length > 11) value = value.slice(0, 11);
+      setPhone(value);
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formattedOs = `${osNumber.padStart(3, "0")}/${currentYear}`;
-    onSearch(formattedOs, phone);
-  };
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onSearch(osNumber, phone);
+    };
 
-  return (
-    <motion.div
-      key="search"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="flex flex-col gap-6"
-    >
-        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
-          <h2 className="text-lg font-bold text-slate-900">Consultar OS</h2>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº da OS</label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="text"
-                  placeholder="Ex: 001"
-                  value={osNumber}
-                  onChange={handleOsChange}
-                  className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20 flex-1"
-                  required
-                />
-                <span className="text-xl font-bold text-slate-400">/ {currentYear}</span>
+    return (
+      <motion.div
+        key="search"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="flex flex-col gap-6"
+      >
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
+            <h2 className="text-lg font-bold text-slate-900">Consultar Pedido</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Ex: 001/2025"
+                    value={osNumber}
+                    onChange={handleOsChange}
+                    className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20 flex-1"
+                    required
+                  />
+                </div>
               </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
+              <Input
+                type="tel"
+                placeholder="Ex: 82999999999"
+                value={phone}
+                onChange={handlePhoneChange}
+                className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
+                required
+              />
             </div>
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
-            <Input
-              type="tel"
-              placeholder="Ex: 82999999999"
-              value={phone}
-              onChange={handlePhoneChange}
-              className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
-              required
-            />
-          </div>
 
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
-            </motion.div>
-          )}
-
-          <Button 
-            type="submit" 
-            disabled={loading || !osNumber.trim() || !phone.trim()}
-            className="h-14 mt-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98]"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              "Consultar OS"
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {error}
+              </motion.div>
             )}
-          </Button>
-        </form>
-      </div>
-      
-      <p className="text-center text-slate-400 text-xs px-8">
-        Para sua segurança, informe o número da OS e o telefone cadastrado no momento da entrega.
-      </p>
-    </motion.div>
-  );
-}
+
+            <Button 
+              type="submit" 
+              disabled={loading || !osNumber.trim() || !phone.trim()}
+              className="h-14 mt-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98]"
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                "Consultar Pedido"
+              )}
+            </Button>
+          </form>
+        </div>
+        
+        <p className="text-center text-slate-400 text-xs px-8">
+          Para sua segurança, informe o número do pedido e o telefone cadastrado no momento da entrega.
+        </p>
+      </motion.div>
+    );
+  }
 
 function OrderContent() {
   const searchParams = useSearchParams();
@@ -183,7 +178,7 @@ function OrderContent() {
     setError(null);
     
     let searchOs = os.trim();
-    if (!searchOs.includes("/")) {
+    if (!searchOs.includes("/") && searchOs.length > 0) {
       const year = new Date().getFullYear();
       searchOs = `${searchOs.padStart(3, "0")}/${year}`;
     }
@@ -204,7 +199,7 @@ function OrderContent() {
       .single();
 
       if (sbError || !data) {
-        setError("OS não encontrada. Verifique o número digitado.");
+        setError("Pedido não encontrado. Verifique o número digitado.");
         setLoading(false);
         return;
       }
@@ -245,7 +240,7 @@ function OrderContent() {
           >
                 <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
                   <div className="flex flex-col gap-1">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nº da OS</span>
+                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nº do Pedido</span>
                     <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
                   </div>
 

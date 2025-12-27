@@ -142,40 +142,26 @@ export default function PaymentPage() {
             <span className="text-[10px] text-slate-400 font-bold uppercase">{order.clients?.name}</span>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-slate-600">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                <QrCode className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900">Pagamento via PIX</span>
-                <span className="text-xs text-slate-500">Aprovação imediata</span>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Chave PIX (CNPJ)</span>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-black text-slate-700">63.614.509/0001-44</span>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={handleCopyPix}
-                    className={`h-8 rounded-lg font-bold text-xs gap-1.5 transition-all ${copied ? "text-green-600 bg-green-50" : "text-blue-600 bg-blue-50"}`}
-                  >
-                    {copied ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    {copied ? "Copiado" : "Copiar"}
-                  </Button>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-slate-600">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                  <QrCode className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-slate-900">Pagamento via PIX</span>
+                  <span className="text-xs text-slate-500">Aprovação imediata</span>
                 </div>
               </div>
-              <div className="h-px bg-slate-200" />
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorecido</span>
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">TENISLAB</span>
+
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-center">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorecido</span>
+                  <span className="text-sm font-bold text-slate-700 uppercase tracking-tight leading-snug">
+                    Laryssa Romeiro Sampaio dos Santos
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="space-y-3 pt-2">
             <div className="flex items-start gap-3 text-xs text-slate-500">

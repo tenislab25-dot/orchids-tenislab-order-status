@@ -202,11 +202,6 @@ export default function OSViewPage() {
   };
 
   const handleStatusUpdate = async (newStatus: Status) => {
-    if (newStatus === "Entregue" && order && !(order.payment_confirmed || order.pay_on_entry)) {
-      setDeliveryModalOpen(true);
-      return;
-    }
-    
     const { error } = await supabase
       .from("service_orders")
       .update({ status: newStatus })
