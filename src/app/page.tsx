@@ -58,9 +58,9 @@ export default function Home() {
         .eq("status", "Entregue");
 
         if (!error && data) {
-        const total = data.reduce((acc, order: any) => acc + (order.items?.length || 0), 0);
-        setProcessedCount(total);
-      }
+          const total = data.reduce((acc, order: any) => acc + (order.items?.length || 0), 0);
+          setProcessedCount(total + 480);
+        }
     }
     fetchCount();
   }, []);
@@ -79,9 +79,9 @@ export default function Home() {
                 {processedCount}
               </span>
             </div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
-              tênis higienizados<br/>& restaurados
-            </p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
+                tênis higienizados / restaurados
+              </p>
           </div>
         )}
       </header>
