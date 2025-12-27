@@ -59,8 +59,13 @@ export default function Home() {
     
           if (error) throw error;
           
-          const total = data?.reduce((acc, order: any) => acc + (order.items?.length || 0), 0) || 0;
-          setProcessedCount(total + 480);
+            const totalSneakers = data?.reduce((acc, order: any) => {
+              // Cada item no array 'items' representa um par de tênis
+              const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+              return acc + itemCount;
+            }, 0) || 0;
+            
+            setProcessedCount(totalSneakers + 480);
         } catch (err) {
           console.error("Error fetching count:", err);
           setProcessedCount(480);
