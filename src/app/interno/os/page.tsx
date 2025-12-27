@@ -130,21 +130,20 @@ export default function OSPage() {
       fetchServices();
     }, []);
 
-  const fetchServices = async () => {
-    setLoadingServices(true);
-    const { data, error } = await supabase
-      .from("services")
-      .select("*")
-      .eq("status", "Active")
-      .neq("name", "Taxa de entrega");
-    
-    if (error) {
-      toast.error("Erro ao carregar serviços");
-    } else {
-      setServices(data || []);
-    }
-    setLoadingServices(false);
-  };
+    const fetchServices = async () => {
+      setLoadingServices(true);
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("status", "Active");
+      
+      if (error) {
+        toast.error("Erro ao carregar serviços");
+      } else {
+        setServices(data || []);
+      }
+      setLoadingServices(false);
+    };
 
   const serviceCatalog = useMemo(() => {
     return services.reduce((acc, service) => {
@@ -309,7 +308,7 @@ export default function OSPage() {
 
   const globalSubtotal = items.reduce((acc, curr) => acc + Number(curr.subtotal), 0);
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
-  const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
+    const finalTotal = globalSubtotal - discountValue;
 
   const handleCreateOS = async () => {
     if (!clientName || !clientPhone) {
@@ -343,7 +342,7 @@ export default function OSPage() {
           client_id: clientId,
           entry_date: entryDate,
           delivery_date: deliveryDate || null,
-          delivery_fee: deliveryFee,
+          delivery_fee: 0,
           discount_percent: discountPercent,
           payment_method: paymentMethod,
           pay_on_entry: payOnEntry,
@@ -661,20 +660,10 @@ export default function OSPage() {
                     className="h-12 bg-slate-50 border-slate-200 rounded-xl"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Taxa de Entrega (R$)</Label>
-                <Input 
-                  type="number" 
-                  placeholder="0,00" 
-                  value={deliveryFee || ""}
-                  onChange={(e) => setDeliveryFee(Number(e.target.value))}
-                  className="h-12 bg-slate-50 border-slate-200 rounded-xl"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
 
         <section>
           <Card className="border-none shadow-md bg-slate-900 text-white overflow-hidden rounded-[2.5rem]">
@@ -682,16 +671,12 @@ export default function OSPage() {
               <CardTitle className="text-xs font-bold uppercase tracking-[0.2em] text-white/50">Resumo Financeiro</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-white/70 font-medium">Subtotal dos itens</span>
-                  <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-white/70 font-medium">Taxa de entrega</span>
-                  <span className="font-bold">R$ {Number(deliveryFee).toFixed(2)}</span>
-                </div>
-                  <div className="flex flex-col gap-3 pt-3">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-white/70 font-medium">Subtotal dos itens</span>
+                    <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
+                  </div>
+                    <div className="flex flex-col gap-3 pt-3">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
                     <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                       {[0, 5, 8, 10, 15, 20].map((p) => (
