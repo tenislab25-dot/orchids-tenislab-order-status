@@ -81,12 +81,8 @@ function StatusSearchForm({
   }, [initialOs]);
 
   const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 5) value = value.slice(0, 5);
-    
-    if (value.length > 3) {
-      value = `${value.slice(0, 3)}/20${value.slice(3)}`;
-    }
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length > 5) return;
     setOsNumber(value);
   };
 
@@ -116,7 +112,7 @@ function StatusSearchForm({
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº da OS</label>
               <Input
                 type="text"
-                placeholder="Ex: 00125 (001/25)"
+                placeholder="Ex: 00125"
                 value={osNumber}
                 onChange={handleOsChange}
                 className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
@@ -181,7 +177,9 @@ function OrderContent() {
     setError(null);
     
     let searchOs = os.trim();
-    if (!searchOs.includes("/")) {
+    if (searchOs.length === 5) {
+      searchOs = `${searchOs.slice(0, 3)}/20${searchOs.slice(3)}`;
+    } else if (!searchOs.includes("/")) {
       const year = new Date().getFullYear();
       searchOs = `${searchOs.padStart(3, "0")}/${year}`;
     }

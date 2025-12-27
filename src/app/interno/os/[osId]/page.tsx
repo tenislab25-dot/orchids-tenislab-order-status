@@ -220,63 +220,63 @@ export default function OSViewPage() {
     }
   };
 
-    const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
-    const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number} | null>(null);
+  const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number} | null>(null);
 
-    const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
-      const { error } = await supabase
-        .from("service_orders")
-        .update({ status: "Entregue" })
-        .eq("os_number", osNumber);
+  const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ status: "Entregue" })
+      .eq("os_number", osNumber);
 
-      if (error) {
-        toast.error("Erro ao atualizar status: " + error.message);
-        return;
-      }
+    if (error) {
+      toast.error("Erro ao atualizar status: " + error.message);
+      return;
+    }
 
-      setOrder(prev => prev ? { ...prev, status: "Entregue" } : null);
-      setDeliveryModalOpen(false);
-      toast.success("Pedido marcado como entregue!");
+    setOrder(prev => prev ? { ...prev, status: "Entregue" } : null);
+    setDeliveryModalOpen(false);
+    toast.success("Pedido marcado como entregue!");
 
-      if (sendPaymentLink && order) {
-        const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-        const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
-        
-        const message = encodeURIComponent(
-          `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
-          `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-          `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-          `Obrigado pela preferência! 🏆`
-        );
-        
-        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-      }
-    };
-
-    const handleDeletePhoto = async () => {
-      if (!order || !photoToDelete) return;
+    if (sendPaymentLink && order) {
+      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
       
-      const { itemIdx, photoIdx } = photoToDelete;
-      const newItems = [...order.items];
-      const photos = [...(newItems[itemIdx].photos || [])];
-      photos.splice(photoIdx, 1);
-      newItems[itemIdx].photos = photos;
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
+        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+        `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+        `Obrigado pela preferência! 🏆`
+      );
+      
+      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+    }
+  };
 
-      const { error } = await supabase
-        .from("service_orders")
-        .update({ items: newItems })
-        .eq("os_number", osNumber);
+  const handleDeletePhoto = async () => {
+    if (!order || !photoToDelete) return;
+    
+    const { itemIdx, photoIdx } = photoToDelete;
+    const newItems = [...order.items];
+    const photos = [...(newItems[itemIdx].photos || [])];
+    photos.splice(photoIdx, 1);
+    newItems[itemIdx].photos = photos;
 
-      if (error) {
-        toast.error("Erro ao excluir foto: " + error.message);
-      } else {
-        setOrder({ ...order, items: newItems });
-        toast.success("Foto excluída com sucesso!");
-      }
-      setDeletePhotoModalOpen(false);
-      setPhotoToDelete(null);
-    };
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ items: newItems })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao excluir foto: " + error.message);
+    } else {
+      setOrder({ ...order, items: newItems });
+      toast.success("Foto excluída com sucesso!");
+    }
+    setDeletePhotoModalOpen(false);
+    setPhotoToDelete(null);
+  };
 
   const toggleItemStatus = async (itemIdx: number) => {
     if (!order) return;
