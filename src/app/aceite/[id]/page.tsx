@@ -335,11 +335,17 @@ export default function CustomerAcceptancePage() {
                   <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços Contratados</Label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2">
                       {item.services.map((s: any) => (
-                        <Badge key={s.name} className="bg-blue-50 text-blue-600 border-none hover:bg-blue-50 px-4 py-1.5 rounded-xl font-bold text-xs">
-                          {s.name}
-                        </Badge>
+                        <div key={s.id || s.name} className="flex flex-col bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-black text-slate-900">{s.name}</span>
+                            <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
+                          </div>
+                          {s.description && (
+                            <p className="text-[11px] text-slate-500 mt-1 leading-tight">{s.description}</p>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>

@@ -82,7 +82,9 @@ const statusConfig = {
     }, [initialOs]);
 
     const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setOsNumber(e.target.value);
+      let value = e.target.value.replace(/\D/g, "");
+      if (value.length > 3) value = value.slice(0, 3);
+      setOsNumber(value);
     };
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,19 +109,22 @@ const statusConfig = {
           <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
             <h2 className="text-lg font-bold text-slate-900">Consultar Pedido</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Ex: 001/2025"
-                    value={osNumber}
-                    onChange={handleOsChange}
-                    className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20 flex-1"
-                    required
-                  />
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
+                  <div className="relative flex items-center">
+                    <Input
+                      type="text"
+                      placeholder="Ex: 001"
+                      value={osNumber}
+                      onChange={handleOsChange}
+                      className="h-14 rounded-2xl bg-white border-slate-200 pl-4 pr-20 text-lg font-bold focus:ring-blue-500/20 flex-1"
+                      required
+                    />
+                    <div className="absolute right-4 pointer-events-none">
+                      <span className="text-slate-400 font-bold text-lg">/ {new Date().getFullYear()}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
               <Input
@@ -270,15 +275,18 @@ function OrderContent() {
                           
                           <div className="flex flex-col gap-1 my-1">
                             {item.services?.map((s: any, sIdx: number) => (
-                                <div key={sIdx} className="flex flex-col items-start bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                    <span className="text-xs font-bold text-slate-900">{s.name}</span>
+                                  <div key={sIdx} className="flex flex-col items-start bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <div className="flex items-center justify-between w-full">
+                                      <div className="flex items-center gap-1.5">
+                                        <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                        <span className="text-xs font-bold text-slate-900">{s.name}</span>
+                                      </div>
+                                      <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
+                                    </div>
+                                    {s.description && (
+                                      <span className="text-[10px] text-slate-500 text-left mt-1 ml-2.5 leading-tight">{s.description}</span>
+                                    )}
                                   </div>
-                                  {s.description && (
-                                    <span className="text-[10px] text-slate-500 text-left mt-1 ml-2.5 leading-tight">{s.description}</span>
-                                  )}
-                                </div>
 
                             ))}
                           </div>

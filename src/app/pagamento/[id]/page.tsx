@@ -116,64 +116,75 @@ export default function PaymentPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-12">
-      <header className="bg-white border-b border-slate-100 px-6 py-8 flex flex-col items-center gap-4">
-        <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=800" 
-          alt="TENISLAB" 
-          className="h-20 w-auto"
-        />
-        <div className="text-center">
-          <h1 className="text-lg font-bold text-slate-900">Pagamento do Pedido</h1>
-          <p className="text-xs font-bold text-blue-500 uppercase tracking-widest">OS #{order.os_number}</p>
-        </div>
-      </header>
-
-      <main className="max-w-md mx-auto p-6 space-y-6">
-        <motion.section 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-6"
-        >
-          <div className="flex flex-col items-center gap-2 border-b border-slate-50 pb-6">
-            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total a Pagar</span>
-            <span className="text-4xl font-black text-slate-900 tracking-tighter">
-              R$ {Number(order.total).toFixed(2)}
-            </span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase">{order.clients?.name}</span>
+        <header className="bg-white border-b border-slate-100 px-6 py-8 flex flex-col items-center gap-4">
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=800" 
+            alt="TENISLAB" 
+            className="h-24 w-auto object-contain"
+          />
+          <div className="text-center">
+            <h1 className="text-lg font-bold text-slate-900">Pagamento do Pedido</h1>
+            <p className="text-xs font-bold text-blue-500 uppercase tracking-widest">OS #{order.os_number}</p>
           </div>
+        </header>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-slate-600">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                  <QrCode className="w-5 h-5 text-blue-600" />
+        <main className="max-w-md mx-auto p-6 space-y-6">
+          <motion.section 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-6"
+          >
+            <div className="flex flex-col items-center gap-2 border-b border-slate-50 pb-6">
+              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total a Pagar</span>
+              <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                R$ {Number(order.total).toFixed(2)}
+              </span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase">{order.clients?.name}</span>
+            </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-slate-600">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                    <QrCode className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-900">Pagamento via PIX</span>
+                    <span className="text-xs text-slate-500">Aprovação imediata</span>
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-slate-900">Pagamento via PIX</span>
-                  <span className="text-xs text-slate-500">Aprovação imediata</span>
+
+                <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
+                  <div className="flex flex-col gap-1 items-center text-center">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorecido</span>
+                    <span className="text-base font-black text-slate-900 uppercase leading-tight">
+                      Laryssa Romeiro Sampaio dos Santos
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-5">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CNPJ (Chave Pix)</span>
+                      <span className="text-sm font-black text-slate-700 tracking-tight">63.614.509/0001-44</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Banco</span>
+                      <span className="text-sm font-black text-slate-700 tracking-tight uppercase">Inter</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-center">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorecido</span>
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-tight leading-snug">
-                    Laryssa Romeiro Sampaio dos Santos
-                  </span>
-                </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-3 text-xs text-slate-500">
+                <Smartphone className="w-4 h-4 shrink-0 text-blue-500" />
+                <p>Copie o CNPJ e utilize a opção <strong>PIX</strong> no app do seu banco.</p>
+              </div>
+              <div className="flex items-start gap-3 text-xs text-slate-500">
+                <Receipt className="w-4 h-4 shrink-0 text-blue-500" />
+                <p>Após o pagamento, envie o comprovante pelo WhatsApp para agilizarmos a baixa.</p>
               </div>
             </div>
-
-          <div className="space-y-3 pt-2">
-            <div className="flex items-start gap-3 text-xs text-slate-500">
-              <Smartphone className="w-4 h-4 shrink-0 text-blue-500" />
-              <p>Copie o CNPJ acima e utilize a opção <strong>PIX</strong> no app do seu banco.</p>
-            </div>
-            <div className="flex items-start gap-3 text-xs text-slate-500">
-              <Receipt className="w-4 h-4 shrink-0 text-blue-500" />
-              <p>Após o pagamento, envie o comprovante pelo WhatsApp para agilizarmos a baixa.</p>
-            </div>
-          </div>
-        </motion.section>
+          </motion.section>
 
         <section className="flex flex-col gap-3">
           <Button 
