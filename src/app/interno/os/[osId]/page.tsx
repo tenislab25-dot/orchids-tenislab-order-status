@@ -735,29 +735,33 @@ export default function OSViewPage() {
                         Entregue
                       </Button>
   
-                        <Button
-                          onClick={() => setCancelModalOpen(true)}
-                          variant="outline"
-                          className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
-                        >
-                          Cancelar OS
-                        </Button>
-
-                        {role === "ADMIN" && (
                           <Button
-                            onClick={() => setDeleteModalOpen(true)}
-                            variant="destructive"
-                            className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100 mt-2"
+                            onClick={() => setCancelModalOpen(true)}
+                            variant="outline"
+                            className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
                           >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Excluir OS (Admin)
+                            Cancelar OS
                           </Button>
-                        )}
-                      </>
-                    )}
+                        </>
+                      )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {role === "ADMIN" && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
+                  <Button
+                    onClick={() => setDeleteModalOpen(true)}
+                    variant="destructive"
+                    className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir OS Permanentemente
+                  </Button>
+                </div>
+              )}
+
 
             <Link href={role === "ATENDENTE" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
             <Button 
