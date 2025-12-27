@@ -49,20 +49,25 @@ function ActionButton({ href, title, icon: Icon, external }: ActionButtonProps) 
 export default function Home() {
   const [processedCount, setProcessedCount] = useState<number | null>(null);
 
-  useEffect(() => {
-    async function fetchCount() {
-      const { data, error } = await supabase
-        .from("service_orders")
-        .select("items")
-        .eq("status", "Entregue");
-
-        if (!error && data) {
-          const total = data.reduce((acc, order: any) => acc + (order.items?.length || 0), 0);
+    useEffect(() => {
+      async function fetchCount() {
+        try {
+          const { data, error } = await supabase
+            .from("service_orders")
+            .select("items")
+            .eq("status", "Entregue");
+    
+          if (error) throw error;
+          
+          const total = data?.reduce((acc, order: any) => acc + (order.items?.length || 0), 0) || 0;
           setProcessedCount(total + 480);
+        } catch (err) {
+          console.error("Error fetching count:", err);
+          setProcessedCount(480);
         }
-    }
-    fetchCount();
-  }, []);
+      }
+      fetchCount();
+    }, []);
 
   return (
     <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
