@@ -252,11 +252,25 @@ export default function OSViewPage() {
       
       const waUrl = `https://wa.me/${whatsappPhone}?text=${message}`;
       
-      // Use a small delay or direct open to avoid blocker
-      setTimeout(() => {
-        window.open(waUrl, "_blank");
-      }, 100);
+      window.open(waUrl, "_blank");
     }
+  };
+
+  const handleSharePaymentLink = () => {
+    if (!order) return;
+    
+    const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+    const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+    const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
+    
+    const message = encodeURIComponent(
+      `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta para entrega/retirada.\n\n` +
+      `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+      `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+      `Obrigado pela preferência! 🏆`
+    );
+    
+    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
   };
 
   const handleDeletePhoto = async () => {
@@ -773,6 +787,7 @@ export default function OSViewPage() {
                       
                       <div className="flex flex-col gap-2 mb-2">
                         {!order.payment_confirmed ? (
+                          <>
                           <Button 
                             onClick={() => {
                               setNewPaymentMethod(order.payment_method);
@@ -783,7 +798,16 @@ export default function OSViewPage() {
                           >
                             Confirmar Pagamento
                           </Button>
-                        ) : (
+                          <Button 
+                            onClick={handleSharePaymentLink}
+                            variant="outline"
+                            className="w-full border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 font-bold h-10 rounded-xl text-xs gap-2"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                            Enviar Link p/ Pagamento
+                          </Button>
+                        </>
+                      ) : (
                           <Button 
                             variant="outline"
                             onClick={handleRevertPayment}

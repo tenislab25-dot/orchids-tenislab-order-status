@@ -515,8 +515,8 @@ export default function EditOSPage() {
                 </div>
                 <div className="flex flex-col gap-3 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
-                  <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    {[0, 5, 8, 10, 15, 20].map((p) => (
+                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                      {[5, 8, 10, 15, 20].map((p) => (
                       <Button 
                         key={p}
                         variant={discountPercent === p ? "default" : "outline"}

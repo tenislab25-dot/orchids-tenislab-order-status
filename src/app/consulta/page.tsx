@@ -74,16 +74,17 @@ function StatusSearchForm({
   error: string | null;
   initialOs: string;
 }) {
-  const [osNumber, setOsNumber] = useState(initialOs);
+  const [osNumber, setOsNumber] = useState(initialOs.split("/")[0] || "");
   const [phone, setPhone] = useState("");
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    if (initialOs) setOsNumber(initialOs);
+    if (initialOs) setOsNumber(initialOs.split("/")[0]);
   }, [initialOs]);
 
   const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");
-    if (value.length > 5) return;
+    if (value.length > 3) return;
     setOsNumber(value);
   };
 
@@ -95,7 +96,8 @@ function StatusSearchForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(osNumber, phone);
+    const formattedOs = `${osNumber.padStart(3, "0")}/${currentYear}`;
+    onSearch(formattedOs, phone);
   };
 
   return (
@@ -111,14 +113,17 @@ function StatusSearchForm({
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº da OS</label>
-              <Input
-                type="text"
-                placeholder="Ex: 00125"
-                value={osNumber}
-                onChange={handleOsChange}
-                className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20"
-                required
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Ex: 001"
+                  value={osNumber}
+                  onChange={handleOsChange}
+                  className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg focus:ring-blue-500/20 flex-1"
+                  required
+                />
+                <span className="text-xl font-bold text-slate-400">/ {currentYear}</span>
+              </div>
             </div>
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
@@ -178,9 +183,7 @@ function OrderContent() {
     setError(null);
     
     let searchOs = os.trim();
-    if (searchOs.length === 5) {
-      searchOs = `${searchOs.slice(0, 3)}/20${searchOs.slice(3)}`;
-    } else if (!searchOs.includes("/")) {
+    if (!searchOs.includes("/")) {
       const year = new Date().getFullYear();
       searchOs = `${searchOs.padStart(3, "0")}/${year}`;
     }
