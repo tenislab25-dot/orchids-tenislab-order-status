@@ -314,6 +314,18 @@ export default function OSPage() {
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
   const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
 
+  const addBusinessDays = (date: Date, days: number) => {
+    let count = 0;
+    const newDate = new Date(date);
+    while (count < days) {
+      newDate.setDate(newDate.getDate() + 1);
+      if (newDate.getDay() !== 0 && newDate.getDay() !== 6) {
+        count++;
+      }
+    }
+    return newDate;
+  };
+
   const handleCreateOS = async () => {
     if (!clientName || !clientPhone) {
       toast.error("Preencha os dados do cliente");
@@ -498,34 +510,31 @@ export default function OSPage() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Fotos do par</Label>
                     <div className="grid grid-cols-2 gap-2">
-                          {item.photos?.map((photo, pIdx) => (
-                            <div 
-                              key={pIdx} 
-                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group active:scale-[0.98] transition-transform"
-                              onClick={(e) => {
-                                // On mobile, a tap will trigger the group-hover state or we can just toggle a class
-                                // But for simplicity, let's just make the button more accessible
-                              }}
-                            >
-                              <Image src={photo} alt="Foto do par" fill className="object-cover" />
-                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setItems(items.map(it => {
-                                      if (it.id === item.id) {
-                                        return { ...it, photos: it.photos?.filter((_, i) => i !== pIdx) };
-                                      }
-                                      return it;
-                                    }));
-                                  }}
-                                  className="bg-red-500 text-white p-3 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </button>
+                            {item.photos?.map((photo, pIdx) => (
+                              <div 
+                                key={pIdx} 
+                                className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group cursor-pointer active:scale-[0.98] transition-all"
+                              >
+                                <Image src={photo} alt="Foto do par" fill className="object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button 
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setItems(items.map(it => {
+                                        if (it.id === item.id) {
+                                          return { ...it, photos: it.photos?.filter((_, i) => i !== pIdx) };
+                                        }
+                                        return it;
+                                      }));
+                                    }}
+                                    className="bg-red-500 text-white p-4 rounded-full shadow-2xl transform scale-75 group-hover:scale-100 group-active:scale-100 transition-transform flex items-center justify-center"
+                                  >
+                                    <Trash2 className="w-6 h-6" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         <label className="aspect-video w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:bg-slate-200 hover:border-slate-300 transition-all cursor-pointer">
                           <Camera className="w-8 h-8" />
                           <span className="text-[10px] font-bold uppercase tracking-widest text-center px-1">Tirar foto</span>
@@ -649,254 +658,256 @@ export default function OSPage() {
           )}
         </section>
 
-<section>
-            <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-              <CardHeader className="bg-white border-b border-slate-100 py-4">
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
-              </CardHeader>
-                <CardContent className="p-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Data de Entrada</Label>
-                      <Input 
-                        type="date" 
-                        value={entryDate} 
-                        readOnly 
-                        className="h-12 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-blue-600">Prev. de Entrega</Label>
-                      <Input 
-                        type="date" 
-                        value={deliveryDate}
-                        onChange={(e) => setDeliveryDate(e.target.value)}
-                        className="h-12 bg-white border-blue-200 focus:border-blue-500 ring-blue-500 rounded-xl text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Atalhos de Prazo</Label>
-                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                      {[
-                        { label: "+3 dias", days: 3 },
-                        { label: "+7 dias", days: 7 },
-                        { label: "+10 dias", days: 10 },
-                        { label: "+15 dias", days: 15 }
-                      ].map((shortcut) => (
-                        <Button
-                          key={shortcut.label}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-xl h-9 px-4 text-xs font-bold whitespace-nowrap bg-white border-slate-200 text-slate-600 active:bg-blue-50 active:text-blue-600 active:border-blue-200"
-                          onClick={() => {
-                            const date = new Date();
-                            date.setDate(date.getDate() + shortcut.days);
-                            setDeliveryDate(date.toISOString().split('T')[0]);
-                          }}
-                        >
-                          {shortcut.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-slate-50">
-                    <Label className="text-xs">Taxa de Entrega (R$)</Label>
+        <section>
+          <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white border-b border-slate-100 py-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Entrada</Label>
                     <Input 
-                      type="number" 
-                      step="0.01"
-                      placeholder="0.00"
-                      value={deliveryFee || ""}
-                      onChange={(e) => setDeliveryFee(Number(e.target.value))}
-                      className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold"
+                      type="date" 
+                      value={entryDate} 
+                      readOnly 
+                      className="h-11 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl text-xs"
                     />
-                    <p className="text-[9px] text-slate-400 font-medium px-1">
-                      A taxa de entrega NÃO sofre desconto e é adicionada ao total.
-                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </section>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Prev. Entrega</Label>
+                    <Input 
+                      type="date" 
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      className="h-11 bg-white border-blue-200 focus:border-blue-500 ring-blue-500 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Atalhos (Dias Úteis)</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: "1 dia", days: 1 },
+                    { label: "3 dias", days: 3 },
+                    { label: "5 dias", days: 5 },
+                    { label: "7 dias", days: 7 }
+                  ].map((shortcut) => (
+                    <Button
+                      key={shortcut.label}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl h-10 px-0 text-[10px] font-bold bg-white border-slate-200 text-slate-600 active:bg-blue-50 active:text-blue-600 active:border-blue-200"
+                      onClick={() => {
+                        const date = addBusinessDays(new Date(), shortcut.days);
+                        setDeliveryDate(date.toISOString().split('T')[0]);
+                      }}
+                    >
+                      {shortcut.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-slate-50">
+                <Label className="text-xs">Taxa de Entrega (R$)</Label>
+                <Input 
+                  type="number" 
+                  step="0.01"
+                  placeholder="0.00"
+                  value={deliveryFee || ""}
+                  onChange={(e) => setDeliveryFee(Number(e.target.value))}
+                  className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold"
+                />
+                <p className="text-[9px] text-slate-400 font-medium px-1">
+                  A taxa de entrega NÃO sofre desconto e é adicionada ao total.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
         <section>
           <Card className="border-none shadow-md bg-slate-900 text-white overflow-hidden rounded-[2.5rem]">
             <CardHeader className="py-4 border-b border-white/10">
               <CardTitle className="text-xs font-bold uppercase tracking-[0.2em] text-white/50">Resumo Financeiro</CardTitle>
             </CardHeader>
-<CardContent className="p-6 space-y-6">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-white/70 font-medium">Subtotal dos itens</span>
-                      <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
-                    </div>
-                      <div className="flex flex-col gap-3 pt-3">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
-                      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                        {[0, 5, 8, 10, 15, 20].map((p) => (
-                          <Button 
-                            key={p}
-                            variant={discountPercent === p ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setDiscountPercent(p)}
-                            className={`min-w-[50px] flex-1 rounded-xl border-white/20 h-10 ${
-                              discountPercent === p 
-                              ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
-                              : "bg-transparent text-white hover:bg-white/10"
-                            }`}
-                          >
-                            {p}%
-                          </Button>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 bg-white/5 p-3 rounded-2xl border border-white/10">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">Personalizado</span>
-                        <div className="relative flex-1">
-                          <Input 
-                            type="number"
-                            placeholder="%"
-                            value={discountPercent || ""}
-                            onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                            className="h-10 bg-white/10 border-white/10 text-white placeholder:text-white/20 rounded-xl pr-8"
-                          />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold">%</span>
-                        </div>
-                      </div>
-                    </div>
-                  {discountValue > 0 && (
-                    <div className="flex justify-between items-center text-sm text-red-400 font-bold pt-2">
-                      <span>Desconto ({discountPercent}%)</span>
-                      <span>- R$ {Number(discountValue).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {deliveryFee > 0 && (
-                    <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">
-                      <span>Taxa de Entrega</span>
-                      <span>+ R$ {Number(deliveryFee).toFixed(2)}</span>
-                    </div>
-                  )}
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-white/70 font-medium">Subtotal dos itens</span>
+                  <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
                 </div>
-
-              <Separator className="bg-white/10" />
-
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-1">Total Final</span>
-                <span className="text-4xl font-black tracking-tighter text-blue-400">
-                  R$ {Number(finalTotal).toFixed(2)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section>
-          <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-            <CardHeader className="bg-white border-b border-slate-100 py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Pagamento</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: "Pix", icon: QrCode },
-                  { id: "Cartão", icon: CreditCard },
-                  { id: "Dinheiro", icon: Banknote }
-                ].map((method) => (
-                  <Button
-                    key={method.id}
-                    variant={paymentMethod === method.id ? "default" : "outline"}
-                    onClick={() => setPaymentMethod(method.id)}
-                    className={`h-20 flex-col gap-2 rounded-2xl transition-all ${
-                      paymentMethod === method.id 
-                      ? "bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-200" 
-                      : "bg-white text-slate-500 border-slate-200"
-                    }`}
-                  >
-                    <method.icon className="w-6 h-6" />
-                    <span className="text-[10px] font-bold uppercase">{method.id}</span>
-                  </Button>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${payOnEntry ? "bg-green-100 text-green-600" : "bg-slate-200 text-slate-400"}`}>
-                    <CheckCircle2 className="w-5 h-5" />
+                  <div className="flex flex-col gap-3 pt-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
+                  <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    {[0, 5, 8, 10, 15, 20].map((p) => (
+                      <Button 
+                        key={p}
+                        variant={discountPercent === p ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setDiscountPercent(p)}
+                        className={`min-w-[50px] flex-1 rounded-xl border-white/20 h-10 ${
+                          discountPercent === p 
+                          ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
+                          : "bg-transparent text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {p}%
+                      </Button>
+                    ))}
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">Pagar na entrada</h4>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Pagamento antecipado</p>
+                  <div className="flex items-center gap-3 mt-1 bg-white/5 p-3 rounded-2xl border border-white/10">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">Personalizado</span>
+                    <div className="relative flex-1">
+                      <Input 
+                        type="number"
+                        placeholder="%"
+                        value={discountPercent || ""}
+                        onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                        className="h-10 bg-white/10 border-white/10 text-white placeholder:text-white/20 rounded-xl pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold">%</span>
+                    </div>
                   </div>
                 </div>
-                <Switch 
-                  checked={payOnEntry}
-                  onCheckedChange={setPayOnEntry}
-                />
+              {discountValue > 0 && (
+                <div className="flex justify-between items-center text-sm text-red-400 font-bold pt-2">
+                  <span>Desconto ({discountPercent}%)</span>
+                  <span>- R$ {Number(discountValue).toFixed(2)}</span>
+                </div>
+              )}
+              {deliveryFee > 0 && (
+                <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">
+                  <span>Taxa de Entrega</span>
+                  <span>+ R$ {Number(deliveryFee).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            <Separator className="bg-white/10" />
+
+            <div className="flex justify-between items-end">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-1">Total Final</span>
+              <span className="text-4xl font-black tracking-tighter text-blue-400">
+                R$ {Number(finalTotal).toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section>
+        <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+          <CardHeader className="bg-white border-b border-slate-100 py-4">
+            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Pagamento</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: "Pix", icon: QrCode },
+                { id: "Cartão", icon: CreditCard },
+                { id: "Dinheiro", icon: Banknote }
+              ].map((method) => (
+                <Button
+                  key={method.id}
+                  variant={paymentMethod === method.id ? "default" : "outline"}
+                  onClick={() => setPaymentMethod(method.id)}
+                  className={`h-20 flex-col gap-2 rounded-2xl transition-all ${
+                    paymentMethod === method.id 
+                    ? "bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-200" 
+                    : "bg-white text-slate-500 border-slate-200"
+                  }`}
+                >
+                  <method.icon className="w-6 h-6" />
+                  <span className="text-[10px] font-bold uppercase">{method.id}</span>
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${payOnEntry ? "bg-green-100 text-green-600" : "bg-slate-200 text-slate-400"}`}>
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">Pagar na entrada</h4>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Pagamento antecipado</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </section>
+              <Switch 
+                checked={payOnEntry}
+                onCheckedChange={setPayOnEntry}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
-        <section className="px-1">
-          <div className="flex gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
-            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-            <p className="text-xs leading-relaxed text-amber-800 font-medium">
-              O contrato e o termo de garantia serão enviados ao cliente após a criação da OS para aceite digital via link.
-            </p>
-          </div>
-        </section>
+      <section className="px-1">
+        <div className="flex gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+          <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+          <p className="text-xs leading-relaxed text-amber-800 font-medium">
+            O contrato e o termo de garantia serão enviados ao cliente após a criação da OS para aceite digital via link.
+          </p>
+        </div>
+      </section>
 
-        <section className="flex flex-col gap-3 mt-4">
-          <Button 
-            className="w-full h-16 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-xl shadow-blue-100 transition-all active:scale-[0.98] gap-3"
-            onClick={handleCreateOS}
-          >
-            Gerar link para aceite
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full h-14 rounded-2xl text-slate-500 font-bold"
-            asChild
-          >
-            <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
-          </Button>
-        </section>
-  
-        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <DialogContent className="rounded-[2.5rem] max-w-sm">
-            <DialogHeader className="items-center text-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-green-500" />
-              </div>
-              <div className="space-y-1">
-                <DialogTitle className="text-2xl font-black">OS Criada!</DialogTitle>
-                <DialogDescription className="font-medium">
-                  A Ordem de Serviço <strong>{osNumber}</strong> foi registrada com sucesso.
-                </DialogDescription>
-              </div>
-            </DialogHeader>
-            <DialogFooter className="flex-col gap-2 pt-4">
-              <Button 
-                onClick={sendWhatsAppLink}
-                className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
-              >
-                <QrCode className="w-5 h-5" />
-                Enviar Link via WhatsApp
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push("/interno/dashboard")}
-                className="w-full h-12 rounded-2xl text-slate-500 font-bold"
-              >
-                Ir para o Dashboard
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <section className="flex flex-col gap-3 mt-4">
+        <Button 
+          className="w-full h-16 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-xl shadow-blue-100 transition-all active:scale-[0.98] gap-3"
+          onClick={handleCreateOS}
+        >
+          Gerar link para aceite
+        </Button>
+        <Button 
+          variant="ghost" 
+          className="w-full h-14 rounded-2xl text-slate-500 font-bold"
+          asChild
+        >
+          <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
+        </Button>
+      </section>
 
-      </main>
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="rounded-[2.5rem] max-w-sm">
+          <DialogHeader className="items-center text-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-green-500" />
+            </div>
+            <div className="space-y-1">
+              <DialogTitle className="text-2xl font-black">OS Criada!</DialogTitle>
+              <DialogTitle className="font-medium">
+                A Ordem de Serviço <strong>{osNumber}</strong> foi registrada com sucesso.
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 pt-4">
+            <Button 
+              onClick={sendWhatsAppLink}
+              className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
+            >
+              <QrCode className="w-5 h-5" />
+              Enviar Link via WhatsApp
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => router.push("/interno/dashboard")}
+              className="w-full h-12 rounded-2xl text-slate-500 font-bold"
+            >
+              Ir para o Dashboard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <div className="h-10" />
-    </div>
-  );
+    </main>
+
+    <div className="h-10" />
+  </div>
+);
 }
