@@ -534,11 +534,12 @@ export default function OSPage() {
                             className="hidden" 
                             onChange={(e) => handleFileChange(item.id, e)}
                           />
-                        </label>
+                          </label>
+                        </div>
                       </div>
 
 
-                  <div className="space-y-2">
+                    <div className="space-y-2">
                     <Label>Serviços</Label>
                     <Select onValueChange={(val) => updateItemService(item.id, val)}>
                       <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl">
