@@ -827,14 +827,13 @@ export default function OSViewPage() {
             </div>
           )}
   
-          {/* ACTIONS */}
-          <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
-            {order.status !== "Entregue" && order.status !== "Cancelado" && (
-            <div className="flex flex-col gap-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
-              
-              {/* Special Button for Attendance Staff */}
-            {(role === "ADMIN" || role === "ATENDENTE") && order.status === "Pronto para entrega ou retirada" && (
+            {/* ACTIONS */}
+            <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
+              <div className="flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
+                
+                {/* Special Button for Attendance Staff */}
+              {(role === "ADMIN" || role === "ATENDENTE") && order.status === "Pronto para entrega ou retirada" && (
               <Button
                 onClick={toggleReadyForPickup}
                 className={`w-full h-14 rounded-2xl font-black text-xs gap-2 mb-2 transition-all shadow-lg ${

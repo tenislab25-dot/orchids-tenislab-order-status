@@ -117,11 +117,11 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-12">
         <header className="bg-white border-b border-slate-100 px-6 py-8 flex flex-col items-center gap-4">
-            <img 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=800" 
-              alt="TENISLAB" 
-              className="h-10 w-auto object-contain"
-            />
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo2-1766878650342.PNG?width=8000&height=8000&resize=contain" 
+            alt="TENISLAB" 
+            className="h-10 w-auto object-contain"
+          />
           <div className="text-center">
             <h1 className="text-lg font-bold text-slate-900">Pagamento do Pedido</h1>
             <p className="text-xs font-bold text-blue-500 uppercase tracking-widest">OS #{order.os_number}</p>

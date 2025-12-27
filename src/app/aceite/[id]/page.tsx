@@ -167,7 +167,7 @@ export default function CustomerAcceptancePage() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
         <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo2-1766878650342.PNG?width=8000&height=8000&resize=contain" 
           alt="TENISLAB Logo" 
           className="h-40 w-auto object-contain mb-8"
         />
@@ -193,7 +193,7 @@ export default function CustomerAcceptancePage() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
         <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo2-1766878650342.PNG?width=8000&height=8000&resize=contain" 
           alt="TENISLAB Logo" 
           className="h-40 w-auto object-contain mb-8"
         />
