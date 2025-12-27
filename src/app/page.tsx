@@ -6,8 +6,7 @@ import {
   MessageCircle, 
   Instagram, 
   ChevronRight,
-  MapPin,
-  Sparkles
+  MapPin
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
@@ -71,19 +70,18 @@ export default function Home() {
       <header className="flex flex-col items-center gap-6 mb-12">
         <h1 className="font-black text-2xl">TENISLAB</h1>
 
-        {processedCount !== null && (
-          <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
-              <span className="text-3xl font-black text-white tracking-tighter">
-                {processedCount}
-              </span>
+          {processedCount !== null && (
+            <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-black text-white tracking-tighter">
+                  {processedCount}
+                </span>
+              </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
+                  PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
+                </p>
             </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
-                tênis higienizados / restaurados
-              </p>
-          </div>
-        )}
+          )}
       </header>
 
       <main className="flex-1 flex flex-col gap-12">
