@@ -143,17 +143,17 @@ export default function TodosPedidosPage() {
   return (
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex items-center justify-between pt-8">
-        <div className="flex items-center gap-4">
-          <Link href="/interno/dashboard">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Todos os Pedidos</h1>
-            <p className="text-sm text-slate-500 font-medium">Lista completa de pedidos ativos</p>
+          <div className="flex items-center gap-4">
+            <Link href="/interno/dashboard">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Todas as OS</h1>
+              <p className="text-sm text-slate-500 font-medium">Lista completa de OS ativas</p>
+            </div>
           </div>
-        </div>
           <h1 className="font-black text-xl">TENISLAB</h1>
         </header>
 
@@ -182,11 +182,11 @@ export default function TodosPedidosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-20">Carregando...</TableCell></TableRow>
-                ) : filteredOrders.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400">Nenhum pedido encontrado</TableCell></TableRow>
-                ) : (
+                  {loading ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-20">Carregando...</TableCell></TableRow>
+                  ) : filteredOrders.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400">Nenhuma OS encontrada</TableCell></TableRow>
+                  ) : (
                   filteredOrders.map((order) => (
                       <TableRow key={order.id} className="hover:bg-slate-50/50 border-b border-slate-50">
                         <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>

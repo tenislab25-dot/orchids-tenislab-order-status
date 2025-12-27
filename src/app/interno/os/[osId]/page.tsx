@@ -632,9 +632,9 @@ export default function OSViewPage() {
           <div className="lg:col-span-4 lg:col-start-9">
             <section>
                 <Card className="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
-                  <CardHeader className="py-4 px-6 border-b border-white/10 flex flex-row items-center justify-between">
-                    <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo do Pedido</CardTitle>
-                    {!order.payment_confirmed && (
+                    <CardHeader className="py-4 px-6 border-b border-white/10 flex flex-row items-center justify-between">
+                      <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo da OS</CardTitle>
+                      {!order.payment_confirmed && (
                       <Button 
                         variant="ghost" 
                         size="sm" 

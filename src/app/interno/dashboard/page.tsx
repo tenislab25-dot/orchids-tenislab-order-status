@@ -247,14 +247,14 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4">
           <h1 className="font-black text-2xl">TENISLAB</h1>
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-              Dashboard Interno
-            </h1>
-            <p className="text-slate-500 font-medium">
-              Gestão de ordens de serviço TENISLAB
-            </p>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                Dashboard Interno
+              </h1>
+              <p className="text-slate-500 font-medium">
+                Gestão de OS TENISLAB
+              </p>
+            </div>
           </div>
-        </div>
           <div className="flex flex-wrap gap-3">
             {(role === "ADMIN") && (
               <Link href="/interno/financeiro">
@@ -288,7 +288,7 @@ export default function DashboardPage() {
         <section className="animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="flex items-center gap-2 mb-4">
             <Bell className="w-5 h-5 text-amber-500 fill-amber-500" />
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Ações Necessárias: Pedidos Confirmados</h2>
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Ações Necessárias: OS Confirmadas</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recentConfirmations.map((order) => (
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pedido Aceito em: {new Date(order.updated_at || "").toLocaleDateString('pt-BR')}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">OS Aceita em: {new Date(order.updated_at || "").toLocaleDateString('pt-BR')}</span>
                         <span className="text-xl font-black text-blue-600">{order.os_number}</span>
                       </div>
                       <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
@@ -458,13 +458,13 @@ export default function DashboardPage() {
                             </p>
                               {(role === "ADMIN" || role === "ATENDENTE") && (
                                   <div className="flex gap-3">
-                                    <Link href="/interno/todos">
-                                      <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                        <History className="w-3.5 h-3.5" />
-                                        Ver Todos os Pedidos
-                                        <ArrowRight className="w-3.5 h-3.5" />
-                                      </Button>
-                                    </Link>
+                                      <Link href="/interno/todos">
+                                        <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
+                                          <History className="w-3.5 h-3.5" />
+                                          Ver Todas as OS
+                                          <ArrowRight className="w-3.5 h-3.5" />
+                                        </Button>
+                                      </Link>
                                   </div>
                                 )}
                           </div>

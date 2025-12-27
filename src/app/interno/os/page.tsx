@@ -663,16 +663,15 @@ export default function OSPage() {
             <CardHeader className="bg-white border-b border-slate-100 py-4">
               <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-col gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Entrada</Label>
                     <Input 
                       type="date" 
                       value={entryDate} 
-                      readOnly 
-                      className="h-11 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl text-xs"
+                      onChange={(e) => setEntryDate(e.target.value)}
+                      className="h-11 bg-white border-slate-200 rounded-xl text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -685,9 +684,8 @@ export default function OSPage() {
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Atalhos (Dias Úteis)</Label>
                 <div className="grid grid-cols-4 gap-2">
                   {[
