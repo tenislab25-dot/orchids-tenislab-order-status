@@ -197,6 +197,20 @@ export default function OSViewPage() {
       toast.error("Erro ao atualizar notificação: " + error.message);
     } else {
       setOrder(prev => prev ? { ...prev, ready_for_pickup: newVal } : null);
+      
+      if (newVal && order) {
+        const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+        
+        const message = encodeURIComponent(
+          `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab. 👟✨\n\n` +
+          `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+          `Qualquer dúvida, estamos à disposição!`
+        );
+        
+        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+      }
+      
       toast.success(newVal ? "Notificado: Pronto para retirada" : "Notificação removida");
     }
   };
@@ -503,8 +517,13 @@ export default function OSViewPage() {
         Cancelado: "bg-red-100 text-red-700",
       };
     return (
-      <Badge className={`${styles[status]} border-none px-3 py-1 font-bold`}>
-        {status}
+      <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight`}>
+        {status === "Pronto para entrega ou retirada" ? (
+          <div className="flex flex-col">
+            <span>Pronto para</span>
+            <span>entrega/retirada</span>
+          </div>
+        ) : status}
       </Badge>
     );
   };
@@ -861,14 +880,19 @@ export default function OSViewPage() {
                       Em Serviço
                     </Button>
                     
-                      <Button
-                        onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
-                        variant="outline"
-                        className={`h-12 rounded-xl font-bold border-2 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                      >
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Pronto para entrega ou retirada
-                      </Button>
+                        <Button
+                          onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
+                          variant="outline"
+                          className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Pronto para</span>
+                            </div>
+                            <span>entrega/retirada</span>
+                          </div>
+                        </Button>
                   </>
                 )}
   
@@ -895,19 +919,26 @@ export default function OSViewPage() {
                 </div>
               )}
 
-              {role === "ADMIN" && (
-                <div className="flex flex-col gap-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
-                  <Button
-                    onClick={() => setDeleteModalOpen(true)}
-                    variant="destructive"
-                    className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Excluir OS Permanentemente
-                  </Button>
-                </div>
-              )}
+                {role === "ADMIN" && (
+                  <div className="flex flex-col gap-2 mt-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
+                    <Button
+                      onClick={toggleReadyForPickup}
+                      className="h-12 rounded-xl font-bold border-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Notificar Cliente (WhatsApp)
+                    </Button>
+                    <Button
+                      onClick={() => setDeleteModalOpen(true)}
+                      variant="destructive"
+                      className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir OS Permanentemente
+                    </Button>
+                  </div>
+                )}
 
 
             <Link href={role === "ATENDENTE" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
