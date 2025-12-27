@@ -262,7 +262,7 @@ export default function StatusPage() {
         <img 
           src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844495784.PNG?width=8000&height=8000&resize=contain" 
           alt="TENISLAB Logo" 
-          className="h-24 w-auto object-contain"
+          className="h-32 w-auto object-contain"
         />
       </header>
 
