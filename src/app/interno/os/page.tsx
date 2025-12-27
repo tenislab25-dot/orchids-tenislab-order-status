@@ -47,6 +47,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { INITIAL_SERVICES } from "@/lib/services-data";
 import { supabase } from "@/lib/supabase";
+import { compressImage } from "@/lib/image-utils";
 import { toast } from "sonner";
 
 const SERVICE_CATALOG = INITIAL_SERVICES.reduce((acc, service) => {
@@ -207,19 +208,22 @@ export default function OSPage() {
     if (!files || files.length === 0) return;
 
     try {
-      toast.loading(`Enviando ${files.length} foto(s)...`, { id: "upload" });
+      toast.loading(`Comprimindo e enviando ${files.length} foto(s)...`, { id: "upload" });
       
       const newPhotoUrls = [];
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExt = file.name.split('.').pop();
+        
+        const compressedFile = await compressImage(file, 1920, 0.85);
+        
+        const fileExt = 'jpg';
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { data, error } = await supabase.storage
           .from('photos')
-          .upload(filePath, file);
+          .upload(filePath, compressedFile);
 
         if (error) throw error;
 
@@ -308,7 +312,7 @@ export default function OSPage() {
 
   const globalSubtotal = items.reduce((acc, curr) => acc + Number(curr.subtotal), 0);
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
-    const finalTotal = globalSubtotal - discountValue;
+  const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
 
   const handleCreateOS = async () => {
     if (!clientName || !clientPhone) {
@@ -342,7 +346,7 @@ export default function OSPage() {
           client_id: clientId,
           entry_date: entryDate,
           delivery_date: deliveryDate || null,
-          delivery_fee: 0,
+          delivery_fee: deliveryFee,
           discount_percent: discountPercent,
           payment_method: paymentMethod,
           pay_on_entry: payOnEntry,
@@ -635,87 +639,107 @@ export default function OSPage() {
           )}
         </section>
 
-        <section>
-          <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-            <CardHeader className="bg-white border-b border-slate-100 py-4">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="flex flex-col gap-4">
-                <div className="space-y-2">
-                  <Label>Data de Entrada</Label>
-                  <Input 
-                    type="date" 
-                    value={entryDate} 
-                    readOnly 
-                    className="h-12 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Prev. de Entrega</Label>
-                  <Input 
-                    type="date" 
-                    value={deliveryDate}
-                    onChange={(e) => setDeliveryDate(e.target.value)}
-                    className="h-12 bg-slate-50 border-slate-200 rounded-xl"
-                  />
-                </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
+<section>
+            <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+              <CardHeader className="bg-white border-b border-slate-100 py-4">
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex flex-col gap-4">
+                  <div className="space-y-2">
+                    <Label>Data de Entrada</Label>
+                    <Input 
+                      type="date" 
+                      value={entryDate} 
+                      readOnly 
+                      className="h-12 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Prev. de Entrega</Label>
+                    <Input 
+                      type="date" 
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Taxa de Entrega (R$)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={deliveryFee || ""}
+                      onChange={(e) => setDeliveryFee(Number(e.target.value))}
+                      className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                    />
+                    <p className="text-[9px] text-slate-400 font-medium px-1">
+                      A taxa de entrega NÃO sofre desconto e é adicionada ao total.
+                    </p>
+                  </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
 
         <section>
           <Card className="border-none shadow-md bg-slate-900 text-white overflow-hidden rounded-[2.5rem]">
             <CardHeader className="py-4 border-b border-white/10">
               <CardTitle className="text-xs font-bold uppercase tracking-[0.2em] text-white/50">Resumo Financeiro</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-white/70 font-medium">Subtotal dos itens</span>
-                    <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
-                  </div>
-                    <div className="flex flex-col gap-3 pt-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
-                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                      {[0, 5, 8, 10, 15, 20].map((p) => (
-                        <Button 
-                          key={p}
-                          variant={discountPercent === p ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setDiscountPercent(p)}
-                          className={`min-w-[50px] flex-1 rounded-xl border-white/20 h-10 ${
-                            discountPercent === p 
-                            ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
-                            : "bg-transparent text-white hover:bg-white/10"
-                          }`}
-                        >
-                          {p}%
-                        </Button>
-                      ))}
+<CardContent className="p-6 space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-white/70 font-medium">Subtotal dos itens</span>
+                      <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 bg-white/5 p-3 rounded-2xl border border-white/10">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">Personalizado</span>
-                      <div className="relative flex-1">
-                        <Input 
-                          type="number"
-                          placeholder="%"
-                          value={discountPercent || ""}
-                          onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                          className="h-10 bg-white/10 border-white/10 text-white placeholder:text-white/20 rounded-xl pr-8"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold">%</span>
+                      <div className="flex flex-col gap-3 pt-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
+                      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        {[0, 5, 8, 10, 15, 20].map((p) => (
+                          <Button 
+                            key={p}
+                            variant={discountPercent === p ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setDiscountPercent(p)}
+                            className={`min-w-[50px] flex-1 rounded-xl border-white/20 h-10 ${
+                              discountPercent === p 
+                              ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
+                              : "bg-transparent text-white hover:bg-white/10"
+                            }`}
+                          >
+                            {p}%
+                          </Button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 bg-white/5 p-3 rounded-2xl border border-white/10">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">Personalizado</span>
+                        <div className="relative flex-1">
+                          <Input 
+                            type="number"
+                            placeholder="%"
+                            value={discountPercent || ""}
+                            onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                            className="h-10 bg-white/10 border-white/10 text-white placeholder:text-white/20 rounded-xl pr-8"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold">%</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                {discountValue > 0 && (
-                  <div className="flex justify-between items-center text-sm text-red-400 font-bold pt-2">
-                    <span>Desconto ({discountPercent}%)</span>
-                    <span>- R$ {Number(discountValue).toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
+                  {discountValue > 0 && (
+                    <div className="flex justify-between items-center text-sm text-red-400 font-bold pt-2">
+                      <span>Desconto ({discountPercent}%)</span>
+                      <span>- R$ {Number(discountValue).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {deliveryFee > 0 && (
+                    <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">
+                      <span>Taxa de Entrega</span>
+                      <span>+ R$ {Number(deliveryFee).toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
 
               <Separator className="bg-white/10" />
 

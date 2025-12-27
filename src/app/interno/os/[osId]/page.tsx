@@ -232,6 +232,27 @@ export default function OSViewPage() {
     }
   };
 
+  const handleDeletePhoto = async (itemIdx: number, photoIdx: number) => {
+    if (!order) return;
+    
+    const newItems = [...order.items];
+    const photos = [...(newItems[itemIdx].photos || [])];
+    photos.splice(photoIdx, 1);
+    newItems[itemIdx].photos = photos;
+
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ items: newItems })
+      .eq("os_number", osNumber);
+
+    if (error) {
+      toast.error("Erro ao excluir foto: " + error.message);
+    } else {
+      setOrder({ ...order, items: newItems });
+      toast.success("Foto excluída com sucesso!");
+    }
+  };
+
   const handleDeleteOS = async () => {
     try {
       const { error } = await supabase
@@ -543,22 +564,31 @@ export default function OSViewPage() {
                   </CardHeader>
 
                 <CardContent className="p-6 space-y-6">
-                    {item.photos && item.photos.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 pb-2">
-                        {item.photos.map((photo: string, pIdx: number) => (
-                          <div 
-                            key={pIdx} 
-                            className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group"
-                            onClick={() => setSelectedImage(photo)}
-                          >
-                            <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Search className="w-6 h-6 text-white" />
+{item.photos && item.photos.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 pb-2">
+                          {item.photos.map((photo: string, pIdx: number) => (
+                            <div 
+                              key={pIdx} 
+                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group"
+                              onClick={() => setSelectedImage(photo)}
+                            >
+                              <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
+                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Search className="w-6 h-6 text-white" />
+                              </div>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeletePhoto(idx, pIdx);
+                                }}
+                                className="absolute top-2 right-2 bg-red-500/90 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-10"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
                   <div className="space-y-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços</span>
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
@@ -616,29 +646,36 @@ export default function OSViewPage() {
                       </Button>
                     )}
                   </CardHeader>
-                  <CardContent className="p-6 flex flex-col gap-4">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-white/60">Método de Pagamento</span>
-                      <span className="font-bold">{order.payment_method}</span>
-                    </div>
+<CardContent className="p-6 flex flex-col gap-4">
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-white/60">Status de Pagamento</span>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-bold ${order.payment_confirmed || order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
-                            {order.payment_confirmed || order.pay_on_entry ? "Pago" : "Aguardando"}
-                          </span>
-                          <Badge variant="outline" className="text-[9px] border-white/20 text-white/40 uppercase">
-                            {order.pay_on_entry ? "Antecipado" : "Na Entrega"}
-                          </Badge>
-                        </div>
+                        <span className="text-white/60">Método de Pagamento</span>
+                        <span className="font-bold">{order.payment_method}</span>
                       </div>
-  
-                      {(order.machine_fee > 0 || order.payment_confirmed) && (
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-white/60">Desconto Maquineta</span>
-                          <span className="font-bold text-red-400">- R$ {Number(order.machine_fee).toFixed(2)}</span>
+                          <span className="text-white/60">Status de Pagamento</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`font-bold ${order.payment_confirmed || order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
+                              {order.payment_confirmed || order.pay_on_entry ? "Pago" : "Aguardando"}
+                            </span>
+                            <Badge variant="outline" className="text-[9px] border-white/20 text-white/40 uppercase">
+                              {order.pay_on_entry ? "Antecipado" : "Na Entrega"}
+                            </Badge>
+                          </div>
                         </div>
-                      )}
+    
+                        {order.delivery_fee > 0 && (
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-white/60">Taxa de Entrega</span>
+                            <span className="font-bold text-green-400">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                          </div>
+                        )}
+
+                        {(order.machine_fee > 0 || order.payment_confirmed) && (
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-white/60">Desconto Maquineta</span>
+                            <span className="font-bold text-red-400">- R$ {Number(order.machine_fee).toFixed(2)}</span>
+                          </div>
+                        )}
   
                       <div className="h-px bg-white/10 my-2" />
                       
