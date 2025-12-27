@@ -111,19 +111,16 @@ const statusConfig = {
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
-                  <div className="relative flex items-center">
-                    <Input
-                      type="text"
-                      placeholder="Ex: 001"
-                      value={osNumber}
-                      onChange={handleOsChange}
-                      className="h-14 rounded-2xl bg-white border-slate-200 pl-4 pr-20 text-lg font-bold focus:ring-blue-500/20 flex-1"
-                      required
-                    />
-                    <div className="absolute right-4 pointer-events-none">
-                      <span className="text-slate-400 font-bold text-lg">/ {new Date().getFullYear()}</span>
+                    <div className="relative flex items-center">
+                      <Input
+                        type="text"
+                        placeholder="Ex: 001"
+                        value={osNumber}
+                        onChange={handleOsChange}
+                        className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg font-bold focus:ring-blue-500/20 flex-1"
+                        required
+                      />
                     </div>
-                  </div>
                 </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
@@ -366,11 +363,11 @@ export default function StatusPage() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
       <header className="flex flex-col items-center gap-6 mb-8">
-        <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
-          alt="TENISLAB Logo" 
-          className="h-40 w-auto object-contain"
-        />
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
+            alt="TENISLAB Logo" 
+            className="h-24 w-auto object-contain"
+          />
       </header>
 
       <Suspense fallback={

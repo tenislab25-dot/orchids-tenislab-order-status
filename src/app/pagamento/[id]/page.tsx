@@ -117,11 +117,11 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-12">
         <header className="bg-white border-b border-slate-100 px-6 py-8 flex flex-col items-center gap-4">
-          <img 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=800" 
-            alt="TENISLAB" 
-            className="h-24 w-auto object-contain"
-          />
+            <img 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=800" 
+              alt="TENISLAB" 
+              className="h-16 w-auto object-contain"
+            />
           <div className="text-center">
             <h1 className="text-lg font-bold text-slate-900">Pagamento do Pedido</h1>
             <p className="text-xs font-bold text-blue-500 uppercase tracking-widest">OS #{order.os_number}</p>
@@ -153,25 +153,25 @@ export default function PaymentPage() {
                   </div>
                 </div>
 
-                <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
-                  <div className="flex flex-col gap-1 items-center text-center">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorecido</span>
-                    <span className="text-base font-black text-slate-900 uppercase leading-tight">
-                      Laryssa Romeiro Sampaio dos Santos
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-5">
-                    <div className="flex flex-col gap-1">
+                  <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col gap-5">
+                    <div className="flex flex-col gap-1 items-center text-center">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CNPJ (Chave Pix)</span>
-                      <span className="text-sm font-black text-slate-700 tracking-tight">63.614.509/0001-44</span>
+                      <span className="text-base font-black text-slate-900 tracking-tight">
+                        63.614.509/0001-44
+                      </span>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Banco</span>
-                      <span className="text-sm font-black text-slate-700 tracking-tight uppercase">Inter</span>
+
+                    <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-5">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorecido</span>
+                        <span className="text-xs font-bold text-slate-700 leading-tight">Laryssa Romeiro Sampaio dos Santos</span>
+                      </div>
+                      <div className="flex flex-col gap-1 text-right">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Banco</span>
+                        <span className="text-xs font-black text-slate-700 uppercase">MERCADO PAGO</span>
+                      </div>
                     </div>
                   </div>
-                </div>
               </div>
 
             <div className="space-y-3 pt-2">
