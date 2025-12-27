@@ -215,6 +215,20 @@ export default function OSViewPage() {
     }
   };
 
+  const handleSendReadyNotification = () => {
+    if (!order) return;
+    const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+    const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+    
+    const message = encodeURIComponent(
+      `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab. 👟✨\n\n` +
+      `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+      `Qualquer dúvida, estamos à disposição!`
+    );
+    
+    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+  };
+
   const handleStatusUpdate = async (newStatus: Status) => {
     const { error } = await supabase
       .from("service_orders")
@@ -517,7 +531,7 @@ export default function OSViewPage() {
         Cancelado: "bg-red-100 text-red-700",
       };
     return (
-      <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight`}>
+      <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight whitespace-normal h-auto min-h-7`}>
         {status === "Pronto para entrega ou retirada" ? (
           <div className="flex flex-col">
             <span>Pronto para</span>
@@ -917,18 +931,17 @@ export default function OSViewPage() {
                       )}
                   </div>
                 </div>
-              )}
 
-                {role === "ADMIN" && (
-                  <div className="flex flex-col gap-2 mt-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
-                    <Button
-                      onClick={toggleReadyForPickup}
-                      className="h-12 rounded-xl font-bold border-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm"
-                    >
-                      <Bell className="w-4 h-4 mr-2" />
-                      Notificar Cliente (WhatsApp)
-                    </Button>
+                  {role === "ADMIN" && (
+                    <div className="flex flex-col gap-2 mt-4">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
+                      <Button
+                        onClick={handleSendReadyNotification}
+                        className="h-12 rounded-xl font-bold border-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm"
+                      >
+                        <Bell className="w-4 h-4 mr-2" />
+                        Enviar Notificação (WhatsApp)
+                      </Button>
                     <Button
                       onClick={() => setDeleteModalOpen(true)}
                       variant="destructive"
