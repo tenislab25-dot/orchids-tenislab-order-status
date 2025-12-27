@@ -492,26 +492,26 @@ export default function OSViewPage() {
               Gerar link para aceite
             </Button>
 
-              <div className="flex flex-col gap-4 pt-4 border-t border-slate-50">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> Entrada
-                </span>
-                <span className="text-sm font-bold text-slate-700">
-                  {new Date(order.entry_date).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-              {order.delivery_date && (
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                    <Package className="w-3 h-3" /> Previsão
+                    <Calendar className="w-3 h-3 text-blue-500" /> Entrada
                   </span>
                   <span className="text-sm font-bold text-slate-700">
-                    {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                    {new Date(order.entry_date).toLocaleDateString('pt-BR')}
                   </span>
                 </div>
-                )}
-              </div>
+                {order.delivery_date && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                      <Package className="w-3 h-3 text-blue-500" /> Previsão
+                    </span>
+                    <span className="text-sm font-bold text-slate-700">
+                      {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                  )}
+                </div>
           </section>
         </div>
 
@@ -565,29 +565,31 @@ export default function OSViewPage() {
 
                 <CardContent className="p-6 space-y-6">
 {item.photos && item.photos.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2 pb-2">
-                          {item.photos.map((photo: string, pIdx: number) => (
-                            <div 
-                              key={pIdx} 
-                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group"
-                              onClick={() => setSelectedImage(photo)}
-                            >
-                              <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
-                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Search className="w-6 h-6 text-white" />
-                              </div>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeletePhoto(idx, pIdx);
-                                }}
-                                className="absolute top-2 right-2 bg-red-500/90 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-10"
+                          <div className="grid grid-cols-2 gap-2 pb-2">
+                            {item.photos.map((photo: string, pIdx: number) => (
+                              <div 
+                                key={pIdx} 
+                                className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-transform"
+                                onClick={() => setSelectedImage(photo)}
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                                <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover transition-transform group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                                    <Search className="w-5 h-5 text-white" />
+                                  </div>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeletePhoto(idx, pIdx);
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                                  >
+                                    <Trash2 className="w-5 h-5 text-white" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                       )}
                   <div className="space-y-2">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços</span>

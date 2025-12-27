@@ -498,24 +498,34 @@ export default function OSPage() {
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Fotos do par</Label>
                     <div className="grid grid-cols-2 gap-2">
-                        {item.photos?.map((photo, pIdx) => (
-                          <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group">
-                            <Image src={photo} alt="Foto do par" fill className="object-cover" />
-                            <button 
-                              onClick={() => {
-                                setItems(items.map(it => {
-                                  if (it.id === item.id) {
-                                    return { ...it, photos: it.photos?.filter((_, i) => i !== pIdx) };
-                                  }
-                                  return it;
-                                }));
+                          {item.photos?.map((photo, pIdx) => (
+                            <div 
+                              key={pIdx} 
+                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group active:scale-[0.98] transition-transform"
+                              onClick={(e) => {
+                                // On mobile, a tap will trigger the group-hover state or we can just toggle a class
+                                // But for simplicity, let's just make the button more accessible
                               }}
-                              className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
+                              <Image src={photo} alt="Foto do par" fill className="object-cover" />
+                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setItems(items.map(it => {
+                                      if (it.id === item.id) {
+                                        return { ...it, photos: it.photos?.filter((_, i) => i !== pIdx) };
+                                      }
+                                      return it;
+                                    }));
+                                  }}
+                                  className="bg-red-500 text-white p-3 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         <label className="aspect-video w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:bg-slate-200 hover:border-slate-300 transition-all cursor-pointer">
                           <Camera className="w-8 h-8" />
                           <span className="text-[10px] font-bold uppercase tracking-widest text-center px-1">Tirar foto</span>
@@ -644,40 +654,67 @@ export default function OSPage() {
               <CardHeader className="bg-white border-b border-slate-100 py-4">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Prazos e Entrega</CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
-                <div className="flex flex-col gap-4">
-                  <div className="space-y-2">
-                    <Label>Data de Entrada</Label>
-                    <Input 
-                      type="date" 
-                      value={entryDate} 
-                      readOnly 
-                      className="h-12 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl"
-                    />
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Data de Entrada</Label>
+                      <Input 
+                        type="date" 
+                        value={entryDate} 
+                        readOnly 
+                        className="h-12 bg-slate-100 border-slate-200 text-slate-500 pointer-events-none rounded-xl text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-blue-600">Prev. de Entrega</Label>
+                      <Input 
+                        type="date" 
+                        value={deliveryDate}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
+                        className="h-12 bg-white border-blue-200 focus:border-blue-500 ring-blue-500 rounded-xl text-sm"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Prev. de Entrega</Label>
-                    <Input 
-                      type="date" 
-                      value={deliveryDate}
-                      onChange={(e) => setDeliveryDate(e.target.value)}
-                      className="h-12 bg-slate-50 border-slate-200 rounded-xl"
-                    />
+
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Atalhos de Prazo</Label>
+                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                      {[
+                        { label: "+3 dias", days: 3 },
+                        { label: "+7 dias", days: 7 },
+                        { label: "+10 dias", days: 10 },
+                        { label: "+15 dias", days: 15 }
+                      ].map((shortcut) => (
+                        <Button
+                          key={shortcut.label}
+                          variant="outline"
+                          size="sm"
+                          className="rounded-xl h-9 px-4 text-xs font-bold whitespace-nowrap bg-white border-slate-200 text-slate-600 active:bg-blue-50 active:text-blue-600 active:border-blue-200"
+                          onClick={() => {
+                            const date = new Date();
+                            date.setDate(date.getDate() + shortcut.days);
+                            setDeliveryDate(date.toISOString().split('T')[0]);
+                          }}
+                        >
+                          {shortcut.label}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Taxa de Entrega (R$)</Label>
+
+                  <div className="space-y-2 pt-2 border-t border-slate-50">
+                    <Label className="text-xs">Taxa de Entrega (R$)</Label>
                     <Input 
                       type="number" 
                       step="0.01"
                       placeholder="0.00"
                       value={deliveryFee || ""}
                       onChange={(e) => setDeliveryFee(Number(e.target.value))}
-                      className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                      className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold"
                     />
                     <p className="text-[9px] text-slate-400 font-medium px-1">
                       A taxa de entrega NÃO sofre desconto e é adicionada ao total.
                     </p>
-                  </div>
                   </div>
                 </CardContent>
               </Card>
