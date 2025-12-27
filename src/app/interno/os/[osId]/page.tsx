@@ -16,7 +16,8 @@ import {
   Printer,
   Share2,
   Search,
-  X
+  X,
+  Trash2
 } from "lucide-react";
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +79,7 @@ export default function OSViewPage() {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
@@ -227,6 +229,24 @@ export default function OSViewPage() {
     } else {
       setOrder({ ...order, items: newItems });
       toast.success(`Item marcado como ${newItems[itemIdx].status}`);
+    }
+  };
+
+  const handleDeleteOS = async () => {
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .delete()
+        .eq("os_number", osNumber);
+
+      if (error) throw error;
+
+      toast.success("OS excluída permanentemente");
+      router.push("/interno/dashboard");
+    } catch (error: any) {
+      toast.error("Erro ao excluir OS: " + error.message);
+    } finally {
+      setDeleteModalOpen(false);
     }
   };
 
@@ -715,15 +735,26 @@ export default function OSViewPage() {
                         Entregue
                       </Button>
   
-                      <Button
-                        onClick={() => setCancelModalOpen(true)}
-                        variant="outline"
-                        className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
-                      >
-                        Cancelar OS
-                      </Button>
-                    </>
-                  )}
+                        <Button
+                          onClick={() => setCancelModalOpen(true)}
+                          variant="outline"
+                          className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
+                        >
+                          Cancelar OS
+                        </Button>
+
+                        {role === "ADMIN" && (
+                          <Button
+                            onClick={() => setDeleteModalOpen(true)}
+                            variant="destructive"
+                            className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100 mt-2"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir OS (Admin)
+                          </Button>
+                        )}
+                      </>
+                    )}
                 </div>
               </div>
             )}
@@ -820,32 +851,65 @@ export default function OSViewPage() {
 
         {/* CANCELLATION DIALOG */}
     
-        <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
-          <DialogContent className="rounded-3xl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                Cancelar OS
-              </DialogTitle>
-              <DialogDescription>
-                Esta ação é irreversível e removerá a OS do fluxo de trabalho.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Motivo</Label>
-              <Textarea 
-                placeholder="Descreva o motivo..."
-                value={cancellationReason}
-                onChange={(e) => setCancellationReason(e.target.value)}
-                className="mt-2 rounded-2xl"
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setCancelModalOpen(false)}>Voltar</Button>
-              <Button onClick={confirmCancel} className="bg-red-600 text-white">Confirmar Cancelamento</Button>
-            </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+            <DialogContent className="rounded-3xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  Cancelar OS
+                </DialogTitle>
+                <DialogDescription>
+                  Esta ação é irreversível e removerá a OS do fluxo de trabalho.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Motivo</Label>
+                <Textarea 
+                  placeholder="Descreva o motivo..."
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className="mt-2 rounded-2xl"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setCancelModalOpen(false)}>Voltar</Button>
+                <Button onClick={confirmCancel} className="bg-red-600 text-white">Confirmar Cancelamento</Button>
+              </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* DELETE DIALOG */}
+            <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+              <DialogContent className="rounded-[2.5rem] max-w-sm">
+                <DialogHeader className="items-center text-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-red-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <DialogTitle className="text-xl font-black text-slate-900">Excluir Permanentemente?</DialogTitle>
+                    <DialogDescription className="font-medium">
+                      Esta ação <strong>NÃO pode ser desfeita</strong>. A OS {order.os_number} será removida do banco de dados para sempre.
+                    </DialogDescription>
+                  </div>
+                </DialogHeader>
+                <DialogFooter className="flex-col gap-2 pt-4">
+                  <Button 
+                    variant="destructive"
+                    onClick={handleDeleteOS}
+                    className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold"
+                  >
+                    Sim, excluir agora
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setDeleteModalOpen(false)}
+                    className="w-full h-12 rounded-2xl text-slate-500 font-bold"
+                  >
+                    Manter OS
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
   
           {/* IMAGE LIGHTBOX */}
           <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
