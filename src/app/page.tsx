@@ -79,7 +79,7 @@ export default function Home() {
       {/* SECTION 1 — BRAND / HEADER */}
         <header className="flex flex-col items-center gap-6 mb-12">
           <img 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844155821.PNG?width=8000&height=8000&resize=contain" 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766844495784.PNG?width=8000&height=8000&resize=contain" 
             alt="TENISLAB Logo" 
             className="h-28 w-auto object-contain"
           />
