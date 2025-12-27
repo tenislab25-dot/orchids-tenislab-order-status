@@ -476,21 +476,12 @@ export default function OSPage() {
           </Card>
         </section>
 
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Pares / Itens</h2>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={addItem}
-              className="rounded-full gap-2 border-blue-200 text-blue-600 font-bold bg-blue-50"
-            >
-              <Plus className="w-4 h-4" />
-              Adicionar par
-            </Button>
-          </div>
+          <section className="flex flex-col gap-4">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">Pares / Itens</h2>
+            </div>
 
-          {items.map((item) => (
+            {items.map((item) => (
             <Card key={item.id} className="border-none shadow-sm relative overflow-hidden animate-in slide-in-from-right-4 rounded-3xl">
               <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
               <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-slate-100">
@@ -645,18 +636,32 @@ export default function OSPage() {
             </Card>
           ))}
 
-          {items.length === 0 && (
-            <div className="py-12 px-6 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-center bg-white/50">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                <Plus className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Nenhum par adicionado</h3>
-                <p className="text-sm text-slate-500 mt-1">Clique no botão acima para adicionar um novo par à OS.</p>
-              </div>
-            </div>
-          )}
-        </section>
+            {items.length > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={addItem}
+                className="w-full h-16 rounded-[2rem] border-2 border-dashed border-blue-200 text-blue-600 font-bold bg-blue-50/50 hover:bg-blue-50 hover:border-blue-300 transition-all flex items-center justify-center gap-2 mt-2"
+              >
+                <Plus className="w-5 h-5" />
+                Adicionar outro par
+              </Button>
+            )}
+
+            {items.length === 0 && (
+              <button 
+                onClick={addItem}
+                className="w-full py-12 px-6 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-center bg-white/50 hover:bg-slate-50 hover:border-slate-300 transition-all group"
+              >
+                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-500 transition-all">
+                  <Plus className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">Adicionar Par</h3>
+                  <p className="text-sm text-slate-500 mt-1">Clique para adicionar o primeiro par à OS.</p>
+                </div>
+              </button>
+            )}
+          </section>
 
         <section>
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
