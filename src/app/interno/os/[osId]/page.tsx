@@ -257,10 +257,18 @@ export default function OSViewPage() {
       toast.success("Status atualizado!");
     };
 
+    const [readyReminderModalOpen, setReadyReminderModalOpen] = useState(false);
+
     const handleEntregueClick = () => {
       if (!order) return;
       if (order.status === "Entregue") return;
       
+      // Sempre mostrar o lembrete de notificação de "Pronto" antes de prosseguir para Entregue
+      setReadyReminderModalOpen(true);
+    };
+
+    const proceedAfterReadyReminder = () => {
+      setReadyReminderModalOpen(false);
       if (!order.payment_confirmed && !order.pay_on_entry) {
         setDeliveryModalOpen(true);
       } else {
@@ -1235,10 +1243,54 @@ export default function OSViewPage() {
                     Cancelar
                   </Button>
                 </DialogFooter>
-              </DialogContent>
-            </Dialog>
-    
-          </main>
+            </DialogContent>
+          </Dialog>
+
+          {/* READY NOTIFICATION REMINDER MODAL */}
+          <Dialog open={readyReminderModalOpen} onOpenChange={setReadyReminderModalOpen}>
+            <DialogContent className="rounded-[2.5rem] max-w-sm">
+              <DialogHeader className="items-center text-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                  <Bell className="w-8 h-8 text-blue-600" />
+                </div>
+                <div className="space-y-1">
+                  <DialogTitle className="text-xl font-black text-slate-900">Aviso Importante</DialogTitle>
+                  <DialogDescription className="font-medium">
+                    Antes de marcar como entregue, certifique-se de que já enviou a notificação informando que o pedido está pronto.
+                  </DialogDescription>
+                </div>
+              </DialogHeader>
+              <DialogFooter className="flex-col gap-2 pt-4">
+                <Button 
+                  onClick={proceedAfterReadyReminder}
+                  className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold"
+                >
+                  Continuar para Entrega
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setReadyReminderModalOpen(false);
+                    handleSendReadyNotification();
+                  }}
+                  className="w-full h-12 rounded-2xl border-blue-200 text-blue-700 font-bold flex gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Enviar Notificação Agora
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setReadyReminderModalOpen(false)}
+                  className="w-full h-10 rounded-2xl text-slate-400 font-bold"
+                >
+                  Cancelar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+  
+        </main>
+
         </div>
       );
     }
