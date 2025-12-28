@@ -860,96 +860,87 @@ export default function OSViewPage() {
   
             {/* ACTIONS */}
             <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
-              <div className="flex flex-col gap-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
-                
-                {/* Special Button for Attendance Staff */}
-              {(role === "ADMIN" || role === "ATENDENTE") && order.status === "Pronto para entrega ou retirada" && (
-              <Button
-                onClick={toggleReadyForPickup}
-                className={`w-full h-14 rounded-2xl font-black text-xs gap-2 mb-2 transition-all shadow-lg ${
-                  order.ready_for_pickup 
-                  ? "bg-amber-100 text-amber-700 border-2 border-amber-200" 
-                  : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"
-                }`}
-              >
-                <Bell className={`w-4 h-4 ${order.ready_for_pickup ? "fill-current" : ""}`} />
-                {order.ready_for_pickup 
-                  ? "NOTIFICADO: PRONTO P/ RETIRADA" 
-                  : "PEDIDO PRONTO P/ RETIRADA / ENTREGA"}
-              </Button>
-            )}
-
-              <div className="grid grid-cols-2 gap-2">
-                {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                  <>
-                    <Button
-                      onClick={() => handleStatusUpdate("Em serviço")}
-                      variant="outline"
-                      className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                    >
-                      <Clock className="w-4 h-4 mr-2" />
-                      Em Serviço
-                    </Button>
-                    
-                        <Button
-                          onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
-                          variant="outline"
-                          className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                        >
-                          <div className="flex flex-col items-center">
-                            <div className="flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Pronto para</span>
-                            </div>
-                            <span>entrega/retirada</span>
-                          </div>
-                        </Button>
-                  </>
-                )}
-  
-                  {(role === "ADMIN" || role === "ATENDENTE") && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                  {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
                     <>
                       <Button
-                        onClick={() => handleStatusUpdate("Entregue")}
-                        className="h-12 rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"
+                        onClick={() => handleStatusUpdate("Em serviço")}
+                        variant="outline"
+                        className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                       >
-                        <Truck className="w-4 h-4 mr-2" />
-                        Entregue
+                        <Clock className="w-4 h-4 mr-2" />
+                        Em Serviço
                       </Button>
-  
+                      
                           <Button
-                            onClick={() => setCancelModalOpen(true)}
+                            onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
                             variant="outline"
-                            className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
+                            className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                           >
-                            Cancelar OS
+                            <div className="flex flex-col items-center">
+                              <div className="flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Pronto para</span>
+                              </div>
+                              <span>entrega/retirada</span>
+                            </div>
                           </Button>
-                          </>
-                        )}
-                    </div>
-                  </div>
-  
-                    {role === "ADMIN" && (
-                      <div className="flex flex-col gap-2 mt-4">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
+                    </>
+                  )}
+    
+                    {(role === "ADMIN" || role === "ATENDENTE") && (
+                      <>
                         <Button
-                          onClick={handleSendReadyNotification}
-                          className="h-12 rounded-xl font-bold border-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 shadow-sm"
+                          onClick={() => handleStatusUpdate("Entregue")}
+                          className="h-12 rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"
                         >
-                          <Bell className="w-4 h-4 mr-2" />
-                          enviar notificação que o pedido esta pronto
+                          <Truck className="w-4 h-4 mr-2" />
+                          Entregue
                         </Button>
-                    <Button
-                      onClick={() => setDeleteModalOpen(true)}
-                      variant="destructive"
-                      className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Excluir OS Permanentemente
-                    </Button>
-                  </div>
-                )}
+    
+                            <Button
+                              onClick={() => setCancelModalOpen(true)}
+                              variant="outline"
+                              className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
+                            >
+                              Cancelar OS
+                            </Button>
+                            </>
+                          )}
+                      </div>
+                    </div>
+    
+                      {(role === "ADMIN" || role === "ATENDENTE") && (
+                        <div className="flex flex-col gap-2 mt-4">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notificações</p>
+                          <Button
+                            onClick={handleSendReadyNotification}
+                            className="h-auto min-h-12 py-3 px-4 rounded-xl font-bold border-2 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm whitespace-normal"
+                          >
+                            <div className="flex items-center justify-center w-full">
+                              <Bell className="w-4 h-4 mr-2 shrink-0" />
+                              <span className="text-center leading-tight">Enviar notificação que o pedido está pronto</span>
+                            </div>
+                          </Button>
+                        </div>
+                      )}
+
+                      {role === "ADMIN" && (
+                        <div className="flex flex-col gap-2 mt-4">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
+                      <Button
+                        onClick={() => setDeleteModalOpen(true)}
+                        variant="destructive"
+                        className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir OS Permanentemente
+                      </Button>
+                    </div>
+                  )}
 
 
             <Link href={role === "ATENDENTE" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
