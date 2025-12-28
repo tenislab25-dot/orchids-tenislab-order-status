@@ -228,11 +228,11 @@ interface Client {
                           <DropdownMenuItem onClick={() => handleOpenDialog(client)} className="gap-2">
                             <Pencil className="w-4 h-4" /> Editar
                           </DropdownMenuItem>
-                          {localStorage.getItem("tenislab_role") === "adm" && (
-                            <DropdownMenuItem onClick={() => handleDelete(client.id)} className="gap-2 text-red-600 focus:text-red-600">
-                              <Trash2 className="w-4 h-4" /> Excluir
-                            </DropdownMenuItem>
-                          )}
+{role === "ADMIN" && (
+                              <DropdownMenuItem onClick={() => handleDelete(client.id)} className="gap-2 text-red-600 focus:text-red-600">
+                                <Trash2 className="w-4 h-4" /> Excluir
+                              </DropdownMenuItem>
+                            )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
