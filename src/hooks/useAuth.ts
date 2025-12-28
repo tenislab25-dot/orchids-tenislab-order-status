@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { canAccessPage, type UserRole } from "@/lib/auth";
+import { type UserRole } from "@/lib/auth";
 
 interface AuthContextValue {
   user: { id: string; email: string } | null;
@@ -17,7 +17,6 @@ export function useAuth(): AuthContextValue {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -40,22 +39,13 @@ export function useAuth(): AuthContextValue {
             setRole(null);
             setLoading(false);
           }
-          if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-            router.push("/login");
-          }
           return;
         }
 
-        // Try to get role from state or localStorage first
         const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
         
         if (cachedRole && user?.id === session.user.id) {
-          setLoading(false);
-          // Still verify permissions for the current path
-          const internalPath = pathname?.replace("/interno", "/app") || "/app";
-          if (pathname?.startsWith("/interno") && !canAccessPage(cachedRole, internalPath)) {
-            router.push("/interno");
-          }
+          if (isMounted) setLoading(false);
           return;
         }
 
@@ -70,16 +60,9 @@ export function useAuth(): AuthContextValue {
           setUser({ id: session.user.id, email: session.user.email || "" });
           setRole(userRole);
           localStorage.setItem("tenislab_role", userRole);
-
-          const internalPath = pathname?.replace("/interno", "/app") || "/app";
-          if (pathname?.startsWith("/interno") && !canAccessPage(userRole, internalPath)) {
-            router.push("/interno");
-          }
-        } else if (!profile) {
-          router.push("/login");
         }
       } catch {
-        router.push("/login");
+        // Silently fail auth check to avoid annoying redirects
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -94,7 +77,6 @@ export function useAuth(): AuthContextValue {
           setRole(null);
           localStorage.removeItem("tenislab_role");
         }
-        router.push("/login");
       } else if (event === "SIGNED_IN" && session) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -114,7 +96,7 @@ export function useAuth(): AuthContextValue {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [pathname, router, user?.id]);
+  }, [user?.id]);
 
   return { user, role, loading, signOut };
 }

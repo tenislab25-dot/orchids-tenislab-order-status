@@ -55,11 +55,11 @@ export default function TodosPedidosPage() {
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
         if (!storedRole) {
-          router.push("/interno/login");
+          router.push("/login");
           return;
         }
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/interno/dashboard");
+          router.push("/dashboard");
           return;
         }
         fetchOrders();
@@ -145,7 +145,7 @@ export default function TodosPedidosPage() {
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex items-center justify-between pt-8">
           <div className="flex items-center gap-4">
-            <Link href="/interno/dashboard">
+            <Link href="/dashboard">
               <Button variant="ghost" size="icon" className="rounded-full">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -198,7 +198,7 @@ export default function TodosPedidosPage() {
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
                       <TableCell className="pr-8">
                         <div className="flex items-center gap-2">
-                          <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
+                          <Link href={`/os/${order.os_number.replace("/", "-")}`}>
                             <Button variant="ghost" size="icon" className="rounded-xl hover:bg-blue-50 hover:text-blue-600">
                               <Eye className="w-4 h-4" />
                             </Button>

@@ -53,11 +53,11 @@ export default function BancoDadosPage() {
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
         if (!storedRole) {
-          router.push("/interno/login");
+          router.push("/login");
           return;
         }
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/interno/dashboard");
+          router.push("/dashboard");
           return;
         }
         fetchOrders();
@@ -101,7 +101,7 @@ export default function BancoDadosPage() {
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex items-center justify-between pt-8">
         <div className="flex items-center gap-4">
-          <Link href="/interno/dashboard">
+          <Link href="/dashboard">
             <Button variant="ghost" size="icon" className="rounded-full">
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -156,7 +156,7 @@ export default function BancoDadosPage() {
                       </TableCell>
                       <TableCell className="font-black text-slate-400 text-sm">R$ {order.total?.toFixed(2)}</TableCell>
                       <TableCell className="pr-8">
-                        <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
+                        <Link href={`/os/${order.os_number.replace("/", "-")}`}>
                           <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">
                             <Eye className="w-4 h-4 text-slate-400" />
                           </Button>

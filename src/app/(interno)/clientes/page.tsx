@@ -64,11 +64,11 @@ interface Client {
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
         if (!storedRole) {
-          router.push("/interno/login");
+          router.push("/login");
           return;
         }
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/interno/dashboard");
+          router.push("/dashboard");
           return;
         }
         setRole(storedRole);
@@ -161,7 +161,7 @@ interface Client {
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/interno/dashboard">
+          <Link href="/dashboard">
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="w-6 h-6" />
             </Button>

@@ -136,7 +136,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
     return (
       <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
         <header className="flex items-center gap-4 mb-12">
-          <Link href="/interno/dashboard">
+          <Link href="/dashboard">
             <Button variant="ghost" size="icon" className="rounded-full">
               <ArrowLeft className="w-6 h-6" />
             </Button>
@@ -163,7 +163,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
     <div className="w-full max-w-6xl mx-auto flex flex-col min-h-screen px-4 py-8 animate-in fade-in bg-slate-50">
       <header className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/interno/dashboard">
+          <Link href="/dashboard">
             <Button variant="ghost" size="icon" className="rounded-full -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>

@@ -14,7 +14,7 @@ export default function InternoLayout({
 }) {
   const pathname = usePathname();
   const { user, role, loading, signOut } = useAuth();
-  const isLoginPage = pathname === "/interno/login";
+  const isLoginPage = pathname === "/login";
 
   if (loading && !isLoginPage) {
     return (
@@ -44,8 +44,8 @@ export default function InternoLayout({
               </div>
 
               <nav className="flex items-center gap-1 sm:gap-2">
-                <Link href="/interno/dashboard">
-                  <Button variant="ghost" size="sm" className={`h-9 px-2 sm:px-3 rounded-xl gap-2 ${pathname === "/interno/dashboard" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:text-slate-900"}`}>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm" className={`h-9 px-2 sm:px-3 rounded-xl gap-2 ${pathname === "/dashboard" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:text-slate-900"}`}>
                     <LayoutGrid className="w-4 h-4" />
                     <span className="hidden sm:inline font-bold">Início</span>
                   </Button>

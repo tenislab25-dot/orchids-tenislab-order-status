@@ -38,5 +38,4 @@ export function getRoleLabel(role: UserRole): string {
   return labels[role] ?? role;
 }
 
-export const MAX_LOGIN_ATTEMPTS = 3;
-export const LOCKOUT_DURATION_MINUTES = 15;
+

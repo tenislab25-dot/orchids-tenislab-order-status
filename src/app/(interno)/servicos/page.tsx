@@ -136,7 +136,7 @@ import { Service } from "@/lib/services-data";
       <div className="p-8 max-w-6xl mx-auto">
         <div className="flex flex-col gap-8 mb-8">
           <div className="flex justify-between items-start">
-            <Link href="/interno" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
+            <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
               <ArrowLeft className="w-4 h-4" />
                 Voltar ao Painel
               </Link>

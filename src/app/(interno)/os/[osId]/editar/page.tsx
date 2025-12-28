@@ -83,11 +83,11 @@ export default function EditOSPage() {
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
     if (!storedRole) {
-      router.push("/interno/login");
+      router.push("/login");
       return;
     }
     if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/interno/dashboard");
+      router.push("/dashboard");
       return;
     }
     setRole(storedRole);
@@ -113,7 +113,7 @@ export default function EditOSPage() {
 
     if (error) {
       toast.error("Erro ao carregar OS");
-      router.push("/interno/dashboard");
+      router.push("/dashboard");
     } else {
       setOrder(data);
       setEntryDate(data.entry_date || "");
@@ -260,7 +260,7 @@ export default function EditOSPage() {
 
       if (error) throw error;
       toast.success("OS atualizada com sucesso!");
-      router.push(`/interno/os/${osIdRaw}`);
+      router.push(`/os/${osIdRaw}`);
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     } finally {
@@ -280,7 +280,7 @@ export default function EditOSPage() {
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
         <div className="grid grid-cols-3 items-center max-w-md mx-auto">
-          <Link href={`/interno/os/${osIdRaw}`} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
+          <Link href={`/os/${osIdRaw}`} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div className="text-center">
@@ -637,7 +637,7 @@ export default function EditOSPage() {
             className="w-full h-14 rounded-2xl text-slate-500 font-bold"
             asChild
           >
-            <Link href={`/interno/os/${osIdRaw}`}>Cancelar</Link>
+            <Link href={`/os/${osIdRaw}`}>Cancelar</Link>
           </Button>
         </section>
       </main>
