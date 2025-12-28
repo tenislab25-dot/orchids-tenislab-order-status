@@ -152,17 +152,29 @@ const statusConfig = {
               </motion.div>
             )}
 
-            <Button 
-              type="submit" 
-              disabled={loading || !osNumber.trim() || !phone.trim()}
-              className="h-14 mt-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98]"
-            >
-              {loading ? (
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                "Consultar Pedido"
-              )}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button 
+                type="submit" 
+                disabled={loading || !osNumber.trim() || !phone.trim()}
+                className="h-14 mt-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98]"
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  "Consultar Pedido"
+                )}
+              </Button>
+              <Button 
+                variant="ghost" 
+                asChild
+                className="h-12 rounded-2xl text-slate-400 font-bold"
+              >
+                <Link href="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar para página inicial
+                </Link>
+              </Button>
+            </div>
           </form>
         </div>
         
@@ -369,15 +381,15 @@ function OrderContent() {
                   <ArrowLeft className="w-4 h-4" />
                   Nova consulta
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  asChild
-                  className="h-12 rounded-2xl text-slate-400 font-bold"
-                >
-                  <Link href="/">
-                    Voltar para Homepage
-                  </Link>
-                </Button>
+                  <Button 
+                    variant="ghost" 
+                    asChild
+                    className="h-12 rounded-2xl text-slate-400 font-bold"
+                  >
+                    <Link href="/">
+                      Voltar para página inicial
+                    </Link>
+                  </Button>
               </div>
             </div>
 
@@ -435,7 +447,7 @@ export default function StatusPage() {
           asChild
           className="text-slate-400 hover:text-slate-600 text-[10px] font-bold uppercase tracking-widest"
         >
-          <Link href="/">Voltar para Homepage</Link>
+          <Link href="/">Voltar para página inicial</Link>
         </Button>
       </div>
 

@@ -253,7 +253,9 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
         <div className="flex flex-col gap-4">
-          <h1 className="font-black text-2xl">TENISLAB</h1>
+          <Link href="/interno">
+            <h1 className="font-black text-2xl hover:text-blue-600 transition-colors cursor-pointer">TENISLAB</h1>
+          </Link>
           <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">
                 Dashboard Interno

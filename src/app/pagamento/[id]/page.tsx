@@ -107,9 +107,9 @@ export default function PaymentPage() {
           <h1 className="text-2xl font-black text-slate-900">Pagamento Confirmado!</h1>
           <p className="text-slate-500">Obrigado pela preferência, {order.clients?.name}!</p>
         </div>
-          <Button asChild variant="outline" className="rounded-2xl h-12 px-8">
-            <Link href="/">Voltar para Homepage</Link>
-          </Button>
+            <Button asChild variant="outline" className="rounded-2xl h-12 px-8">
+              <Link href="/">Voltar para página inicial</Link>
+            </Button>
       </div>
     );
   }
@@ -199,10 +199,10 @@ export default function PaymentPage() {
               asChild
               className="h-12 rounded-2xl text-slate-400 font-bold"
             >
-              <Link href="/">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar para Homepage
-              </Link>
+                <Link href="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar para página inicial
+                </Link>
             </Button>
         </section>
       </main>

@@ -59,11 +59,13 @@ export default function InternoPage() {
       <div className="w-full max-w-md flex flex-col gap-10">
         {/* HEADER */}
         <header className="flex flex-col items-center gap-6">
-          <img 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-            alt="TENISLAB Logo" 
-            className="h-12 w-auto object-contain"
-          />
+          <Link href="/interno">
+            <img 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
+              alt="TENISLAB Logo" 
+              className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
           <div className="text-center">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
