@@ -383,7 +383,7 @@ export default function OSViewPage() {
       if (error) throw error;
 
       toast.success("OS excluída permanentemente");
-      router.push("/dashboard");
+      router.push("/interno/dashboard");
     } catch (error: any) {
       toast.error("Erro ao excluir OS: " + error.message);
     } finally {
@@ -549,7 +549,7 @@ export default function OSViewPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
       <h1 className="text-xl font-bold">OS não encontrada</h1>
       <Button asChild>
-        <Link href="/dashboard">Voltar ao Dashboard</Link>
+        <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
       </Button>
     </div>
   );
@@ -580,7 +580,7 @@ export default function OSViewPage() {
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
         <div className="grid grid-cols-3 items-center max-w-6xl mx-auto">
-          <Link href="/dashboard" className="w-fit">
+          <Link href="/interno/dashboard" className="w-fit">
             <Button variant="ghost" size="icon" className="rounded-full -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>
@@ -993,7 +993,7 @@ export default function OSViewPage() {
               </div>
             )}
 
-            <Link href={role === "ATENDENTE" ? "/os" : "/dashboard"} className="w-full mt-4">
+            <Link href={role === "ATENDENTE" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
               <Button 
                 className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 font-black shadow-sm"
               >

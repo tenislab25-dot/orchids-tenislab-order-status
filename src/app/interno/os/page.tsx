@@ -118,7 +118,7 @@ export default function OSPage() {
       }
 
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/dashboard");
+          router.push("/interno/dashboard");
           return;
         }
 
@@ -393,14 +393,14 @@ export default function OSPage() {
       );
       
       window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-      router.push("/dashboard");
+      router.push("/interno/dashboard");
     };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
         <div className="grid grid-cols-3 items-center max-w-md mx-auto">
-          <Link href="/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
+          <Link href="/interno/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           
@@ -872,7 +872,7 @@ export default function OSPage() {
           className="w-full h-14 rounded-2xl text-slate-500 font-bold"
           asChild
         >
-          <Link href="/dashboard">Voltar ao Dashboard</Link>
+          <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
         </Button>
       </section>
 
@@ -899,7 +899,7 @@ export default function OSPage() {
             </Button>
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/interno/dashboard")}
               className="w-full h-12 rounded-2xl text-slate-500 font-bold"
             >
               Ir para o Dashboard

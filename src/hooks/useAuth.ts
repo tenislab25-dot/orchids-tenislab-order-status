@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { type UserRole } from "@/lib/auth";
 
@@ -17,6 +17,7 @@ export function useAuth(): AuthContextValue {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -62,7 +63,10 @@ export function useAuth(): AuthContextValue {
           localStorage.setItem("tenislab_role", userRole);
         }
       } catch {
-        // Silently fail auth check to avoid annoying redirects
+        if (isMounted) {
+          setUser(null);
+          setRole(null);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }

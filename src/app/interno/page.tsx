@@ -76,7 +76,7 @@ export default function InternoPage() {
         <main className="flex flex-col gap-4">
             {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
               <MenuButton 
-                href="/dashboard"
+                href="/interno/dashboard"
                 title="Dashboard"
                 icon={LayoutDashboard}
                 description="Visão Geral"
@@ -85,7 +85,7 @@ export default function InternoPage() {
 
             {(role === 'ADMIN' || role === 'ATENDENTE') && (
               <MenuButton 
-                href="/os"
+                href="/interno/os"
                 title="Ordens de Serviço"
                 icon={ClipboardList}
                 description="Criar e Gerenciar OS"
@@ -94,7 +94,7 @@ export default function InternoPage() {
 
             {(role === 'ADMIN' || role === 'ATENDENTE') && (
               <MenuButton 
-                href="/clientes"
+                href="/interno/clientes"
                 title="Clientes"
                 icon={Users}
                 description="Base de Clientes"
@@ -103,7 +103,7 @@ export default function InternoPage() {
 
             {role === 'ADMIN' && (
               <MenuButton 
-                href="/financeiro"
+                href="/interno/financeiro"
                 title="Financeiro"
                 icon={Wallet}
                 description="Relatórios Financeiros"
@@ -112,7 +112,7 @@ export default function InternoPage() {
 
             {role === 'ADMIN' && (
               <MenuButton 
-                href="/servicos"
+                href="/interno/servicos"
                 title="Serviços"
                 icon={LayoutGrid}
                 description="Catálogo de Preços"

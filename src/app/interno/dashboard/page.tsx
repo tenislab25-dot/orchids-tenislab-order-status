@@ -259,7 +259,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             {(role === "ADMIN") && (
-              <Link href="/financeiro">
+              <Link href="/interno/financeiro">
                 <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-11">
                   <DollarSign className="w-4 h-4" />
                   Financeiro
@@ -268,13 +268,13 @@ export default function DashboardPage() {
             )}
             {(role === "ADMIN" || role === "ATENDENTE") && (
               <>
-                <Link href="/clientes">
+                <Link href="/interno/clientes">
                   <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-11">
                     <UserIcon className="w-4 h-4" />
                     Clientes
                   </Button>
                 </Link>
-                <Link href="/os">
+                <Link href="/interno/os">
                   <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-11 px-6 shadow-lg shadow-slate-200">
                     <Plus className="w-4 h-4" />
                     Nova OS
@@ -461,7 +461,7 @@ export default function DashboardPage() {
                             </p>
                               {(role === "ADMIN" || role === "ATENDENTE") && (
                                   <div className="flex gap-3">
-                                      <Link href="/todos">
+                                      <Link href="/interno/todos">
                                         <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
                                           <History className="w-3.5 h-3.5" />
                                           Ver Todas as OS

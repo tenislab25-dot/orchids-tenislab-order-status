@@ -87,7 +87,7 @@ export default function EditOSPage() {
       return;
     }
     if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/dashboard");
+      router.push("/interno/dashboard");
       return;
     }
     setRole(storedRole);
@@ -113,7 +113,7 @@ export default function EditOSPage() {
 
     if (error) {
       toast.error("Erro ao carregar OS");
-      router.push("/dashboard");
+      router.push("/interno/dashboard");
     } else {
       setOrder(data);
       setEntryDate(data.entry_date || "");
