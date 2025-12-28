@@ -327,7 +327,7 @@ export default function OSViewPage() {
       const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
       
       const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta para entrega/retirada.\n\n` +
+        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
         `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
         `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
         `Obrigado pela preferência!`

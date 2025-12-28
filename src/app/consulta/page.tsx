@@ -359,14 +359,25 @@ function OrderContent() {
                 </div>
               )}
 
-              <Button 
-                variant="ghost" 
-                onClick={reset}
-                className="mt-4 text-slate-400 hover:text-slate-900 flex gap-2 items-center"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Nova consulta
-              </Button>
+              <div className="flex flex-col gap-2 w-full mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={reset}
+                  className="h-12 rounded-2xl text-slate-600 font-bold flex gap-2 items-center"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Nova consulta
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  asChild
+                  className="h-12 rounded-2xl text-slate-400 font-bold"
+                >
+                  <Link href="/">
+                    Voltar para Homepage
+                  </Link>
+                </Button>
+              </div>
             </div>
 
             <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>

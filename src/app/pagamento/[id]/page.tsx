@@ -107,9 +107,9 @@ export default function PaymentPage() {
           <h1 className="text-2xl font-black text-slate-900">Pagamento Confirmado!</h1>
           <p className="text-slate-500">Obrigado pela preferência, {order.clients?.name}!</p>
         </div>
-        <Button asChild variant="outline" className="rounded-2xl h-12 px-8">
-          <Link href={`/consulta?os=${order.os_number.replace("/", "")}`}>Ver detalhes da OS</Link>
-        </Button>
+          <Button asChild variant="outline" className="rounded-2xl h-12 px-8">
+            <Link href="/">Voltar para Homepage</Link>
+          </Button>
       </div>
     );
   }
