@@ -227,19 +227,30 @@ export default function OSViewPage() {
       window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
     };
 
-  const handleStatusUpdate = async (newStatus: Status) => {
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ status: newStatus })
-      .eq("os_number", osNumber);
+    const handleStatusUpdate = async (newStatus: Status) => {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ status: newStatus })
+        .eq("os_number", osNumber);
 
-    if (error) {
-      toast.error("Erro ao atualizar status: " + error.message);
-    } else {
-      setOrder(prev => prev ? { ...prev, status: newStatus } : null);
-      toast.success("Status atualizado!");
-    }
-  };
+      if (error) {
+        toast.error("Erro ao atualizar status: " + error.message);
+      } else {
+        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+        toast.success("Status atualizado!");
+      }
+    };
+
+    const handleEntregueClick = () => {
+      if (!order) return;
+      if (order.status === "Entregue") return;
+      
+      if (!order.payment_confirmed && !order.pay_on_entry) {
+        setDeliveryModalOpen(true);
+      } else {
+        handleStatusUpdate("Entregue");
+      }
+    };
 
   const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number} | null>(null);
@@ -893,13 +904,17 @@ export default function OSViewPage() {
     
                     {(role === "ADMIN" || role === "ATENDENTE") && (
                       <>
-                        <Button
-                          onClick={() => handleStatusUpdate("Entregue")}
-                          className="h-12 rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200"
-                        >
-                          <Truck className="w-4 h-4 mr-2" />
-                          Entregue
-                        </Button>
+                          <Button
+                            onClick={handleEntregueClick}
+                            className={`h-12 rounded-xl font-bold transition-all shadow-lg ${
+                              order.status === "Entregue" 
+                              ? "bg-green-600 hover:bg-green-700 text-white shadow-green-100" 
+                              : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-200"
+                            }`}
+                          >
+                            <Truck className="w-4 h-4 mr-2" />
+                            Entregue
+                          </Button>
     
                             <Button
                               onClick={() => setCancelModalOpen(true)}
