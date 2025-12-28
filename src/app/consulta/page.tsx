@@ -270,7 +270,9 @@ function OrderContent() {
                     <div className="flex flex-col gap-2 items-center">
                       <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
                       <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
-                        <span className="text-2xl font-black">{order.os_number.includes("/") ? order.os_number : `${order.os_number}/2025`}</span>
+                        <span className="text-2xl font-black">
+                          {order.os_number.split('/')[0].padStart(3, '0')}/2025
+                        </span>
                       </div>
                     </div>
 
@@ -390,13 +392,13 @@ function OrderContent() {
 export default function StatusPage() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
-      <header className="flex flex-col items-center gap-6 mb-8">
-          <img 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=800" 
-            alt="TENISLAB Logo" 
-            className="h-12 w-auto object-contain"
-          />
-      </header>
+    <header className="flex flex-col items-center gap-6 mb-8">
+        <img 
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
+          alt="TENISLAB Logo" 
+          className="h-32 w-auto object-contain"
+        />
+    </header>
 
       <Suspense fallback={
         <div className="flex justify-center p-12">
