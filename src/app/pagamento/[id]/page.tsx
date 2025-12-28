@@ -194,16 +194,16 @@ export default function PaymentPage() {
             Copiar Chave PIX
           </Button>
           
-          <Button 
-            variant="ghost" 
-            asChild
-            className="h-12 rounded-2xl text-slate-400 font-bold"
-          >
-            <Link href="/consulta">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar aos Detalhes
-            </Link>
-          </Button>
+            <Button 
+              variant="ghost" 
+              asChild
+              className="h-12 rounded-2xl text-slate-400 font-bold"
+            >
+              <Link href="/">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar para Homepage
+              </Link>
+            </Button>
         </section>
       </main>
 

@@ -27,21 +27,21 @@ export default function InternoLayout({
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
         {!isLoginPage && user && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto">
-              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-slate-400" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-slate-900 truncate">{user.email}</span>
-                {role && (
-                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
-                    {getRoleLabel(role)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+              <Link href="/interno" className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto hover:bg-slate-50 p-1 rounded-xl transition-colors">
+                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-slate-900 truncate">{user.email}</span>
+                  {role && (
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
+                      {getRoleLabel(role)}
+                    </span>
+                  )}
+                </div>
+              </Link>
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <Link href="/interno" className="flex-1 sm:flex-initial">
                 <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
                   <LayoutGrid className="w-4 h-4" />

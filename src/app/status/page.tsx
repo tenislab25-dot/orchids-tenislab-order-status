@@ -256,15 +256,24 @@ function OrderContent() {
                 )}
               </div>
 
-            <Button 
-              variant="ghost" 
-              onClick={reset}
-              className="mt-4 text-slate-400 hover:text-slate-900 flex gap-2 items-center"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Nova consulta
-            </Button>
-          </div>
+                <div className="flex flex-col gap-2 w-full">
+                  <Button 
+                    variant="ghost" 
+                    onClick={reset}
+                    className="text-slate-400 hover:text-slate-900 flex gap-2 items-center w-full"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Nova consulta
+                  </Button>
+                  <Button 
+                    variant="link" 
+                    asChild
+                    className="text-slate-300 hover:text-slate-500 text-[10px] font-bold uppercase tracking-widest"
+                  >
+                    <Link href="/">Voltar para Homepage</Link>
+                  </Button>
+                </div>
+              </div>
         </motion.div>
       )}
     </AnimatePresence>

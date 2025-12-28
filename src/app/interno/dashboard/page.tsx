@@ -196,6 +196,12 @@ export default function DashboardPage() {
         )
       );
       toast.success("Status atualizado!");
+
+      if (newStatus === "Pronto para entrega ou retirada") {
+        toast.info("Certifique-se de enviar notificação ao cliente que o pedido esta pronto.", { duration: 6000 });
+      } else if (newStatus === "Entregue") {
+        toast.info("Certifique-se de enviar o link p/pagamento.", { duration: 6000 });
+      }
     }
   };
 
