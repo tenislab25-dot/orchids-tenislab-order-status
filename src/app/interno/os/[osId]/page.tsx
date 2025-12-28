@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { 
   ArrowLeft, 
   LayoutDashboard,
-  Calendar,
-  AlertTriangle,
-  Package,
+    Calendar,
+    AlertTriangle,
+    Package,
+    PackageCheck,
     User,
     Phone,
   CheckCircle2, 
@@ -47,7 +48,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface OrderData {
   id: string;
@@ -530,15 +531,16 @@ export default function OSViewPage() {
     </div>
   );
 
-    const getStatusBadge = (status: Status) => {
-      const styles = {
-        Recebido: "bg-blue-100 text-blue-700",
-        "Em espera": "bg-orange-100 text-orange-700",
-        "Em serviço": "bg-amber-100 text-amber-700",
-        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
-        Entregue: "bg-slate-100 text-slate-700",
-        Cancelado: "bg-red-100 text-red-700",
-      };
+      const getStatusBadge = (status: Status) => {
+        const styles = {
+          Recebido: "bg-blue-100 text-blue-700",
+          "Em espera": "bg-orange-100 text-orange-700",
+          "Em serviço": "bg-amber-100 text-amber-700",
+          "Em finalização": "bg-indigo-100 text-indigo-700",
+          "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+          Entregue: "bg-slate-100 text-slate-700",
+          Cancelado: "bg-red-100 text-red-700",
+        };
     return (
       <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight whitespace-normal h-auto min-h-7`}>
         {status === "Pronto para entrega ou retirada" ? (
@@ -876,17 +878,26 @@ export default function OSViewPage() {
                   
                   <div className="grid grid-cols-2 gap-2">
                   {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                    <>
-                      <Button
-                        onClick={() => handleStatusUpdate("Em serviço")}
-                        variant="outline"
-                        className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                      >
-                        <Clock className="w-4 h-4 mr-2" />
-                        Em Serviço
-                      </Button>
-                      
-                          <Button
+                      <>
+                        <Button
+                          onClick={() => handleStatusUpdate("Em serviço")}
+                          variant="outline"
+                          className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                        >
+                          <Clock className="w-4 h-4 mr-2" />
+                          Em Serviço
+                        </Button>
+
+                        <Button
+                          onClick={() => handleStatusUpdate("Em finalização")}
+                          variant="outline"
+                          className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em finalização" ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                        >
+                          <PackageCheck className="w-4 h-4 mr-2" />
+                          Em Finalização
+                        </Button>
+                        
+                            <Button
                             onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
                             variant="outline"
                             className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}

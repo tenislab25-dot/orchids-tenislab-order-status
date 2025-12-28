@@ -13,7 +13,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface OrderData {
   os_number: string;
@@ -37,13 +37,19 @@ const statusConfig = {
     bg: "bg-orange-50",
     message: "Serviço aceito! Seu tênis está na fila para iniciar a produção.",
   },
-  "Em serviço": {
-    icon: Clock,
-    color: "text-amber-500",
-    bg: "bg-amber-50",
-    message: "Seu tênis está em processo de limpeza/restauração.",
-  },
-  "Pronto para entrega ou retirada": {
+    "Em serviço": {
+      icon: Clock,
+      color: "text-amber-500",
+      bg: "bg-amber-50",
+      message: "Seu tênis está em processo de limpeza/restauração.",
+    },
+    "Em finalização": {
+      icon: Clock,
+      color: "text-indigo-500",
+      bg: "bg-indigo-50",
+      message: "Seu tênis está nas etapas finais de acabamento e controle de qualidade.",
+    },
+    "Pronto para entrega ou retirada": {
     icon: CheckCircle2,
     color: "text-green-500",
     bg: "bg-green-50",

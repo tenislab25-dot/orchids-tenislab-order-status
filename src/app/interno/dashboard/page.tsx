@@ -44,7 +44,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -63,10 +63,11 @@ interface Order {
 const statusWeight: Record<Status, number> = {
   "Em espera": 0,
   "Em serviço": 1,
-  "Recebido": 2,
-  "Pronto para entrega ou retirada": 3,
-  "Entregue": 4,
-  "Cancelado": 5,
+  "Em finalização": 2,
+  "Recebido": 3,
+  "Pronto para entrega ou retirada": 4,
+  "Entregue": 5,
+  "Cancelado": 6,
 };
 
 export default function DashboardPage() {
@@ -225,15 +226,16 @@ export default function DashboardPage() {
       .slice(0, 3);
   }, [orders]);
 
-  const getStatusBadge = (status: Status) => {
-    const styles = {
-      Recebido: "bg-blue-100 text-blue-700",
-      "Em espera": "bg-orange-100 text-orange-700",
-      "Em serviço": "bg-amber-100 text-amber-700",
-      "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
-      Entregue: "bg-slate-100 text-slate-700",
-      Cancelado: "bg-red-100 text-red-700",
-    };
+    const getStatusBadge = (status: Status) => {
+      const styles = {
+        Recebido: "bg-blue-100 text-blue-700",
+        "Em espera": "bg-orange-100 text-orange-700",
+        "Em serviço": "bg-amber-100 text-amber-700",
+        "Em finalização": "bg-indigo-100 text-indigo-700",
+        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+        Entregue: "bg-slate-100 text-slate-700",
+        Cancelado: "bg-red-100 text-red-700",
+      };
     return (
       <Badge className={`${styles[status]} border-none px-3 py-1`}>
         {status}
@@ -424,9 +426,10 @@ export default function DashboardPage() {
                                     <SelectContent className="rounded-xl border-slate-100 shadow-xl">
                                       {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
                                         <>
-                                          <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                          <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                            <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                            <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
                                             <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                            <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
                                             <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto para entrega ou retirada</SelectItem>
                                           </>
                                       )}

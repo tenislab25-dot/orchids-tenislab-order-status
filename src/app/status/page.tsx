@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
   number: string;
@@ -31,13 +31,19 @@ const statusConfig = {
     bg: "bg-blue-50",
     message: "Seu tênis foi recebido e já está na fila de serviço.",
   },
-  "Em serviço": {
-    icon: Clock,
-    color: "text-amber-500",
-    bg: "bg-amber-50",
-    message: "Seu tênis está em processo de limpeza/restauração.",
-  },
-  Pronto: {
+    "Em serviço": {
+      icon: Clock,
+      color: "text-amber-500",
+      bg: "bg-amber-50",
+      message: "Seu tênis está em processo de limpeza/restauração.",
+    },
+    "Em finalização": {
+      icon: Clock,
+      color: "text-indigo-500",
+      bg: "bg-indigo-50",
+      message: "Seu tênis está nas etapas finais de acabamento e controle de qualidade.",
+    },
+    Pronto: {
     icon: CheckCircle2,
     color: "text-green-500",
     bg: "bg-green-50",
