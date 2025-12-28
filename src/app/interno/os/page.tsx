@@ -716,16 +716,16 @@ export default function OSPage() {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-50">
-                <Label className="text-xs">Taxa de Entrega (R$)</Label>
-                <Input 
-                  type="number" 
-                  step="0.01"
-                  placeholder="0.00"
-                  value={deliveryFee || ""}
-                  onChange={(e) => setDeliveryFee(Number(e.target.value))}
-                  className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold"
-                />
+                <div className="space-y-2 pt-2 border-t border-slate-50">
+                  <Label className="text-xs font-bold text-slate-500">Taxa de Entrega (R$)</Label>
+                  <Input 
+                    type="number" 
+                    step="0.01"
+                    placeholder="0.00"
+                    value={deliveryFee || ""}
+                    onChange={(e) => setDeliveryFee(Number(e.target.value))}
+                    className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold"
+                  />
                   <p className="text-[9px] text-slate-400 font-medium px-1">
                     A taxa de entrega NÃO sofre desconto e é adicionada ao total.
                   </p>

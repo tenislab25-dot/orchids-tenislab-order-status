@@ -28,15 +28,34 @@ export function useAuth(): AuthContextValue {
   }, [router]);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
+          if (isMounted) {
+            setUser(null);
+            setRole(null);
+            setLoading(false);
+          }
           if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
             router.push("/login");
           }
+          return;
+        }
+
+        // Try to get role from state or localStorage first
+        const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
+        
+        if (cachedRole && user?.id === session.user.id) {
           setLoading(false);
+          // Still verify permissions for the current path
+          const internalPath = pathname?.replace("/interno", "/app") || "/app";
+          if (pathname?.startsWith("/interno") && !canAccessPage(cachedRole, internalPath)) {
+            router.push("/interno");
+          }
           return;
         }
 
@@ -46,7 +65,7 @@ export function useAuth(): AuthContextValue {
           .eq("id", session.user.id)
           .single();
 
-        if (profile) {
+        if (profile && isMounted) {
           const userRole = profile.role as UserRole;
           setUser({ id: session.user.id, email: session.user.email || "" });
           setRole(userRole);
@@ -56,13 +75,13 @@ export function useAuth(): AuthContextValue {
           if (pathname?.startsWith("/interno") && !canAccessPage(userRole, internalPath)) {
             router.push("/interno");
           }
-        } else {
+        } else if (!profile) {
           router.push("/login");
         }
       } catch {
         router.push("/login");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -70,9 +89,11 @@ export function useAuth(): AuthContextValue {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT") {
-        setUser(null);
-        setRole(null);
-        localStorage.removeItem("tenislab_role");
+        if (isMounted) {
+          setUser(null);
+          setRole(null);
+          localStorage.removeItem("tenislab_role");
+        }
         router.push("/login");
       } else if (event === "SIGNED_IN" && session) {
         const { data: profile } = await supabase
@@ -81,7 +102,7 @@ export function useAuth(): AuthContextValue {
           .eq("id", session.user.id)
           .single();
 
-        if (profile) {
+        if (profile && isMounted) {
           setUser({ id: session.user.id, email: session.user.email || "" });
           setRole(profile.role as UserRole);
           localStorage.setItem("tenislab_role", profile.role);
@@ -89,8 +110,11 @@ export function useAuth(): AuthContextValue {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [pathname, router]);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [pathname, router, user?.id]);
 
   return { user, role, loading, signOut };
 }

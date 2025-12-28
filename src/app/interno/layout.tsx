@@ -25,48 +25,54 @@ export default function InternoLayout({
   }
 
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
+      <div className="min-h-screen bg-slate-50/50">
         {!isLoginPage && user && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-            <div className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto">
-              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-slate-400" />
+          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4 text-blue-500" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-slate-900 truncate max-w-[120px] sm:max-w-[200px]">{user.email}</span>
+                  {role && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-500/80 leading-none">
+                      {getRoleLabel(role)}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-slate-900 truncate">{user.email}</span>
-                {role && (
-                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
-                    {getRoleLabel(role)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <Link href="/interno" className="flex-1 sm:flex-initial">
-                <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
-                  <LayoutGrid className="w-4 h-4" />
-                  <span className="hidden xs:inline">Menu</span>
+
+              <nav className="flex items-center gap-1 sm:gap-2">
+                <Link href="/interno/dashboard">
+                  <Button variant="ghost" size="sm" className={`h-9 px-2 sm:px-3 rounded-xl gap-2 ${pathname === "/interno/dashboard" ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:text-slate-900"}`}>
+                    <LayoutGrid className="w-4 h-4" />
+                    <span className="hidden sm:inline font-bold">Início</span>
+                  </Button>
+                </Link>
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="h-9 px-2 sm:px-3 rounded-xl gap-2 text-slate-500 hover:text-slate-900">
+                    <Home className="w-4 h-4" />
+                    <span className="hidden sm:inline font-bold">Site</span>
+                  </Button>
+                </Link>
+                <div className="w-px h-4 bg-slate-200 mx-1 hidden sm:block" />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={signOut}
+                  className="h-9 px-2 sm:px-3 rounded-xl gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 font-bold"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sair</span>
                 </Button>
-              </Link>
-              <Link href="/" className="flex-1 sm:flex-initial">
-                <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
-                  <Home className="w-4 h-4" />
-                  <span className="hidden xs:inline">Site</span>
-                </Button>
-              </Link>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={signOut}
-                className="flex-1 sm:flex-initial rounded-xl gap-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-              >
-                <LogOut className="w-4 h-4" />
-                Sair
-              </Button>
+              </nav>
             </div>
-          </div>
+          </header>
         )}
-        {children}
+        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 animate-in fade-in duration-500">
+          {children}
+        </main>
       </div>
     );
 
