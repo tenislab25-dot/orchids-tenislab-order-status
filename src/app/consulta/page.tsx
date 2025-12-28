@@ -175,6 +175,32 @@ function OrderContent() {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Auto-refresh logic
+  useEffect(() => {
+    if (!order) return;
+
+    const interval = setInterval(async () => {
+      const { data, error: sbError } = await supabase
+        .from("service_orders")
+        .select(`
+          os_number,
+          status,
+          items,
+          clients (
+            phone
+          )
+        `)
+        .eq("os_number", order.os_number)
+        .single();
+
+      if (!sbError && data) {
+        setOrder(data as any);
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [order?.os_number]);
+
   const handleSearch = async (os: string, phone: string) => {
     setLoading(true);
     setError(null);
@@ -240,11 +266,13 @@ function OrderContent() {
             exit={{ opacity: 0, y: -10 }}
             className="flex flex-col gap-6"
           >
-                <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Nº do Pedido</span>
-                    <span className="text-3xl font-black text-slate-900">{order.os_number}</span>
-                  </div>
+                  <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
+                    <div className="flex flex-col gap-2 items-center">
+                      <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
+                      <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
+                        <span className="text-2xl font-black">{order.os_number.includes("/") ? order.os_number : `${order.os_number}/2025`}</span>
+                      </div>
+                    </div>
 
               <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
                 {(() => {

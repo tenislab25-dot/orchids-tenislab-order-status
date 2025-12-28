@@ -202,30 +202,30 @@ export default function OSViewPage() {
           const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
           const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
           
-          const message = encodeURIComponent(
-            `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab. 👟✨\n\n` +
-            `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
-            `Qualquer dúvida, estamos à disposição!`
-          );
+            const message = encodeURIComponent(
+              `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab.\n\n` +
+              `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+              `Qualquer dúvida, estamos à disposição!`
+            );
           
           window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
         }
       }
     };
 
-  const handleSendReadyNotification = () => {
-    if (!order) return;
-    const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-    const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-    
-    const message = encodeURIComponent(
-      `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab. 👟✨\n\n` +
-      `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
-      `Qualquer dúvida, estamos à disposição!`
-    );
-    
-    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-  };
+    const handleSendReadyNotification = () => {
+      if (!order) return;
+      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab.\n\n` +
+        `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+        `Qualquer dúvida, estamos à disposição!`
+      );
+      
+      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+    };
 
   const handleStatusUpdate = async (newStatus: Status) => {
     const { error } = await supabase
@@ -264,12 +264,12 @@ export default function OSViewPage() {
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
       
-      const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
-        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-        `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-        `Obrigado pela preferência! 🏆`
-      );
+        const message = encodeURIComponent(
+          `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
+          `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+          `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+          `Obrigado pela preferência!`
+        );
       
       const waUrl = `https://wa.me/${whatsappPhone}?text=${message}`;
       
@@ -277,22 +277,22 @@ export default function OSViewPage() {
     }
   };
 
-  const handleSharePaymentLink = () => {
-    if (!order) return;
-    
-    const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-    const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-    const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
-    
-    const message = encodeURIComponent(
-      `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta para entrega/retirada.\n\n` +
-      `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-      `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-      `Obrigado pela preferência! 🏆`
-    );
-    
-    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-  };
+    const handleSharePaymentLink = () => {
+      if (!order) return;
+      
+      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
+      
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta para entrega/retirada.\n\n` +
+        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+        `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+        `Obrigado pela preferência!`
+      );
+      
+      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+    };
 
   const handleDeletePhoto = async () => {
     if (!order || !photoToDelete) return;
