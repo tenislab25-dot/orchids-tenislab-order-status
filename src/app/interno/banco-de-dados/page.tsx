@@ -53,7 +53,7 @@ export default function BancoDadosPage() {
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
         if (!storedRole) {
-          router.push("/login");
+          router.push("/interno/login");
           return;
         }
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
@@ -156,7 +156,7 @@ export default function BancoDadosPage() {
                       </TableCell>
                       <TableCell className="font-black text-slate-400 text-sm">R$ {order.total?.toFixed(2)}</TableCell>
                       <TableCell className="pr-8">
-                        <Link href={`/os/${order.os_number.replace("/", "-")}`}>
+                        <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
                           <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">
                             <Eye className="w-4 h-4 text-slate-400" />
                           </Button>

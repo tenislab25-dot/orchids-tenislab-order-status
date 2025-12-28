@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { 
   Search, 
@@ -52,6 +53,7 @@ export default function Home() {
     useEffect(() => {
       async function fetchCount() {
         try {
+          // Fetch only necessary data
           const { data, error } = await supabase
             .from("service_orders")
             .select("items")
@@ -60,7 +62,6 @@ export default function Home() {
           if (error) throw error;
           
             const totalSneakers = data?.reduce((acc, order: any) => {
-              // Cada item no array 'items' representa um par de tênis
               const itemCount = Array.isArray(order.items) ? order.items.length : 0;
               return acc + itemCount;
             }, 0) || 0;
@@ -78,11 +79,16 @@ export default function Home() {
     <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* SECTION 1 — BRAND / HEADER */}
             <header className="flex flex-col items-center gap-1 mb-8">
-            <img 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-              alt="TENISLAB Logo" 
-              className="h-48 w-auto object-contain"
-            />
+            <div className="relative w-64 h-48">
+              <Image 
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=500&height=500&resize=contain" 
+                alt="TENISLAB Logo" 
+                fill
+                priority
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 400px"
+              />
+            </div>
 
           {processedCount !== null && (
             <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">
@@ -137,7 +143,7 @@ export default function Home() {
       {/* SECTION 7 — FOOTER */}
       <footer className="mt-auto pt-16 pb-8 text-center flex flex-col gap-4">
         <Link 
-          href="/login"
+          href="/interno/login"
           className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors mb-2"
         >
           Acesso Restrito

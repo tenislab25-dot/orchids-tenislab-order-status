@@ -55,7 +55,7 @@ export default function TodosPedidosPage() {
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
         if (!storedRole) {
-          router.push("/login");
+          router.push("/interno/login");
           return;
         }
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {

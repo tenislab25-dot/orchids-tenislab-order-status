@@ -234,267 +234,274 @@ export default function CustomerAcceptancePage() {
     );
   }
 
-    return (
-      <div className="min-h-screen bg-slate-50 pb-20">
-        <header className="bg-white border-b border-slate-100 px-6 py-10 flex flex-col items-center gap-6 shadow-sm sticky top-0 z-30">
-            <img 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
-              alt="TENISLAB Logo" 
-              className="h-24 w-auto object-contain"
-            />
-          <div className="flex flex-col items-center gap-1">
-            <h1 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">Confirmação de Pedido</h1>
-            <p className="text-slate-400 text-[10px] font-bold text-center leading-tight uppercase tracking-widest">
-              Laboratório de Restauração de Tênis
-            </p>
+  return (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
+            alt="TENISLAB Logo" 
+            className="h-28 w-auto object-contain"
+          />
+        <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">
+          Confira os detalhes do seu serviço antes de confirmar
+        </p>
+      </header>
+
+      <main className="max-w-md mx-auto p-4 flex flex-col gap-6 mt-2">
+        <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Número da OS</span>
+              <span className="text-2xl font-black text-slate-900">{order.os_number}</span>
+            </div>
+            <Badge variant="outline" className="border-blue-100 text-blue-600 bg-blue-50 font-bold px-3 py-1">
+              Aguardando Aceite
+            </Badge>
           </div>
-        </header>
-  
-        <main className="max-w-md mx-auto p-4 flex flex-col gap-6 mt-4">
-          <section className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ordem de Serviço</span>
-                <span className="text-3xl font-black text-slate-900 tracking-tighter">{order.os_number}</span>
+
+          <div className="grid grid-cols-1 gap-4 pt-2 border-t border-slate-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Cliente</span>
+                  <span className="text-sm font-bold text-slate-800">{order.clients?.name}</span>
+                </div>
               </div>
-              <div className="bg-blue-50 text-blue-600 font-black text-[10px] px-4 py-2 rounded-full uppercase tracking-widest border border-blue-100">
-                Aguardando Aceite
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">WhatsApp</span>
+                  <span className="text-sm font-bold text-slate-800">{order.clients?.phone}</span>
+                </div>
               </div>
             </div>
-  
-            <div className="grid grid-cols-1 gap-6 pt-6 border-t border-slate-50">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                    <User className="w-6 h-6 text-slate-400" />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrada</span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {new Date(order.entry_date).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-slate-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Cliente</span>
-                    <span className="text-base font-bold text-slate-900 leading-none">{order.clients?.name}</span>
-                  </div>
-                </div>
-  
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                      <Package className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Entrada</span>
-                      <span className="text-xs font-bold text-slate-800">
-                        {new Date(order.entry_date).toLocaleDateString('pt-BR')}
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrega Prevista</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'Será calculada após o aceite'}
+                    </span>
+                    {!order.delivery_date && (
+                      <span className="text-[10px] text-blue-500 font-medium mt-0.5">
+                        (+5 dias úteis a partir do aceite)
                       </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                      <Calendar className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Previsão</span>
-                      <span className="text-xs font-bold text-slate-800">
-                        {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : '5 dias úteis'}
-                      </span>
-                    </div>
+                    )}
                   </div>
                 </div>
             </div>
-          </section>
-  
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between px-2">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Itens da sua OS</h2>
-              <span className="text-[10px] font-bold text-slate-400">{order.items.length} {order.items.length === 1 ? 'Par' : 'Pares'}</span>
+          </div>
+        </section>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+              <Package className="w-4 h-4 text-amber-600" />
             </div>
-  
-            {order.items.map((item: any) => (
-              <Card key={item.itemNumber} className="rounded-[2rem] border-none shadow-sm overflow-hidden">
-                <CardHeader className="bg-slate-50/50 py-4 px-6 border-b border-slate-100 flex flex-row items-center justify-between">
-                  <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    ITEM {item.itemNumber}
-                  </CardTitle>
-                  <div className="bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-sm shadow-blue-100">
-                    R$ {item.services.reduce((acc: number, s: any) => acc + Number(s.price || 0), 0).toFixed(2)}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  {item.photos && item.photos.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3">
-                      {item.photos.map((photo: string, pIdx: number) => (
-                        <div 
-                          key={pIdx} 
-                          className="relative aspect-video rounded-2xl overflow-hidden border border-slate-100 shadow-sm cursor-pointer active:scale-[0.98] transition-all"
-                          onClick={() => setSelectedImage(photo)}
-                        >
-                          <img src={photo} alt={`Foto do item ${item.itemNumber}`} className="object-cover w-full h-full" />
-                          <div className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center border border-slate-100 shadow-sm">
-                            <ZoomIn className="w-4 h-4 text-slate-400" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div className="space-y-3">
-                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Serviços Contratados</Label>
-                    <div className="flex flex-col gap-2">
-                      {item.services.map((s: any) => (
-                        <div key={s.id || s.name} className="flex flex-col bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                              <span className="text-sm font-bold text-slate-800 leading-tight">{s.name}</span>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Seus Itens</h2>
+          </div>
+
+          {order.items.map((item: any) => (
+            <Card key={item.itemNumber} className="rounded-3xl border-slate-200 shadow-sm overflow-hidden border-none">
+              <CardHeader className="bg-slate-50/50 py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between">
+                <CardTitle className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                  ITEM {item.itemNumber}
+                </CardTitle>
+              </CardHeader>
+<CardContent className="p-6 space-y-6">
+                      {item.photos && item.photos.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 pb-2">
+                          {item.photos.map((photo: string, pIdx: number) => (
+                            <div 
+                              key={pIdx} 
+                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
+                              onClick={() => setSelectedImage(photo)}
+                            >
+                              <img src={photo} alt={`Foto do item ${item.itemNumber}`} className="object-cover w-full h-full" />
+                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+                                  <ZoomIn className="w-5 h-5 text-slate-700" />
+                                </div>
+                              </div>
                             </div>
-                            <span className="text-sm font-black text-slate-900 whitespace-nowrap">R$ {Number(s.price || 0).toFixed(2)}</span>
+                          ))}
+                        </div>
+                      )}
+                    <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between ml-1">
+                        <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Contratados</Label>
+                        <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase">
+                          Total do Tênis: R$ {item.services.reduce((acc: number, s: any) => acc + Number(s.price || 0), 0).toFixed(2)}
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {item.services.map((s: any) => (
+
+                        <div key={s.id || s.name} className="flex flex-col bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-black text-slate-900">{s.name}</span>
+                            <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
                           </div>
                           {s.description && (
-                            <p className="text-[11px] text-slate-500 mt-1.5 ml-3.5 leading-relaxed">{s.description}</p>
+                            <p className="text-[11px] text-slate-500 mt-1 leading-tight">{s.description}</p>
                           )}
                         </div>
                       ))}
                     </div>
                   </div>
-  
+
                   {item.notes && (
                     <div className="space-y-2">
-                      <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Observações Técnicas</Label>
-                      <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50 italic text-xs text-slate-600 leading-relaxed">
+                      <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Observações</Label>
+                      <p className="text-xs text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100 italic leading-relaxed">
                         "{item.notes}"
-                      </div>
+                      </p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <section className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl text-white flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-black uppercase tracking-widest text-white/50">Resumo de Valores</h2>
+            <FileText className="w-4 h-4 text-blue-400" />
           </div>
-  
-          <section className="bg-slate-900 rounded-[2.5rem] p-8 shadow-xl text-white flex flex-col gap-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo Financeiro</h2>
-              <FileText className="w-5 h-5 text-blue-400/50" />
+
+          <div className="space-y-3 pb-6 border-b border-white/10">
+            <div className="flex justify-between text-xs font-bold text-white/60">
+              <span>Subtotal</span>
+              <span>R$ {(Number(order.total) + Number(order.discount_percent || 0) - Number(order.delivery_fee || 0)).toFixed(2)}</span>
             </div>
-  
-            <div className="space-y-4">
-              <div className="flex justify-between items-center text-xs font-bold text-white/60 uppercase tracking-widest">
-                <span>Subtotal dos Itens</span>
-                <span className="text-white">R$ {(Number(order.total) + Number(order.discount_percent || 0) - Number(order.delivery_fee || 0)).toFixed(2)}</span>
+            {order.delivery_fee > 0 && (
+              <div className="flex justify-between text-xs font-bold text-white/60">
+                <span>Taxa de Entrega</span>
+                <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
               </div>
-              
-              {order.delivery_fee > 0 && (
-                <div className="flex justify-between items-center text-xs font-bold text-white/60 uppercase tracking-widest">
-                  <span>Taxa de Entrega</span>
-                  <span className="text-green-400">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
-                </div>
-              )}
-              
-              {order.discount_percent > 0 && (
-                <div className="flex justify-between items-center text-xs font-bold text-white/60 uppercase tracking-widest">
-                  <span>Desconto Aplicado</span>
-                  <span className="text-red-400">- R$ {Number(order.discount_percent).toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-  
-            <div className="h-px bg-white/10" />
-  
-            <div className="flex flex-col gap-1 items-end">
-              <span className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Valor Total do Pedido</span>
-              <span className="text-5xl font-black tracking-tighter text-blue-400">
-                R$ {Number(order.total).toFixed(2)}
-              </span>
-            </div>
-          </section>
-  
-          <section className="flex flex-col gap-4 pt-4">
-            <div className="flex items-center gap-2 px-1">
-              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-blue-600" />
+            )}
+            {order.discount_percent > 0 && (
+              <div className="flex justify-between text-xs font-bold text-green-400">
+                <span>Desconto</span>
+                <span>- R$ {Number(order.discount_percent).toFixed(2)}</span>
               </div>
-              <h2 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Termos de Serviço & Garantia</h2>
-            </div>
-            
-            <div className="bg-white border border-slate-200 rounded-[2rem] p-6 h-56 overflow-y-auto shadow-inner">
-              <pre className="text-[10px] text-slate-500 whitespace-pre-wrap font-sans leading-relaxed text-justify">
-                {TERMS_TEXT}
-              </pre>
-            </div>
-  
-            <div 
-              className={`p-6 rounded-[2rem] border-2 transition-all cursor-pointer flex items-start gap-4 ${
-                accepted 
-                ? "bg-blue-50 border-blue-200 shadow-sm" 
-                : "bg-white border-slate-100 hover:border-slate-200"
-              }`}
-              onClick={() => setAccepted(!accepted)}
-            >
-              <Checkbox 
-                id="terms" 
-                checked={accepted}
-                onCheckedChange={(checked) => setAccepted(checked as boolean)}
-                className="h-6 w-6 rounded-lg border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 shrink-0 mt-0.5"
-              />
-              <label htmlFor="terms" className="text-xs font-bold text-slate-700 leading-snug cursor-pointer select-none">
-                Confirmo que revisei todos os itens e concordo com os termos de serviço e garantia da tenislab.
-              </label>
-            </div>
-          </section>
-  
-          <div className="flex flex-col gap-4 mt-6 mb-12">
-            <Button 
-              disabled={!accepted || confirming}
-              onClick={handleConfirm}
-              className="h-20 rounded-[2.5rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-xl shadow-2xl shadow-slate-200 transition-all active:scale-[0.96] disabled:opacity-50 disabled:grayscale"
-            >
-              {confirming ? (
-                <Loader2 className="w-8 h-8 animate-spin" />
-              ) : (
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-7 h-7" />
-                  CONFIRMAR PEDIDO
-                </div>
-              )}
-            </Button>
-  
-            <Button 
-              variant="ghost"
-              onClick={handleTrackOrder}
-              className="h-14 rounded-2xl text-slate-500 font-bold flex gap-2 items-center hover:bg-slate-100 transition-all"
-            >
-              <Search className="w-5 h-5" />
-              Apenas acompanhar status
-            </Button>
+            )}
           </div>
-  
-          {/* Lightbox e outros modais mantidos conforme original */}
-          <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-            <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
-              {selectedImage && (
-                <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
-                  <div className="absolute top-4 right-4 z-50">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
-                      onClick={() => setSelectedImage(null)}
-                    >
-                      <X className="w-6 h-6" />
-                    </Button>
-                  </div>
-                  <img 
-                    src={selectedImage} 
-                    alt="Visualização ampliada" 
-                    className="max-w-full max-h-[90vh] object-contain rounded-[2.5rem] shadow-2xl"
-                  />
+
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs text-white/40 font-black uppercase tracking-widest">Total Final</span>
+            <span className="text-4xl font-black tracking-tighter text-white">
+              R$ {Number(order.total).toFixed(2)}
+            </span>
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-4 pt-2">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
+            </div>
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Termos & Garantia</h2>
+          </div>
+          
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 h-48 overflow-y-auto">
+            <pre className="text-[11px] text-slate-500 whitespace-pre-wrap font-sans leading-relaxed">
+              {TERMS_TEXT}
+            </pre>
+          </div>
+
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-start gap-4 shadow-sm active:bg-slate-50 transition-colors cursor-pointer" onClick={() => setAccepted(!accepted)}>
+            <Checkbox 
+              id="terms" 
+              checked={accepted}
+              onCheckedChange={(checked) => setAccepted(checked as boolean)}
+              className="h-6 w-6 rounded-lg border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 shrink-0 mt-0.5"
+            />
+            <label htmlFor="terms" className="text-xs font-bold text-slate-700 leading-snug cursor-pointer select-none">
+              Li e concordo com os termos de serviço e garantia da tenislab.
+            </label>
+          </div>
+        </section>
+
+        <div className="flex flex-col gap-3 mt-4 mb-10">
+          <Button 
+            disabled={!accepted || confirming}
+            onClick={handleConfirm}
+            className="h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg shadow-2xl transition-all active:scale-[0.97] disabled:opacity-50 disabled:grayscale"
+          >
+            {confirming ? (
+              <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6" />
+                CONFIRMAR E ACEITAR SERVIÇO
+              </div>
+            )}
+          </Button>
+
+          <Button 
+            variant="outline"
+            onClick={handleTrackOrder}
+            className="h-14 rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
+            <Search className="w-5 h-5" />
+            Ver status do pedido
+          </Button>
+        </div>
+
+        <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+          <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+            {selectedImage && (
+              <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
+                <div className="absolute top-4 right-4 z-50">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    <X className="w-6 h-6" />
+                  </Button>
                 </div>
-              )}
-            </DialogContent>
-          </Dialog>
-        </main>
-  
-        <footer className="py-12 text-center flex flex-col gap-4">
-          <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-black">
-            tenislab. o laboratório do seu tênis
-          </p>
-        </footer>
-      </div>
-    );
+                <img 
+                  src={selectedImage} 
+                  alt="Visualização ampliada" 
+                  className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </main>
+
+      <footer className="py-12 text-center bg-white flex flex-col gap-4">
+        <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
+          tenislab. o laboratório do seu tênis
+        </p>
+      </footer>
+    </div>
+  );
 }

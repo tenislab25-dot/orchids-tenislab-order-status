@@ -19,21 +19,21 @@ export const metadata: Metadata = {
       siteName: "TENISLAB",
       locale: "pt_BR",
       type: "website",
-      images: [
-        {
-          url: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain",
-          width: 1200,
-          height: 1200,
-          alt: "TENISLAB",
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "TENISLAB | O Laboratório do seu Tênis",
-      description: "Higienização, restauração e cuidado especializado para seus tênis.",
-      images: ["https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain"],
-    },
+    images: [
+      {
+        url: "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=1200&height=1200&resize=contain",
+        width: 1200,
+        height: 1200,
+        alt: "TENISLAB",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TENISLAB | O Laboratório do seu Tênis",
+    description: "Higienização, restauração e cuidado especializado para seus tênis.",
+    images: ["https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=1200&height=1200&resize=contain"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -48,14 +48,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-    return (
-      <html lang="pt-BR" suppressHydrationWarning>
-          <body
-            className={`${plusJakartaSans.variable} font-sans antialiased bg-white`}
-          >
-            {children}
-            <Toaster />
-          </body>
+  return (
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body
+        className={`${plusJakartaSans.variable} font-sans antialiased bg-white`}
+      >
+        <main className="min-h-screen">
+          {children}
+        </main>
+        <Toaster />
+      </body>
     </html>
   );
 }
