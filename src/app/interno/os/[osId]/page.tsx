@@ -47,6 +47,8 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { canChangeToStatus, getAllowedStatuses, type UserRole } from "@/lib/auth";
 
 type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
@@ -77,7 +79,7 @@ export default function OSViewPage() {
   const osIdRaw = params.osId as string;
   const osNumber = osIdRaw.replace("-", "/");
   
-  const [role, setRole] = useState<string | null>(null);
+  const { role, loading: authLoading } = useAuth();
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -110,15 +112,10 @@ export default function OSViewPage() {
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
       useEffect(() => {
-
-      const storedRole = localStorage.getItem("tenislab_role");
-      if (!storedRole) {
-        router.push("/interno/login");
-        return;
+      if (!authLoading && role) {
+        fetchOrder();
       }
-      setRole(storedRole);
-      fetchOrder();
-    }, [osNumber]);
+    }, [osNumber, authLoading, role]);
 
   const fetchOrder = async () => {
     setLoading(true);
@@ -229,17 +226,35 @@ export default function OSViewPage() {
     };
 
     const handleStatusUpdate = async (newStatus: Status) => {
-      const { error } = await supabase
-        .from("service_orders")
-        .update({ status: newStatus })
-        .eq("os_number", osNumber);
-
-      if (error) {
-        toast.error("Erro ao atualizar status: " + error.message);
-      } else {
-        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
-        toast.success("Status atualizado!");
+      if (!role || !canChangeToStatus(role as UserRole, newStatus)) {
+        toast.error("Você não tem permissão para alterar para este status");
+        return;
       }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Sessão expirada. Faça login novamente.");
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch("/api/orders/update-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ orderId: order?.id, status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || "Erro ao atualizar status");
+        return;
+      }
+
+      setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+      toast.success("Status atualizado!");
     };
 
     const handleEntregueClick = () => {
@@ -872,72 +887,74 @@ export default function OSViewPage() {
           )}
   
             {/* ACTIONS */}
-            <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
-                <div className="flex flex-col gap-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                  {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                      <>
-                        <Button
-                          onClick={() => handleStatusUpdate("Em serviço")}
-                          variant="outline"
-                          className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                        >
-                          <Clock className="w-4 h-4 mr-2" />
-                          Em Serviço
-                        </Button>
-
-                        <Button
-                          onClick={() => handleStatusUpdate("Em finalização")}
-                          variant="outline"
-                          className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em finalização" ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                        >
-                          <PackageCheck className="w-4 h-4 mr-2" />
-                          Em Finalização
-                        </Button>
-                        
-                            <Button
-                            onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
-                            variant="outline"
-                            className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                          >
-                            <div className="flex flex-col items-center">
-                              <div className="flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>Pronto para</span>
-                              </div>
-                              <span>entrega/retirada</span>
-                            </div>
-                          </Button>
-                    </>
-                  )}
-    
-                    {(role === "ADMIN" || role === "ATENDENTE") && (
-                      <>
+              <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                    {role && canChangeToStatus(role as UserRole, "Em serviço") && (
                           <Button
-                            onClick={handleEntregueClick}
-                            className={`h-12 rounded-xl font-bold transition-all shadow-lg ${
-                              order.status === "Entregue" 
-                              ? "bg-green-600 hover:bg-green-700 text-white shadow-green-100" 
-                              : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-200"
-                            }`}
+                            onClick={() => handleStatusUpdate("Em serviço")}
+                            variant="outline"
+                            className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                           >
-                            <Truck className="w-4 h-4 mr-2" />
-                            Entregue
+                            <Clock className="w-4 h-4 mr-2" />
+                            Em Serviço
                           </Button>
-    
-                            <Button
-                              onClick={() => setCancelModalOpen(true)}
+                    )}
+
+                    {role && canChangeToStatus(role as UserRole, "Em finalização") && (
+                          <Button
+                            onClick={() => handleStatusUpdate("Em finalização")}
+                            variant="outline"
+                            className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em finalização" ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                          >
+                            <PackageCheck className="w-4 h-4 mr-2" />
+                            Em Finalização
+                          </Button>
+                    )}
+                          
+                    {role && canChangeToStatus(role as UserRole, "Pronto para entrega ou retirada") && (
+                              <Button
+                              onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
                               variant="outline"
-                              className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
+                              className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                             >
-                              Cancelar OS
+                              <div className="flex flex-col items-center">
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Pronto para</span>
+                                </div>
+                                <span>entrega/retirada</span>
+                              </div>
                             </Button>
-                            </>
-                          )}
+                    )}
+      
+                      {role && canChangeToStatus(role as UserRole, "Entregue") && (
+                            <Button
+                              onClick={handleEntregueClick}
+                              className={`h-12 rounded-xl font-bold transition-all shadow-lg ${
+                                order.status === "Entregue" 
+                                ? "bg-green-600 hover:bg-green-700 text-white shadow-green-100" 
+                                : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-200"
+                              }`}
+                            >
+                              <Truck className="w-4 h-4 mr-2" />
+                              Entregue
+                            </Button>
+                      )}
+
+                      {role && canChangeToStatus(role as UserRole, "Cancelado") && (
+                              <Button
+                                onClick={() => setCancelModalOpen(true)}
+                                variant="outline"
+                                className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
+                              >
+                                Cancelar OS
+                              </Button>
+                      )}
+                        </div>
                       </div>
-                    </div>
     
                       {(role === "ADMIN" || role === "ATENDENTE") && (
                         <div className="flex flex-col gap-2 mt-4">

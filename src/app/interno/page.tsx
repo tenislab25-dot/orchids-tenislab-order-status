@@ -1,20 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
-  PlusCircle, 
   Users, 
   Wallet, 
   Database,
-  LogOut,
   ChevronRight,
   ClipboardList,
-  LayoutGrid
+  LayoutGrid,
+  Loader2
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import { getRoleLabel, type UserRole } from "@/lib/auth";
 
 interface MenuButtonProps {
   href: string;
@@ -44,23 +42,15 @@ function MenuButton({ href, title, icon: Icon, description }: MenuButtonProps) {
 }
 
 export default function InternoPage() {
-  const [role, setRole] = useState<string | null>(null);
-  const router = useRouter();
+  const { role, loading } = useAuth();
 
-  useEffect(() => {
-    const savedRole = localStorage.getItem("tenislab_role");
-    if (!savedRole) {
-      router.push("/interno/login");
-      return;
-    }
-    setRole(savedRole);
-  }, [router]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem("tenislab_role");
-    router.push("/interno/login");
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   if (!role) return null;
 
@@ -77,8 +67,8 @@ export default function InternoPage() {
           <div className="text-center">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
-              Bem-vindo, {role === 'ADMIN' ? 'Administrador' : role === 'ATENDENTE' ? 'Atendente' : 'Operacional'}
-            </p>
+                Bem-vindo, {getRoleLabel(role as UserRole)}
+              </p>
           </div>
         </header>
 
@@ -131,21 +121,12 @@ export default function InternoPage() {
 
         </main>
 
-        {/* FOOTER / LOGOUT */}
-        <footer className="mt-4 flex flex-col gap-8">
-          <Button 
-            variant="ghost" 
-            onClick={handleLogout}
-            className="w-full h-14 rounded-2xl text-slate-400 font-bold hover:text-red-500 hover:bg-red-50 transition-all"
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Sair do Sistema
-          </Button>
-          
-          <p className="text-slate-300 text-[10px] uppercase tracking-[0.4em] font-black text-center">
-            TENISLAB v2.0
-          </p>
-        </footer>
+          {/* FOOTER / LOGOUT */}
+          <footer className="mt-4 flex flex-col gap-8">
+            <p className="text-slate-300 text-[10px] uppercase tracking-[0.4em] font-black text-center">
+              TENISLAB v2.0
+            </p>
+          </footer>
       </div>
     </div>
   );
