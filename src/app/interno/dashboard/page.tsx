@@ -294,7 +294,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recentConfirmations.map((order) => (
-              <Card key={order.id} className="border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white hover:ring-2 ring-amber-400/30 transition-all cursor-pointer group" onClick={() => router.push(`/os/${order.os_number.replace("/", "-")}`)}>
+              <Card key={order.id} className="border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white hover:ring-2 ring-amber-400/30 transition-all cursor-pointer group" onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col">
@@ -443,7 +443,7 @@ export default function DashboardPage() {
                             </Select>
     
                             <Link
-                              href={`/os/${order.os_number.replace("/", "-")}`}
+                              href={`/interno/os/${order.os_number.replace("/", "-")}`}
                             >
                               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
                                 <Eye className="w-4 h-4" />

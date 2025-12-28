@@ -260,7 +260,7 @@ export default function EditOSPage() {
 
       if (error) throw error;
       toast.success("OS atualizada com sucesso!");
-      router.push(`/os/${osIdRaw}`);
+      router.push(`/interno/os/${osIdRaw}`);
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     } finally {
@@ -280,7 +280,7 @@ export default function EditOSPage() {
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
         <div className="grid grid-cols-3 items-center max-w-md mx-auto">
-          <Link href={`/os/${osIdRaw}`} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
+          <Link href={`/interno/os/${osIdRaw}`} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div className="text-center">
@@ -637,7 +637,7 @@ export default function EditOSPage() {
             className="w-full h-14 rounded-2xl text-slate-500 font-bold"
             asChild
           >
-            <Link href={`/os/${osIdRaw}`}>Cancelar</Link>
+            <Link href={`/interno/os/${osIdRaw}`}>Cancelar</Link>
           </Button>
         </section>
       </main>

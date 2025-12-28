@@ -198,7 +198,7 @@ export default function TodosPedidosPage() {
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
                       <TableCell className="pr-8">
                         <div className="flex items-center gap-2">
-                          <Link href={`/os/${order.os_number.replace("/", "-")}`}>
+                          <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
                             <Button variant="ghost" size="icon" className="rounded-xl hover:bg-blue-50 hover:text-blue-600">
                               <Eye className="w-4 h-4" />
                             </Button>

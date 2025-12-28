@@ -619,7 +619,7 @@ export default function OSViewPage() {
               </Button>
 
               {(role === "ADMIN" || role === "ATENDENTE") && (
-                <Link href={`/os/${osIdRaw}/editar`} className="w-full">
+                <Link href={`/interno/os/${osIdRaw}/editar`} className="w-full">
                   <Button 
                     variant="outline"
                     className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
