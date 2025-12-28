@@ -39,7 +39,7 @@ Todos os serviços são realizados com produtos profissionais e técnicas espec�
 Alguns tipos de manchas, oxidações e desbotamentos podem ser irreversíveis e não podem ser totalmente removidos, mesmo com o uso das melhores técnicas e produtos disponíveis. A equipe TênisLab compromete-se a empregar o máximo esforço técnico para amenizar esses danos, mas não garante a remoção completa.
 
 4. Prazos de Entrega
-Os prazos informados (5 dias úteis, 72h ou 24h Express) começam a contar a partir da coleta do calçado. Situações excepcionais — como secagem prolongada, condições climáticas desfavoráveis ou intercorrências no processo — poderão prorrogar o prazo, mediante comunicação prévia ao cliente.
+Os prazos informados (5 dias úteis, 72h ou 24h Express) começam a contar A PARTIR DO ACEITE DO CLIENTE para o pedido ser iniciado. A data de entrega prevista será calculada automaticamente após a confirmação do aceite nesta página. Situações excepcionais — como secagem prolongada, condições climáticas desfavoráveis ou intercorrências no processo — poderão prorrogar o prazo, mediante comunicação prévia ao cliente.
 
 5. Coleta, Entrega e Armazenamento
 A coleta e entrega são realizadas mediante taxa fixa previamente informada. Após a conclusão do serviço, o cliente será comunicado. Calçados não retirados em até 30 dias poderão ser destinados ao descarte ou doação, conforme previsto em direito de guarda temporária.
@@ -63,6 +63,7 @@ O envio do calçado para serviço, bem como a assinatura ou aceite digital da Or
 TERMO DE GARANTIA
 
 Garantia válida por: 30 dias após a entrega do serviço.
+A contagem dos 30 dias de garantia inicia-se a partir da data de entrega efetiva do calçado ao cliente.
 
 A TenisLab oferece garantia contratual para os seguintes serviços:
 
@@ -129,15 +130,25 @@ export default function CustomerAcceptancePage() {
 
   const handleConfirm = async () => {
     setConfirming(true);
+    
+    const acceptedAt = new Date().toISOString();
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 5);
+    const deliveryDateStr = deliveryDate.toISOString().split('T')[0];
+    
     const { error } = await supabase
       .from("service_orders")
-      .update({ status: "Em espera" })
+      .update({ 
+        status: "Em espera",
+        accepted_at: acceptedAt,
+        delivery_date: deliveryDateStr
+      })
       .eq("id", id);
 
     if (error) {
       toast.error("Erro ao confirmar serviço");
     } else {
-      setOrder({ ...order, status: "Em espera" });
+      setOrder({ ...order, status: "Em espera", accepted_at: acceptedAt, delivery_date: deliveryDateStr });
       setIsConfirmed(true);
       toast.success("Serviço aceito com sucesso!");
     }
@@ -284,16 +295,21 @@ export default function CustomerAcceptancePage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
-                  <Calendar className="w-5 h-5 text-slate-400" />
+                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrega Prevista</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'Será calculada após o aceite'}
+                    </span>
+                    {!order.delivery_date && (
+                      <span className="text-[10px] text-blue-500 font-medium mt-0.5">
+                        (+5 dias úteis a partir do aceite)
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrega Prevista</span>
-                  <span className="text-sm font-bold text-slate-800">
-                    {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'A definir'}
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
         </section>
