@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, Package, Clock, CheckCircle2, Truck, ArrowLeft, AlertCircle, XCircle, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
