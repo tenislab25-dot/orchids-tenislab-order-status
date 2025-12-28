@@ -109,19 +109,19 @@ const statusConfig = {
           <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
             <h2 className="text-lg font-bold text-slate-900">Consultar Pedido</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
-                    <div className="relative flex items-center">
-                      <Input
-                        type="text"
-                        placeholder="Ex: 001"
-                        value={osNumber}
-                        onChange={handleOsChange}
-                        className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg font-bold focus:ring-blue-500/20 flex-1"
-                        required
-                      />
-                    </div>
-                </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
+                      <div className="relative flex items-center">
+                        <Input
+                          type="text"
+                          placeholder="Ex: 001/2025"
+                          value={osNumber}
+                          onChange={handleOsChange}
+                          className="h-14 rounded-2xl bg-white border-slate-200 pl-4 text-lg font-bold focus:ring-blue-500/20 flex-1"
+                          required
+                        />
+                      </div>
+                  </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
               <Input
@@ -393,11 +393,11 @@ export default function StatusPage() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
     <header className="flex flex-col items-center gap-6 mb-8">
-        <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-          alt="TENISLAB Logo" 
-          className="h-32 w-auto object-contain"
-        />
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
+            alt="TENISLAB Logo" 
+            className="h-48 w-auto object-contain"
+          />
     </header>
 
       <Suspense fallback={
