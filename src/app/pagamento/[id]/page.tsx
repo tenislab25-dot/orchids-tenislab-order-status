@@ -118,7 +118,7 @@ export default function PaymentPage() {
     <div className="min-h-screen bg-slate-50 pb-12">
         <header className="bg-white border-b border-slate-100 px-6 py-8 flex flex-col items-center gap-4">
             <img 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879270167.PNG?width=8000&height=8000&resize=contain" 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
               alt="TENISLAB" 
               className="h-10 w-auto object-contain"
             />

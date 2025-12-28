@@ -140,7 +140,11 @@ import { Service } from "@/lib/services-data";
               <ArrowLeft className="w-4 h-4" />
                 Voltar ao Painel
               </Link>
-              <h1 className="font-black text-2xl">TENISLAB</h1>
+              <img 
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
+                alt="TENISLAB Logo" 
+                className="h-10 w-auto object-contain"
+              />
             </div>
 
             <div className="flex justify-between items-end">
