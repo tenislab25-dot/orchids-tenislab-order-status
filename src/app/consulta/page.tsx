@@ -82,8 +82,8 @@ const statusConfig = {
     }, [initialOs]);
 
     const handleOsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let value = e.target.value.replace(/\D/g, "");
-      if (value.length > 3) value = value.slice(0, 3);
+      let value = e.target.value.replace(/[^0-9/]/g, "");
+      if (value.length > 8) value = value.slice(0, 8);
       setOsNumber(value);
     };
 
@@ -201,15 +201,18 @@ function OrderContent() {
     return () => clearInterval(interval);
   }, [order?.os_number]);
 
-  const handleSearch = async (os: string, phone: string) => {
-    setLoading(true);
-    setError(null);
-    
-    let searchOs = os.trim();
-    if (!searchOs.includes("/") && searchOs.length > 0) {
-      const year = new Date().getFullYear();
-      searchOs = `${searchOs.padStart(3, "0")}/${year}`;
-    }
+    const handleSearch = async (os: string, phone: string) => {
+      setLoading(true);
+      setError(null);
+      
+      let searchOs = os.trim();
+      if (searchOs.includes("/")) {
+        const [num, year] = searchOs.split("/");
+        searchOs = `${num.padStart(3, "0")}/${year || new Date().getFullYear()}`;
+      } else if (searchOs.length > 0) {
+        const year = new Date().getFullYear();
+        searchOs = `${searchOs.padStart(3, "0")}/${year}`;
+      }
 
     const searchPhone = phone.replace(/\D/g, "");
 
@@ -269,11 +272,11 @@ function OrderContent() {
                   <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
                     <div className="flex flex-col gap-2 items-center">
                       <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
-                      <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
-                        <span className="text-2xl font-black">
-                          {order.os_number.split('/')[0].padStart(3, '0')}/2025
-                        </span>
-                      </div>
+                        <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
+                          <span className="text-2xl font-black">
+                            {order.os_number}
+                          </span>
+                        </div>
                     </div>
 
               <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
