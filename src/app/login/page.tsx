@@ -18,19 +18,29 @@ export default function LoginPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          router.push("/interno/dashboard");
+    useEffect(() => {
+      const checkSession = async () => {
+        try {
+          // Timeout de 5 segundos para a verificação de sessão inicial
+          const sessionPromise = supabase.auth.getSession();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Timeout")), 5000)
+          );
+
+          const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+          
+          if (session) {
+            router.push("/interno/dashboard");
+            return; // Não define checkingSession como false para evitar flash do login
+          }
+        } catch (err) {
+          console.error("Session check skipped or timed out:", err);
+        } finally {
+          setCheckingSession(false);
         }
-      } finally {
-        setCheckingSession(false);
-      }
-    };
-    checkSession();
-  }, [router]);
+      };
+      checkSession();
+    }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
