@@ -94,21 +94,22 @@ export default function OSViewPage() {
   const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
     
-    const handleShareLink = () => {
-      if (!order) return;
-      
-      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-      
-      const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
-      const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da TENISLAB.\n\n` +
-        `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
-        `Qualquer dúvida, estamos à disposição!`
-      );
-      
-      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-    };
+      const handleShareLink = () => {
+        if (!order) return;
+        
+        const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+        
+        const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
+        const message = encodeURIComponent(
+          `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da TENISLAB.\n\n` +
+          `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
+          `Lembrando que o prazo de entrega começa a contar a partir do momento do seu aceite!\n\n` +
+          `Qualquer dúvida, estamos à disposição!`
+        );
+        
+        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+      };
     
     // Payment edit states
     const [newPaymentMethod, setNewPaymentMethod] = useState("");
@@ -415,21 +416,28 @@ export default function OSViewPage() {
       }
     };
 
-    const togglePriority = async () => {
-      if (!order) return;
-      const newPriority = !order.priority;
-      const { error } = await supabase
-        .from("service_orders")
-        .update({ priority: newPriority })
-        .eq("os_number", osNumber);
+      const togglePriority = async () => {
+        if (!order) return;
+        
+        // Restrict to ADMIN and ATENDENTE
+        if (role !== "ADMIN" && role !== "ATENDENTE") {
+          toast.error("Apenas administradores e atendentes podem alterar a prioridade.");
+          return;
+        }
 
-      if (error) {
-        toast.error("Erro ao atualizar prioridade: " + error.message);
-      } else {
-        setOrder(prev => prev ? { ...prev, priority: newPriority } : null);
-        toast.success(newPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
-      }
-    };
+        const newPriority = !order.priority;
+        const { error } = await supabase
+          .from("service_orders")
+          .update({ priority: newPriority })
+          .eq("os_number", osNumber);
+
+        if (error) {
+          toast.error("Erro ao atualizar prioridade: " + error.message);
+        } else {
+          setOrder(prev => prev ? { ...prev, priority: newPriority } : null);
+          toast.success(newPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
+        }
+      };
 
 
   const handleDeleteOS = async () => {
