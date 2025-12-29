@@ -15,12 +15,14 @@ import {
   Truck, 
   Bell, 
   Printer,
-  Share2,
-  Search,
-  X,
-  Trash2,
-  Pencil
-} from "lucide-react";
+    Share2,
+    Search,
+    X,
+    Trash2,
+    Pencil,
+    Star
+  } from "lucide-react";
+
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
   import { Badge } from "@/components/ui/badge";
@@ -67,6 +69,7 @@ interface OrderData {
   payment_confirmed: boolean;
   machine_fee: number;
   ready_for_pickup: boolean;
+  priority: boolean;
   accepted_at?: string;
   clients: {
     name: string;
@@ -392,25 +395,42 @@ export default function OSViewPage() {
     setPhotoToDelete(null);
   };
 
-  const toggleItemStatus = async (itemIdx: number) => {
-    if (!order) return;
-    
-    const newItems = [...order.items];
-    const currentStatus = newItems[itemIdx].status || "Pendente";
-    newItems[itemIdx].status = currentStatus === "Pendente" ? "Pronto" : "Pendente";
+    const toggleItemStatus = async (itemIdx: number) => {
+      if (!order) return;
+      
+      const newItems = [...order.items];
+      const currentStatus = newItems[itemIdx].status || "Pendente";
+      newItems[itemIdx].status = currentStatus === "Pendente" ? "Pronto" : "Pendente";
 
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ items: newItems })
-      .eq("os_number", osNumber);
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ items: newItems })
+        .eq("os_number", osNumber);
 
-    if (error) {
-      toast.error("Erro ao atualizar item: " + error.message);
-    } else {
-      setOrder({ ...order, items: newItems });
-      toast.success(`Item marcado como ${newItems[itemIdx].status}`);
-    }
-  };
+      if (error) {
+        toast.error("Erro ao atualizar item: " + error.message);
+      } else {
+        setOrder({ ...order, items: newItems });
+        toast.success(`Item marcado como ${newItems[itemIdx].status}`);
+      }
+    };
+
+    const togglePriority = async () => {
+      if (!order) return;
+      const newPriority = !order.priority;
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ priority: newPriority })
+        .eq("os_number", osNumber);
+
+      if (error) {
+        toast.error("Erro ao atualizar prioridade: " + error.message);
+      } else {
+        setOrder(prev => prev ? { ...prev, priority: newPriority } : null);
+        toast.success(newPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
+      }
+    };
+
 
   const handleDeleteOS = async () => {
     try {
@@ -593,7 +613,18 @@ export default function OSViewPage() {
     </div>
   );
 
-      const getStatusBadge = (status: Status) => {
+      const getDeadlineStatus = (dateStr?: string) => {
+      if (!dateStr) return { color: "text-slate-700", label: "Normal" };
+      const deadline = new Date(dateStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (deadline < today) return { color: "text-red-600 animate-pulse font-black", label: "Vencido" };
+      if (deadline.getTime() === today.getTime()) return { color: "text-red-500 font-black", label: "Vence hoje" };
+      return { color: "text-slate-700", label: "No prazo" };
+    };
+
+    const getStatusBadge = (status: Status) => {
         const styles = {
           Recebido: "bg-blue-100 text-blue-700",
           "Em espera": "bg-orange-100 text-orange-700",
@@ -640,11 +671,28 @@ export default function OSViewPage() {
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cliente</span>
-              <h2 className="text-xl font-black text-slate-900 leading-tight">{order.clients?.name}</h2>
-                <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
-                  <Phone className="w-3 h-3" />
-                  {order.clients?.phone}
-                </div>
+                <h2 className="text-xl font-black text-slate-900 leading-tight">{order.clients?.name}</h2>
+                  <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
+                    <Phone className="w-3 h-3" />
+                    {order.clients?.phone}
+                  </div>
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button
+                      onClick={togglePriority}
+                      variant="outline"
+                      size="sm"
+                      className={`h-8 rounded-full text-[10px] font-black uppercase tracking-wider gap-1.5 transition-all ${
+                        order.priority 
+                        ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-100" 
+                        : "bg-white text-slate-400 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Star className={`w-3 h-3 ${order.priority ? "fill-white" : ""}`} />
+                      {order.priority ? "Prioridade" : "Marcar Prioridade"}
+                    </Button>
+                  </div>
+
                 {order.accepted_at && (
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl animate-in zoom-in duration-500">
                     <div className="flex items-center gap-2 text-blue-700">
@@ -688,16 +736,17 @@ export default function OSViewPage() {
                       {new Date(order.entry_date).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
-                  {order.delivery_date && (
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                        <Package className="w-3 h-3 text-blue-500" /> Prev. Entrega
-                      </span>
-                      <span className="text-xs font-bold text-slate-700">
-                        {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
-                      </span>
-                    </div>
-                  )}
+                    {order.delivery_date && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                          <Package className="w-3 h-3 text-blue-500" /> Prev. Entrega
+                        </span>
+                        <span className={`text-xs font-bold ${getDeadlineStatus(order.delivery_date).color}`}>
+                          {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                    )}
+
                   </div>
           </section>
         </div>

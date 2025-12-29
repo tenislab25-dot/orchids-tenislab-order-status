@@ -4,17 +4,19 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Search,
-  Package,
-    Eye,
-    ArrowLeft,
-    Calendar,
-    User as UserIcon,
-    MessageCircle,
-    ArrowUp,
-    ArrowDown,
-    ArrowUpDown
-  } from "lucide-react";
+    Search,
+    Package,
+      Eye,
+      ArrowLeft,
+      Calendar,
+      User as UserIcon,
+      MessageCircle,
+      ArrowUp,
+      ArrowDown,
+      ArrowUpDown,
+      Star
+    } from "lucide-react";
+
 
 import {
   Table,
@@ -41,6 +43,7 @@ interface Order {
   entry_date: string;
   delivery_date?: string;
   total?: number;
+  priority: boolean;
   updated_at?: string;
   items: any[];
   clients: {
@@ -69,14 +72,29 @@ export default function TodosPedidosPage() {
     setSortConfig({ key, direction });
   };
 
-  const getSortIcon = (key: string) => {
-    if (sortConfig.key !== key || sortConfig.direction === null) {
-      return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30" />;
-    }
-    return sortConfig.direction === 'asc' ? 
-      <ArrowUp className="w-3 h-3 ml-1 text-blue-600" /> : 
-      <ArrowDown className="w-3 h-3 ml-1 text-blue-600" />;
-  };
+    const getSortIcon = (key: string) => {
+      if (sortConfig.key !== key || sortConfig.direction === null) {
+        return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30" />;
+      }
+      return sortConfig.direction === 'asc' ? 
+        <ArrowUp className="w-3 h-3 ml-1 text-blue-600" /> : 
+        <ArrowDown className="w-3 h-3 ml-1 text-blue-600" />;
+    };
+
+    const togglePriority = async (orderId: string, currentPriority: boolean) => {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ priority: !currentPriority })
+        .eq("id", orderId);
+
+      if (error) {
+        toast.error("Erro ao atualizar prioridade: " + error.message);
+      } else {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, priority: !currentPriority } : o));
+        toast.success(!currentPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
+      }
+    };
+
 
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
@@ -167,11 +185,20 @@ export default function TodosPedidosPage() {
             aValue = new Date(a.entry_date).getTime();
             bValue = new Date(b.entry_date).getTime();
             break;
-          case 'status':
-            aValue = a.status;
-            bValue = b.status;
-            break;
-          case 'updated_at':
+            case 'status':
+              aValue = a.status;
+              bValue = b.status;
+              break;
+            case 'priority':
+              aValue = a.priority ? 1 : 0;
+              bValue = b.priority ? 1 : 0;
+              break;
+            case 'delivery_date':
+              aValue = new Date(a.delivery_date || '9999-12-31').getTime();
+              bValue = new Date(b.delivery_date || '9999-12-31').getTime();
+              break;
+            case 'updated_at':
+
             aValue = new Date(a.updated_at || 0).getTime();
             bValue = new Date(b.updated_at || 0).getTime();
             break;
@@ -263,32 +290,75 @@ export default function TodosPedidosPage() {
                         Entrada {getSortIcon('entry_date')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => handleSort('status')}
-                    >
-                      <div className="flex items-center">
-                        Status {getSortIcon('status')}
-                      </div>
-                    </TableHead>
-                    <TableHead className="font-bold pr-8">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-              <TableBody>
-                  {loading ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-20">Carregando...</TableCell></TableRow>
-                  ) : filteredOrders.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400">Nenhuma OS encontrada</TableCell></TableRow>
-                  ) : (
-                  filteredOrders.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-slate-50/50 border-b border-slate-50">
-                        <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
-                        <TableCell className="font-bold text-slate-700">{order.clients?.name}</TableCell>
-                      <TableCell className="text-slate-500 text-xs font-bold">
-                        {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell className="pr-8">
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort('delivery_date')}
+                      >
+                        <div className="flex items-center">
+                          Entrega {getSortIcon('delivery_date')}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center">
+                          Status {getSortIcon('status')}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold cursor-pointer hover:text-blue-600 transition-colors text-center"
+                        onClick={() => handleSort('priority')}
+                      >
+                        <div className="flex items-center justify-center">
+                          <Star className="w-4 h-4" /> {getSortIcon('priority')}
+                        </div>
+                      </TableHead>
+                      <TableHead className="font-bold pr-8">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                <TableBody>
+                    {loading ? (
+                      <TableRow><TableCell colSpan={7} className="text-center py-20">Carregando...</TableCell></TableRow>
+                    ) : filteredOrders.length === 0 ? (
+                      <TableRow><TableCell colSpan={7} className="text-center py-20 text-slate-400">Nenhuma OS encontrada</TableCell></TableRow>
+                    ) : (
+                    filteredOrders.map((order) => (
+                        <TableRow key={order.id} className={`hover:bg-slate-50/50 border-b border-slate-50 ${order.priority ? 'bg-amber-50/30' : ''}`}>
+                          <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
+                          <TableCell className="font-bold text-slate-700">
+                            <div className="flex flex-col">
+                              <span>{order.clients?.name}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">{order.clients?.phone}</span>
+                            </div>
+                          </TableCell>
+                        <TableCell className="text-slate-500 text-xs font-bold">
+                          {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                        </TableCell>
+                        <TableCell>
+                          {order.delivery_date ? (
+                            <span className={`text-xs font-black ${
+                              new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
+                              ? "text-red-500" 
+                              : "text-slate-500"
+                            }`}>
+                              {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
+                            </span>
+                          ) : "--/--"}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => togglePriority(order.id, order.priority)}
+                            className={`rounded-full transition-all ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-200 hover:text-slate-400'}`}
+                          >
+                            <Star className={`w-5 h-5 ${order.priority ? 'fill-current' : ''}`} />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="pr-8">
+
                         <div className="flex items-center gap-2">
                           <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
                             <Button variant="ghost" size="icon" className="rounded-xl hover:bg-blue-50 hover:text-blue-600">

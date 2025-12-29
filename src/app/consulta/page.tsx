@@ -20,6 +20,7 @@ interface OrderData {
   os_number: string;
   status: Status;
   items: any[];
+  delivery_date?: string;
   clients: {
     phone: string;
   } | null;
@@ -198,26 +199,31 @@ function OrderContent() {
   useEffect(() => {
     if (!order) return;
 
-    const interval = setInterval(async () => {
-      const { data, error: sbError } = await supabase
-        .from("service_orders")
-        .select(`
-          os_number,
-          status,
-          items,
-          clients (
-            phone
-          )
-        `)
-        .eq("os_number", order.os_number)
-        .single();
+    const channel = supabase
+      .channel(`os-customer-${order.os_number}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "service_orders",
+          filter: `os_number=eq.${order.os_number}`
+        },
+        (payload) => {
+          setOrder(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              ...payload.new as any
+            };
+          });
+        }
+      )
+      .subscribe();
 
-      if (!sbError && data) {
-        setOrder(data as any);
-      }
-    }, 5000); // Check every 5 seconds
-
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [order?.os_number]);
 
     const handleSearch = async (os: string, phone: string) => {
@@ -309,10 +315,24 @@ function OrderContent() {
                 <span className={`text-2xl font-bold ${statusConfig[order.status as keyof typeof statusConfig].color}`}>
                   {order.status}
                 </span>
-                <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
-                  {statusConfig[order.status as keyof typeof statusConfig].message}
-                </p>
-              </div>
+                  <p className="text-slate-600 leading-relaxed max-w-[240px] mx-auto">
+                    {statusConfig[order.status as keyof typeof statusConfig].message}
+                  </p>
+                </div>
+
+                {order.delivery_date && (
+                  <div className="flex flex-col items-center gap-1 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Previsão de Entrega</span>
+                    <span className={`text-sm font-black ${
+                      new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
+                      ? "text-red-500 animate-pulse" 
+                      : "text-slate-700"
+                    }`}>
+                      {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                )}
+
 
               {order.items && order.items.length > 0 && (
                 <div className="w-full pt-4 border-t border-slate-100">
