@@ -6,18 +6,22 @@ import Link from "next/link";
 import {
   Search,
   Package,
-  Eye,
-  Plus,
-  Bell,
-  CheckCircle2,
-  Calendar,
-  User as UserIcon,
-  DollarSign,
-  Database,
-  History,
-  ArrowRight,
-  Download
-} from "lucide-react";
+    Eye,
+    Plus,
+    Bell,
+    CheckCircle2,
+    Calendar,
+    User as UserIcon,
+    DollarSign,
+    Database,
+    History,
+    ArrowRight,
+    Download,
+    ArrowUp,
+    ArrowDown,
+    ArrowUpDown,
+    Star
+  } from "lucide-react";
 
 
 import {
@@ -53,6 +57,7 @@ interface Order {
   entry_date: string;
   delivery_date?: string;
   total?: number;
+  priority: boolean;
   updated_at?: string;
   items: any[];
   clients: {
@@ -77,6 +82,43 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({
+    key: 'status',
+    direction: 'asc'
+  });
+
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' | null = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = null;
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key || sortConfig.direction === null) {
+      return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30" />;
+    }
+    return sortConfig.direction === 'asc' ? 
+      <ArrowUp className="w-3 h-3 ml-1 text-blue-600" /> : 
+      <ArrowDown className="w-3 h-3 ml-1 text-blue-600" />;
+  };
+
+  const togglePriority = async (orderId: string, currentPriority: boolean) => {
+    const { error } = await supabase
+      .from("service_orders")
+      .update({ priority: !currentPriority })
+      .eq("id", orderId);
+
+    if (error) {
+      toast.error("Erro ao atualizar prioridade: " + error.message);
+    } else {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, priority: !currentPriority } : o));
+      toast.success(!currentPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
+    }
+  };
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
@@ -88,6 +130,22 @@ export default function DashboardPage() {
 
     setRole(storedRole);
     fetchOrders();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel("dashboard_orders")
+      .on(
+        "postgres_changes",
+        { event: "*", table: "service_orders" },
+        () => {
+          fetchOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchOrders = async () => {
@@ -206,13 +264,58 @@ export default function DashboardPage() {
   };
 
   const sortedAndFilteredOrders = useMemo(() => {
-    return orders
-      .filter(
-        (order) =>
-          order.os_number.toLowerCase().includes(search.toLowerCase()) ||
-          order.clients?.name.toLowerCase().includes(search.toLowerCase())
-      )
-      .sort((a, b) => {
+    let result = orders.filter(
+      (order) =>
+        order.os_number.toLowerCase().includes(search.toLowerCase()) ||
+        order.clients?.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    if (sortConfig.key && sortConfig.direction) {
+      result.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortConfig.key) {
+          case 'os_number':
+            aValue = a.os_number;
+            bValue = b.os_number;
+            break;
+          case 'client':
+            aValue = a.clients?.name || '';
+            bValue = b.clients?.name || '';
+            break;
+          case 'entry_date':
+            aValue = new Date(a.entry_date).getTime();
+            bValue = new Date(b.entry_date).getTime();
+            break;
+          case 'status':
+            const weightA = statusWeight[a.status];
+            const weightB = statusWeight[b.status];
+            if (weightA !== weightB) {
+              return sortConfig.direction === 'asc' ? weightA - weightB : weightB - weightA;
+            }
+            aValue = new Date(a.updated_at || a.entry_date).getTime();
+            bValue = new Date(b.updated_at || b.entry_date).getTime();
+            break;
+          case 'priority':
+            aValue = a.priority ? 1 : 0;
+            bValue = b.priority ? 1 : 0;
+            break;
+          case 'delivery_date':
+            aValue = new Date(a.delivery_date || '9999-12-31').getTime();
+            bValue = new Date(b.delivery_date || '9999-12-31').getTime();
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    } else {
+      // Default sorting if no direction
+      result.sort((a, b) => {
         const weightA = statusWeight[a.status];
         const weightB = statusWeight[b.status];
         if (weightA !== weightB) return weightA - weightB;
@@ -220,9 +323,11 @@ export default function DashboardPage() {
           new Date(b.updated_at || b.entry_date).getTime() -
           new Date(a.updated_at || a.entry_date).getTime()
         );
-      })
-      .slice(0, 20);
-  }, [orders, search]);
+      });
+    }
+
+    return result.slice(0, 20);
+  }, [orders, search, sortConfig]);
 
   const recentConfirmations = useMemo(() => {
     // Orders that are "Em espera" and were updated recently
@@ -353,116 +458,175 @@ export default function DashboardPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                  <TableRow>
-                    <TableHead className="font-bold text-slate-500 py-6 pl-8">Nº</TableHead>
-                    <TableHead className="font-bold text-slate-500">Cliente</TableHead>
-                  <TableHead className="font-bold text-slate-500 text-center">Pares</TableHead>
-                  <TableHead className="font-bold text-slate-500">Entrada</TableHead>
-                  <TableHead className="font-bold text-slate-500">Previsão</TableHead>
-                  <TableHead className="font-bold text-slate-500">Status</TableHead>
-                  <TableHead className="font-bold text-slate-500 pr-8">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-20">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
-                        <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sincronizando...</span>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-50/50 border-b border-slate-100">
+                    <TableRow>
+                      <TableHead 
+                        className="font-bold text-slate-500 py-6 pl-8 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort('os_number')}
+                      >
+                        <div className="flex items-center">
+                          Nº {getSortIcon('os_number')}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort('client')}
+                      >
+                        <div className="flex items-center">
+                          Cliente {getSortIcon('client')}
+                        </div>
+                      </TableHead>
+                    <TableHead className="font-bold text-slate-500 text-center">Pares</TableHead>
+                    <TableHead 
+                      className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('entry_date')}
+                    >
+                      <div className="flex items-center">
+                        Entrada {getSortIcon('entry_date')}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ) : sortedAndFilteredOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-20 text-slate-400">
-                      <div className="flex flex-col items-center gap-2">
-                        <Package className="w-12 h-12 opacity-10" />
-                        <span className="font-bold uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('delivery_date')}
+                    >
+                      <div className="flex items-center">
+                        Previsão {getSortIcon('delivery_date')}
                       </div>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        Status {getSortIcon('status')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold text-slate-500 text-center cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('priority')}
+                    >
+                      <div className="flex items-center justify-center">
+                        <Star className="w-4 h-4" /> {getSortIcon('priority')}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-bold text-slate-500 pr-8">Ações</TableHead>
                   </TableRow>
-                ) : (
-                  <>
-                    {sortedAndFilteredOrders.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
-                          <TableCell className="pl-8 py-5">
-                              <div className="flex flex-col">
-                                <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
-                                {(order.status === "Em espera" || order.status === "Em serviço") && (
-                                  <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
-                                    <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
-                                  </span>
-                                )}
-                              </div>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-20">
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
+                          <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sincronizando...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : sortedAndFilteredOrders.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-20 text-slate-400">
+                        <div className="flex flex-col items-center gap-2">
+                          <Package className="w-12 h-12 opacity-10" />
+                          <span className="font-bold uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <>
+                      {sortedAndFilteredOrders.map((order) => (
+                        <TableRow key={order.id} className={`hover:bg-slate-50/50 transition-colors border-b border-slate-50 group ${order.priority ? 'bg-amber-50/30' : ''}`}>
+                            <TableCell className="pl-8 py-5">
+                                <div className="flex flex-col">
+                                  <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
+                                  {(order.status === "Em espera" || order.status === "Em serviço") && (
+                                    <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
+                                      <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
+                                    </span>
+                                  )}
+                                </div>
+                            </TableCell>
+                          <TableCell className="font-bold text-slate-700">
+                            {order.clients?.name || "Cliente não encontrado"}
                           </TableCell>
-                        <TableCell className="font-bold text-slate-700">
-                          {order.clients?.name || "Cliente não encontrado"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="outline" className="rounded-lg font-black text-slate-500 border-slate-200">
-                            {order.items?.length || 0}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-slate-500 text-xs font-bold">
-                          {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                        </TableCell>
-                        <TableCell className="text-slate-500 text-xs font-bold">
-                          {order.delivery_date
-                            ? new Date(order.delivery_date).toLocaleDateString("pt-BR")
-                            : "-"}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
-                        <TableCell className="pr-8">
-                          <div className="flex gap-2">
-                            <Select
-                              value={order.status}
-                              disabled={
-                                order.status === "Entregue" ||
-                                order.status === "Cancelado"
-                              }
-                              onValueChange={(v) =>
-                                handleStatusChange(order.id, v as Status)
-                              }
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className="rounded-lg font-black text-slate-500 border-slate-200">
+                              {order.items?.length || 0}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-slate-500 text-xs font-bold">
+                            {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell>
+                            {order.delivery_date ? (
+                              <span className={`text-xs font-black ${
+                                new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
+                                ? "text-red-500 animate-pulse" 
+                                : "text-slate-500"
+                              }`}>
+                                {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
+                              </span>
+                            ) : "--/--"}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => togglePriority(order.id, order.priority)}
+                              className={`rounded-full transition-all ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-200 hover:text-slate-400'}`}
                             >
-                              <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                                    <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                      {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
+                              <Star className={`w-5 h-5 ${order.priority ? 'fill-current' : ''}`} />
+                            </Button>
+                          </TableCell>
+                          <TableCell className="pr-8">
+                            <div className="flex gap-2">
+                              <Select
+                                value={order.status}
+                                disabled={
+                                  order.status === "Entregue" ||
+                                  order.status === "Cancelado"
+                                }
+                                onValueChange={(v) =>
+                                  handleStatusChange(order.id, v as Status)
+                                }
+                              >
+                                <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                      <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                                        {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
+                                          <>
+                                              <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                                              <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                                              <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                                              <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
+                                              <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto para entrega ou retirada</SelectItem>
+                                            </>
+                                        )}
+                                      {(role === "ADMIN" || role === "ATENDENTE") && (
                                         <>
-                                            <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                            <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                            <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                            <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
-                                            <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto para entrega ou retirada</SelectItem>
-                                          </>
+                                          <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                                          <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                                        </>
                                       )}
-                                    {(role === "ADMIN" || role === "ATENDENTE") && (
-                                      <>
-                                        <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                                        <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                                      </>
-                                    )}
-                                  </SelectContent>
-                            </Select>
-    
-                            <Link
-                              href={`/interno/os/${order.os_number.replace("/", "-")}`}
-                            >
-                              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow className="bg-slate-50/30">
-                      <TableCell colSpan={7} className="py-6 px-8">
+                                    </SelectContent>
+                              </Select>
+      
+                              <Link
+                                href={`/interno/os/${order.os_number.replace("/", "-")}`}
+                              >
+                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-slate-50/30">
+                        <TableCell colSpan={8} className="py-6 px-8">
                           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                               Mostrando as 20 ordens mais recentes
