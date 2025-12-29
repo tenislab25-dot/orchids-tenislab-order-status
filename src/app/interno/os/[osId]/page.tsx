@@ -67,6 +67,7 @@ interface OrderData {
   payment_confirmed: boolean;
   machine_fee: number;
   ready_for_pickup: boolean;
+  accepted_at?: string;
   clients: {
     name: string;
     phone: string;
@@ -112,10 +113,41 @@ export default function OSViewPage() {
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
       useEffect(() => {
-      if (!authLoading && role) {
-        fetchOrder();
-      }
-    }, [osNumber, authLoading, role]);
+        if (!authLoading && role) {
+          fetchOrder();
+
+          // Subscribe to changes for this OS
+          const channel = supabase
+            .channel(`os-${osIdRaw}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "service_orders",
+                filter: `os_number=eq.${osNumber}`
+              },
+              (payload) => {
+                setOrder(prev => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    ...payload.new as OrderData
+                  };
+                });
+                
+                if ((payload.new as any).accepted_at && !(payload.old as any).accepted_at) {
+                  toast.success("O cliente acabou de aceitar a OS!", { duration: 5000 });
+                }
+              }
+            )
+            .subscribe();
+
+          return () => {
+            supabase.removeChannel(channel);
+          };
+        }
+      }, [osNumber, authLoading, role, osIdRaw]);
 
   const fetchOrder = async () => {
     setLoading(true);
@@ -609,11 +641,21 @@ export default function OSViewPage() {
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cliente</span>
               <h2 className="text-xl font-black text-slate-900 leading-tight">{order.clients?.name}</h2>
-              <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
-                <Phone className="w-3 h-3" />
-                {order.clients?.phone}
+                <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
+                  <Phone className="w-3 h-3" />
+                  {order.clients?.phone}
+                </div>
+                {order.accepted_at && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl animate-in zoom-in duration-500">
+                    <div className="flex items-center gap-2 text-blue-700">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">
+                        OS aceita em: {new Date(order.accepted_at).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
               {getStatusBadge(order.status)}
             </div>
 

@@ -10,7 +10,10 @@ import {
     ArrowLeft,
     Calendar,
     User as UserIcon,
-    MessageCircle
+    MessageCircle,
+    ArrowUp,
+    ArrowDown,
+    ArrowUpDown
   } from "lucide-react";
 
 import {
@@ -51,6 +54,29 @@ export default function TodosPedidosPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({
+    key: 'updated_at',
+    direction: 'desc'
+  });
+
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' | null = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = null;
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key || sortConfig.direction === null) {
+      return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30" />;
+    }
+    return sortConfig.direction === 'asc' ? 
+      <ArrowUp className="w-3 h-3 ml-1 text-blue-600" /> : 
+      <ArrowDown className="w-3 h-3 ml-1 text-blue-600" />;
+  };
 
       useEffect(() => {
         const storedRole = localStorage.getItem("tenislab_role");
@@ -117,12 +143,50 @@ export default function TodosPedidosPage() {
   };
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(
+    let result = orders.filter(
       (order) =>
         order.os_number.toLowerCase().includes(search.toLowerCase()) ||
         order.clients?.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [orders, search]);
+
+    if (sortConfig.key && sortConfig.direction) {
+      result.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortConfig.key) {
+          case 'os_number':
+            aValue = a.os_number;
+            bValue = b.os_number;
+            break;
+          case 'client':
+            aValue = a.clients?.name || '';
+            bValue = b.clients?.name || '';
+            break;
+          case 'entry_date':
+            aValue = new Date(a.entry_date).getTime();
+            bValue = new Date(b.entry_date).getTime();
+            break;
+          case 'status':
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          case 'updated_at':
+            aValue = new Date(a.updated_at || 0).getTime();
+            bValue = new Date(b.updated_at || 0).getTime();
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [orders, search, sortConfig]);
 
       const getStatusBadge = (status: Status) => {
         const styles = {
@@ -175,13 +239,41 @@ export default function TodosPedidosPage() {
             <Table>
                 <TableHeader className="bg-slate-50/50">
                   <TableRow>
-                    <TableHead className="font-bold py-6 pl-8">Nº</TableHead>
-                    <TableHead className="font-bold">Cliente</TableHead>
-                  <TableHead className="font-bold">Entrada</TableHead>
-                  <TableHead className="font-bold">Status</TableHead>
-                  <TableHead className="font-bold pr-8">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
+                    <TableHead 
+                      className="font-bold py-6 pl-8 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('os_number')}
+                    >
+                      <div className="flex items-center">
+                        Nº {getSortIcon('os_number')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('client')}
+                    >
+                      <div className="flex items-center">
+                        Cliente {getSortIcon('client')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('entry_date')}
+                    >
+                      <div className="flex items-center">
+                        Entrada {getSortIcon('entry_date')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        Status {getSortIcon('status')}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-bold pr-8">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                   {loading ? (
                     <TableRow><TableCell colSpan={5} className="text-center py-20">Carregando...</TableCell></TableRow>
