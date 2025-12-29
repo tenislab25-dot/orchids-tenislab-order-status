@@ -389,6 +389,7 @@ export default function OSPage() {
       const message = encodeURIComponent(
         `Olá ${clientName}! Sua Ordem de Serviço #${osNumber} foi criada na TENISLAB.\n\n` +
         `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
+        `Lembrando que o prazo de entrega começa a contar a partir do momento do seu aceite!\n\n` +
         `Qualquer dúvida, estamos à disposição!`
       );
       

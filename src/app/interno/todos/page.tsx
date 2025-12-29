@@ -154,6 +154,7 @@ export default function TodosPedidosPage() {
     const message = encodeURIComponent(
       `Olá ${order.clients.name}! Sua Ordem de Serviço #${order.os_number} está no sistema da TENISLAB.\n\n` +
       `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
+      `Lembrando que o prazo de entrega começa a contar a partir do momento do seu aceite!\n\n` +
       `Qualquer dúvida, estamos à disposição!`
     );
     
