@@ -340,7 +340,7 @@ export default function DashboardPage() {
     // Orders that are "Em espera" and were updated recently
     return orders
       .filter(o => o.status === "Em espera")
-      .sort((a, b) => new Date(b.updated_at || "").getTime() - new Date(a.updated_at || "").getTime())
+      .sort((a, b) => new Date(b.accepted_at || b.updated_at || "").getTime() - new Date(a.accepted_at || a.updated_at || "").getTime())
       .slice(0, 3);
   }, [orders]);
 
@@ -413,29 +413,30 @@ export default function DashboardPage() {
             <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Ações Necessárias: OS Confirmadas</h2>
           </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {recentConfirmations.map((order) => {
-                const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 30; // 30 minutes
+                {recentConfirmations.map((order) => {
+                  const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60; // 60 minutes
 
-                return (
-                  <Card 
-                    key={order.id} 
-                    className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all cursor-pointer group relative ${isVeryRecent ? 'ring-2 ring-red-500 animate-pulse' : 'hover:ring-2 ring-amber-400/30'}`} 
-                    onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}
-                  >
-                    {isVeryRecent && (
-                      <div className="absolute top-4 right-4 z-10">
-                        <Badge className="bg-red-500 text-white border-none px-2 py-0.5 text-[10px] font-black animate-bounce shadow-lg">
-                          NOVO ACEITE
-                        </Badge>
-                      </div>
-                    )}
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                            {isVeryRecent && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />}
-                            Aceito em: {new Date(order.accepted_at || order.updated_at || "").toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                          </span>
+                  return (
+                    <Card 
+                      key={order.id} 
+                      className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all cursor-pointer group relative ${isVeryRecent ? 'ring-2 ring-red-500 animate-pulse-red' : 'hover:ring-2 ring-amber-400/30'}`} 
+                      onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}
+                    >
+                      {isVeryRecent && (
+                        <div className="absolute top-4 right-4 z-10">
+                          <Badge className="bg-red-500 text-white border-none px-2 py-0.5 text-[10px] font-black animate-bounce shadow-lg">
+                            NOVO ACEITE
+                          </Badge>
+                        </div>
+                      )}
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                              {isVeryRecent && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-blink" />}
+                              Aceito em: {new Date(order.accepted_at || order.updated_at || "").toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+
                             <span className="text-xl font-black text-blue-600">{order.os_number}</span>
                           </div>
                           {!isVeryRecent && (
@@ -562,28 +563,30 @@ export default function DashboardPage() {
                     </TableRow>
                   ) : (
                     <>
-                        {sortedAndFilteredOrders.map((order) => {
-                          const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 30; // 30 minutes
+                          {sortedAndFilteredOrders.map((order) => {
+                            const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60; // 60 minutes
 
-                          return (
-                            <TableRow key={order.id} className={`hover:bg-slate-50/50 transition-colors border-b border-slate-50 group ${order.priority ? 'bg-amber-50/30' : ''} ${isVeryRecent ? 'bg-red-50/20' : ''}`}>
-                                <TableCell className="pl-8 py-5">
-                                    <div className="flex flex-col">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
-                                        {isVeryRecent && (
-                                          <Badge className="bg-red-500 text-white border-none px-1.5 py-0 text-[8px] font-black animate-pulse">
-                                            NOVO
-                                          </Badge>
-                                        )}
+                            return (
+                              <TableRow key={order.id} className={`hover:bg-slate-50/50 transition-colors border-b border-slate-50 group ${order.priority ? 'bg-amber-50/30' : ''} ${isVeryRecent ? 'bg-red-50/10 border-l-4 border-l-red-500' : ''}`}>
+                                  <TableCell className="pl-8 py-5">
+                                      <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
+                                          {isVeryRecent && (
+                                            <Badge className="bg-red-500 text-white border-none px-1.5 py-0 text-[8px] font-black animate-blink">
+                                              NOVO
+                                            </Badge>
+                                          )}
+                                        </div>
+                                          {(order.status === "Em espera" || order.status === "Em serviço") && (
+                                            <span className={`text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 ${isVeryRecent ? 'text-red-500' : 'text-amber-500'}`}>
+                                              {isVeryRecent && <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse" />}
+                                              ACEITO {order.accepted_at ? `ÀS ${new Date(order.accepted_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'PELO CLIENTE'}
+                                            </span>
+                                          )}
                                       </div>
-                                        {(order.status === "Em espera" || order.status === "Em serviço") && (
-                                          <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
-                                            <CheckCircle2 className="w-2 h-2" /> ACEITO {order.accepted_at ? `ÀS ${new Date(order.accepted_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'PELO CLIENTE'}
-                                          </span>
-                                        )}
-                                    </div>
-                                </TableCell>
+                                  </TableCell>
+
 
                           <TableCell className="font-bold text-slate-700">
                             {order.clients?.name || "Cliente não encontrado"}

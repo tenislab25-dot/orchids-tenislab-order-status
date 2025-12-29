@@ -91,3 +91,22 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); ring-width: 2px; }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); ring-width: 4px; }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); ring-width: 2px; }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
