@@ -59,6 +59,7 @@ interface Order {
   total?: number;
   priority: boolean;
   updated_at?: string;
+  accepted_at?: string;
   items: any[];
   clients: {
     name: string;
@@ -107,6 +108,12 @@ export default function DashboardPage() {
   };
 
   const togglePriority = async (orderId: string, currentPriority: boolean) => {
+    // Restrict to ADMIN and ATENDENTE
+    if (role !== "ADMIN" && role !== "ATENDENTE") {
+      toast.error("Apenas administradores e atendentes podem alterar a prioridade.");
+      return;
+    }
+
     const { error } = await supabase
       .from("service_orders")
       .update({ priority: !currentPriority })
@@ -408,16 +415,18 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recentConfirmations.map((order) => (
               <Card key={order.id} className="border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white hover:ring-2 ring-amber-400/30 transition-all cursor-pointer group" onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">OS Aceita em: {new Date(order.updated_at || "").toLocaleDateString('pt-BR')}</span>
-                        <span className="text-xl font-black text-blue-600">{order.os_number}</span>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          Aceito em: {new Date(order.accepted_at || order.updated_at || "").toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                          <span className="text-xl font-black text-blue-600">{order.os_number}</span>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
+                          ACEITO PELO CLIENTE
+                        </Badge>
                       </div>
-                      <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
-                        ACEITO PELO CLIENTE
-                      </Badge>
-                    </div>
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
                       <UserIcon className="w-5 h-5 text-slate-400" />
@@ -540,11 +549,11 @@ export default function DashboardPage() {
                             <TableCell className="pl-8 py-5">
                                 <div className="flex flex-col">
                                   <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
-                                  {(order.status === "Em espera" || order.status === "Em serviço") && (
-                                    <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
-                                      <CheckCircle2 className="w-2 h-2" /> ACEITO PELO CLIENTE
-                                    </span>
-                                  )}
+                                    {(order.status === "Em espera" || order.status === "Em serviço") && (
+                                      <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-1">
+                                        <CheckCircle2 className="w-2 h-2" /> ACEITO {order.accepted_at ? `ÀS ${new Date(order.accepted_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'PELO CLIENTE'}
+                                      </span>
+                                    )}
                                 </div>
                             </TableCell>
                           <TableCell className="font-bold text-slate-700">
@@ -570,16 +579,16 @@ export default function DashboardPage() {
                             ) : "--/--"}
                           </TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          <TableCell className="text-center">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => togglePriority(order.id, order.priority)}
-                              className={`rounded-full transition-all ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-200 hover:text-slate-400'}`}
-                            >
-                              <Star className={`w-5 h-5 ${order.priority ? 'fill-current' : ''}`} />
-                            </Button>
-                          </TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => togglePriority(order.id, order.priority)}
+                                className={`rounded-full transition-all ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-200 hover:text-slate-400'} ${role !== "ADMIN" && role !== "ATENDENTE" ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <Star className={`w-5 h-5 ${order.priority ? 'fill-current' : ''}`} />
+                              </Button>
+                            </TableCell>
                           <TableCell className="pr-8">
                             <div className="flex gap-2">
                               <Select
