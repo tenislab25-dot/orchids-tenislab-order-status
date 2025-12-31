@@ -340,14 +340,6 @@ export default function DashboardPage() {
     return result.slice(0, 20);
   }, [orders, search, sortConfig]);
 
-  const recentConfirmations = useMemo(() => {
-    // Orders that are "Em espera" and were updated recently
-    return orders
-      .filter(o => o.status === "Em espera")
-      .sort((a, b) => new Date(b.accepted_at || b.updated_at || "").getTime() - new Date(a.accepted_at || a.updated_at || "").getTime())
-      .slice(0, 3);
-  }, [orders]);
-
   const getStatusBadge = (status: Status) => {
     const styles = {
       Recebido: "bg-blue-100 text-blue-700",
@@ -474,17 +466,18 @@ export default function DashboardPage() {
   };
 
 
-  const metrics = useMemo(() => {
+    const metrics = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    const monthlyTotal = orders
+    const sneakersMonth = orders
       .filter(o => {
-        const entryDate = new Date(o.entry_date);
-        return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear && o.status !== "Cancelado";
+        if (o.status !== "Entregue") return false;
+        const date = new Date(o.updated_at || o.entry_date);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
       })
-      .reduce((acc, o) => acc + (o.total || 0), 0);
+      .reduce((acc, o) => acc + (Array.isArray(o.items) ? o.items.length : 0), 0);
 
     const pendingAcceptance = orders.filter(o => o.status === "Recebido").length;
     const inProduction = orders.filter(o => ["Em espera", "Em serviço", "Em finalização"].includes(o.status)).length;
@@ -497,7 +490,7 @@ export default function DashboardPage() {
       return delivery < today;
     }).length;
 
-    return { monthlyTotal, pendingAcceptance, inProduction, overdue };
+    return { sneakersMonth, pendingAcceptance, inProduction, overdue };
   }, [orders]);
 
   return (
@@ -550,11 +543,11 @@ export default function DashboardPage() {
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                <DollarSign className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento Mês</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tênis no Mês</span>
             </div>
-            <p className="text-2xl font-black text-slate-900">R$ {metrics.monthlyTotal.toFixed(2)}</p>
+            <p className="text-2xl font-black text-slate-900">{metrics.sneakersMonth} <span className="text-xs text-slate-400 font-bold">PARES</span></p>
           </CardContent>
         </Card>
 
@@ -594,21 +587,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </section>
-
-      {/* RECENT NOTIFICATIONS / CONFIRMATIONS */}
-      {recentConfirmations.length > 0 && (
-        <section className="animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="flex items-center gap-2 mb-6">
-            <Bell className="w-5 h-5 text-amber-500 fill-amber-500" />
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Ações Necessárias: OS Confirmadas</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentConfirmations.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* MAIN LIST */}
       <section className="flex flex-col gap-6">
