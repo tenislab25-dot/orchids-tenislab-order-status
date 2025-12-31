@@ -342,12 +342,13 @@ export default function OSViewPage() {
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
       
-        const message = encodeURIComponent(
-          `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
-          `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-          `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-          `Obrigado pela preferência!`
-        );
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
+        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+        `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CU_FNQNTD6CIDFMI1/review\n\n` +
+        `Obrigado pela preferência!`
+      );
       
       const waUrl = `https://wa.me/${whatsappPhone}?text=${message}`;
       
@@ -366,6 +367,7 @@ export default function OSViewPage() {
         `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue!\n\n` +
         `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
         `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CU_FNQNTD6CIDFMI1/review\n\n` +
         `Obrigado pela preferência!`
       );
       
@@ -723,17 +725,28 @@ export default function OSViewPage() {
                 Gerar link para aceite
               </Button>
 
-              {(role === "ADMIN" || role === "ATENDENTE") && (
-                <Link href={`/interno/os/${osIdRaw}/editar`} className="w-full">
-                  <Button 
-                    variant="outline"
-                    className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
-                  >
-                    <Pencil className="w-4 h-4" />
-                    Editar OS
-                  </Button>
-                </Link>
-              )}
+                {(role === "ADMIN" || role === "ATENDENTE") && (
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    <Link href={`/interno/os/${osIdRaw}/editar`} className="w-full">
+                      <Button 
+                        variant="outline"
+                        className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Editar OS
+                      </Button>
+                    </Link>
+                    <Link href={`/interno/os/${osIdRaw}/imprimir`} className="w-full">
+                      <Button 
+                        variant="outline"
+                        className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
+                      >
+                        <Printer className="w-4 h-4" />
+                        Imprimir OS
+                      </Button>
+                    </Link>
+                  </div>
+                )}
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
                   <div className="flex flex-col gap-1">

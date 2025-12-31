@@ -94,7 +94,34 @@ export default function OSPage() {
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [clientName, setClientName] = useState("");
-  const [clientPhone, setClientPhone] = useState("");
+    const [clientPhone, setClientPhone] = useState("");
+    const [isSearchingClient, setIsSearchingClient] = useState(false);
+
+    useEffect(() => {
+      const searchClient = async () => {
+        const cleanPhone = clientPhone.replace(/\D/g, "");
+        if (cleanPhone.length >= 10 && selectedClientId === "new") {
+          setIsSearchingClient(true);
+          const { data, error } = await supabase
+            .from("clients")
+            .select("*")
+            .ilike("phone", `%${cleanPhone}%`)
+            .limit(1)
+            .single();
+
+          if (data && !error) {
+            setSelectedClientId(data.id);
+            setClientName(data.name);
+            setClientPhone(data.phone);
+            toast.success("Cliente recorrente encontrado!");
+          }
+          setIsSearchingClient(false);
+        }
+      };
+
+      const timer = setTimeout(searchClient, 500);
+      return () => clearTimeout(timer);
+    }, [clientPhone, selectedClientId]);
 
   const [items, setItems] = useState<OSItem[]>([]);
   
@@ -459,18 +486,23 @@ export default function OSPage() {
                       readOnly={selectedClientId !== "new"}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input 
-                      id="telefone" 
-                      type="tel"
-                      placeholder="(00) 00000-0000" 
-                      value={clientPhone}
-                      onChange={(e) => setClientPhone(e.target.value)}
-                      className="h-12 bg-slate-50 border-slate-200 rounded-xl"
-                      readOnly={selectedClientId !== "new"}
-                    />
-                  </div>
+                    <div className="space-y-2 relative">
+                      <Label htmlFor="telefone">Telefone</Label>
+                      <Input 
+                        id="telefone" 
+                        type="tel"
+                        placeholder="(00) 00000-0000" 
+                        value={clientPhone}
+                        onChange={(e) => setClientPhone(e.target.value)}
+                        className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                        readOnly={selectedClientId !== "new"}
+                      />
+                      {isSearchingClient && (
+                        <div className="absolute right-3 top-[38px]">
+                          <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                        </div>
+                      )}
+                    </div>
                 </div>
               )}
             </CardContent>
