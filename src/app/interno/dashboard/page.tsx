@@ -83,19 +83,23 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
     key: 'status',
     direction: 'asc'
   });
 
+  const sortOptions = [
+    { label: "Data", value: "entry_date" },
+    { label: "Entrega", value: "delivery_date" },
+    { label: "OS", value: "os_number" },
+    { label: "Nome", value: "client" },
+  ];
+
   const handleSort = (key: string) => {
-    let direction: 'asc' | 'desc' | null = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
-      direction = null;
-    }
-    setSortConfig({ key, direction });
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
   const getSortIcon = (key: string) => {
@@ -344,22 +348,129 @@ export default function DashboardPage() {
       .slice(0, 3);
   }, [orders]);
 
-    const getStatusBadge = (status: Status) => {
-      const styles = {
-        Recebido: "bg-blue-100 text-blue-700",
-        "Em espera": "bg-orange-100 text-orange-700",
-        "Em serviço": "bg-amber-100 text-amber-700",
-        "Em finalização": "bg-indigo-100 text-indigo-700",
-        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
-        Entregue: "bg-slate-100 text-slate-700",
-        Cancelado: "bg-red-100 text-red-700",
-      };
+  const getStatusBadge = (status: Status) => {
+    const styles = {
+      Recebido: "bg-blue-100 text-blue-700",
+      "Em espera": "bg-orange-100 text-orange-700",
+      "Em serviço": "bg-amber-100 text-amber-700",
+      "Em finalização": "bg-indigo-100 text-indigo-700",
+      "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+      Entregue: "bg-slate-100 text-slate-700",
+      Cancelado: "bg-red-100 text-red-700",
+    };
     return (
       <Badge className={`${styles[status]} border-none px-3 py-1`}>
         {status}
       </Badge>
     );
   };
+
+  const OrderCard = ({ order }: { order: Order }) => {
+    const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2;
+    const isOverdue = order.delivery_date && new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) && order.status !== "Entregue" && order.status !== "Cancelado";
+
+    return (
+      <Card 
+        className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all hover:ring-2 ring-blue-400/30 group relative ${order.priority ? 'bg-amber-50/30' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''}`}
+      >
+        <CardContent className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                {order.delivery_date && (
+                  <>
+                    <span className="mx-1">•</span>
+                    <span className={isOverdue ? "text-red-500 font-black animate-pulse" : ""}>
+                      ENTREGA: {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
+                    </span>
+                  </>
+                )}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-black text-blue-600">{order.os_number}</span>
+                {isVeryRecent && <Badge className="bg-red-500 text-white border-none px-1.5 py-0 text-[8px] font-black animate-blink">NOVO</Badge>}
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              {getStatusBadge(order.status)}
+              {(order.status === "Em espera" || order.status === "Em serviço") && (
+                <span className={`text-[8px] font-black uppercase tracking-tighter ${isVeryRecent ? 'text-red-500' : 'text-amber-500'}`}>
+                  ACEITO {order.accepted_at ? `ÀS ${new Date(order.accepted_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center relative">
+              <UserIcon className="w-5 h-5 text-slate-400" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePriority(order.id, order.priority);
+                }}
+                className={`absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-sm bg-white border border-slate-100 transition-all ${order.priority ? 'text-amber-500' : 'text-slate-200'}`}
+              >
+                <Star className={`w-3 h-3 ${order.priority ? 'fill-current' : ''}`} />
+              </Button>
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="text-sm font-bold text-slate-700 truncate">{order.clients?.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
+                {order.payment_confirmed ? (
+                  <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-bold px-1.5 py-0">PAGO</Badge>
+                ) : order.pay_on_entry ? (
+                  <Badge className="bg-blue-100 text-blue-700 border-none text-[8px] font-bold px-1.5 py-0">NA ENTREG.</Badge>
+                ) : (
+                  <Badge className="bg-slate-100 text-slate-400 border-none text-[8px] font-bold px-1.5 py-0">PENDENTE</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Select
+              value={order.status}
+              disabled={order.status === "Entregue" || order.status === "Cancelado"}
+              onValueChange={(v) => handleStatusChange(order.id, v as Status)}
+            >
+              <SelectTrigger className="flex-1 h-10 text-xs rounded-xl border-slate-100 bg-slate-50 font-bold shadow-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
+                  <>
+                    <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                    <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                    <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                    <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
+                    <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto p/ Entrega</SelectItem>
+                  </>
+                )}
+                {(role === "ADMIN" || role === "ATENDENTE") && (
+                  <>
+                    <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                    <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+
+            <Link href={`/interno/os/${order.os_number.replace("/", "-")}`} className="shrink-0">
+              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
+                <Eye className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
 
   const metrics = useMemo(() => {
     const now = new Date();
@@ -547,11 +658,33 @@ export default function DashboardPage() {
       <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
         <CardHeader className="bg-white border-b border-slate-50 p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <CardTitle className="flex items-center gap-3 text-slate-900 font-black text-xl uppercase tracking-tight">
-              <Package className="w-6 h-6 text-blue-500" />
-              Gestão de Ordens
-            </CardTitle>
-            <div className="relative w-full md:w-96">
+            <div className="flex flex-col gap-4">
+              <CardTitle className="flex items-center gap-3 text-slate-900 font-black text-xl uppercase tracking-tight">
+                <Package className="w-6 h-6 text-blue-500" />
+                Gestão de Ordens
+              </CardTitle>
+              <div className="flex flex-wrap gap-2">
+                {sortOptions.map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant={sortConfig.key === opt.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleSort(opt.value)}
+                    className={`rounded-full px-4 h-8 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      sortConfig.key === opt.value 
+                        ? "bg-blue-600 text-white border-blue-600" 
+                        : "border-slate-200 text-slate-500 hover:border-blue-200 hover:text-blue-600"
+                    }`}
+                  >
+                    {opt.label}
+                    {sortConfig.key === opt.value && (
+                      sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 ml-1" /> : <ArrowDown className="w-3 h-3 ml-1" />
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="relative w-full md:w-96 self-end">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Buscar por OS ou cliente..."
@@ -562,226 +695,41 @@ export default function DashboardPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                    <TableRow>
-                      <TableHead 
-                        className="font-bold text-slate-500 py-6 pl-8 cursor-pointer hover:text-blue-600 transition-colors"
-                        onClick={() => handleSort('os_number')}
-                      >
-                        <div className="flex items-center">
-                          Nº {getSortIcon('os_number')}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
-                        onClick={() => handleSort('client')}
-                      >
-                        <div className="flex items-center">
-                          Cliente {getSortIcon('client')}
-                        </div>
-                      </TableHead>
-                    <TableHead className="font-bold text-slate-500 text-center">Pares</TableHead>
-                    <TableHead 
-                      className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => handleSort('entry_date')}
-                    >
-                      <div className="flex items-center">
-                        Entrada {getSortIcon('entry_date')}
-                      </div>
-                    </TableHead>
-                      <TableHead 
-                        className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
-                        onClick={() => handleSort('delivery_date')}
-                      >
-                        <div className="flex items-center">
-                          Previsão {getSortIcon('delivery_date')}
-                        </div>
-                      </TableHead>
-                      <TableHead className="font-bold text-slate-500 text-center">Pagamento</TableHead>
-                      <TableHead 
-                        className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
-                        onClick={() => handleSort('status')}
-                      >
-
-                      <div className="flex items-center">
-                        Status {getSortIcon('status')}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="font-bold text-slate-500 text-center cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => handleSort('priority')}
-                    >
-                      <div className="flex items-center justify-center">
-                        <Star className="w-4 h-4" /> {getSortIcon('priority')}
-                      </div>
-                    </TableHead>
-                    <TableHead className="font-bold text-slate-500 pr-8">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-20">
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
-                          <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sincronizando...</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : sortedAndFilteredOrders.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-20 text-slate-400">
-                        <div className="flex flex-col items-center gap-2">
-                          <Package className="w-12 h-12 opacity-10" />
-                          <span className="font-bold uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    <>
-                            {sortedAndFilteredOrders.map((order) => {
-                              const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2; // 2 hours
-
-
-                            return (
-                              <TableRow key={order.id} className={`hover:bg-slate-50/50 transition-colors border-b border-slate-50 group ${order.priority ? 'bg-amber-50/30' : ''} ${isVeryRecent ? 'bg-red-50/10 border-l-4 border-l-red-500' : ''}`}>
-                                  <TableCell className="pl-8 py-5">
-                                      <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-mono font-black text-blue-600 text-base">{order.os_number}</span>
-                                          {isVeryRecent && (
-                                            <Badge className="bg-red-500 text-white border-none px-1.5 py-0 text-[8px] font-black animate-blink">
-                                              NOVO
-                                            </Badge>
-                                          )}
-                                        </div>
-                                          {(order.status === "Em espera" || order.status === "Em serviço") && (
-                                            <span className={`text-[9px] font-black uppercase tracking-tighter flex items-center gap-1 ${isVeryRecent ? 'text-red-500' : 'text-amber-500'}`}>
-                                              {isVeryRecent && <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse" />}
-                                              ACEITO {order.accepted_at ? `ÀS ${new Date(order.accepted_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'PELO CLIENTE'}
-                                            </span>
-                                          )}
-                                      </div>
-                                  </TableCell>
-
-
-                          <TableCell className="font-bold text-slate-700">
-                            {order.clients?.name || "Cliente não encontrado"}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className="rounded-lg font-black text-slate-500 border-slate-200">
-                              {order.items?.length || 0}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-slate-500 text-xs font-bold">
-                            {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                          </TableCell>
-                            <TableCell>
-                              {order.delivery_date ? (
-                                <span className={`text-xs font-black ${
-                                  new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
-                                  ? "text-red-500 animate-pulse" 
-                                  : "text-slate-500"
-                                }`}>
-                                  {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
-                                </span>
-                              ) : "--/--"}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {order.payment_confirmed ? (
-                                <Badge className="bg-emerald-100 text-emerald-700 border-none text-[10px] font-bold">PAGO</Badge>
-                              ) : order.pay_on_entry ? (
-                                <Badge className="bg-blue-100 text-blue-700 border-none text-[10px] font-bold">NA ENTREG.</Badge>
-                              ) : (
-                                <Badge className="bg-slate-100 text-slate-400 border-none text-[10px] font-bold">PENDENTE</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>{getStatusBadge(order.status)}</TableCell>
-
-                            <TableCell className="text-center">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => togglePriority(order.id, order.priority)}
-                                className={`rounded-full transition-all ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-200 hover:text-slate-400'} ${role !== "ADMIN" && role !== "ATENDENTE" ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              >
-                                <Star className={`w-5 h-5 ${order.priority ? 'fill-current' : ''}`} />
-                              </Button>
-                            </TableCell>
-                          <TableCell className="pr-8">
-                            <div className="flex gap-2">
-                              <Select
-                                value={order.status}
-                                disabled={
-                                  order.status === "Entregue" ||
-                                  order.status === "Cancelado"
-                                }
-                                onValueChange={(v) =>
-                                  handleStatusChange(order.id, v as Status)
-                                }
-                              >
-                                <SelectTrigger className="w-[140px] h-10 text-xs rounded-xl border-slate-100 bg-white font-bold shadow-sm">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                      <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                                        {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                                          <>
-                                              <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                                              <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                                              <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                                              <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
-                                              <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto para entrega ou retirada</SelectItem>
-                                            </>
-                                        )}
-                                      {(role === "ADMIN" || role === "ATENDENTE") && (
-                                        <>
-                                          <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                                          <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                                        </>
-                                      )}
-                                    </SelectContent>
-                              </Select>
-      
-                              <Link
-                                href={`/interno/os/${order.os_number.replace("/", "-")}`}
-                              >
-                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                              </Link>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow className="bg-slate-50/30">
-                        <TableCell colSpan={8} className="py-6 px-8">
-                          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                              Mostrando as 20 ordens mais recentes
-                            </p>
-                              {(role === "ADMIN" || role === "ATENDENTE") && (
-                                  <div className="flex gap-3">
-                                      <Link href="/interno/todos">
-                                        <Button variant="outline" className="rounded-xl font-bold text-xs h-10 gap-2 border-slate-200">
-                                          <History className="w-3.5 h-3.5" />
-                                          Ver Todas as OS
-                                          <ArrowRight className="w-3.5 h-3.5" />
-                                        </Button>
-                                      </Link>
-                                  </div>
-                                )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  )}
-                </TableBody>
-              </Table>
+        <CardContent className="p-8">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin" />
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronizando Ordens...</span>
             </div>
-          </CardContent>
+          ) : sortedAndFilteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
+              <Package className="w-16 h-16 opacity-10" />
+              <span className="font-black uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sortedAndFilteredOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-slate-50 pt-8">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Mostrando as {sortedAndFilteredOrders.length} ordens mais relevantes
+            </p>
+            {(role === "ADMIN" || role === "ATENDENTE") && (
+              <Link href="/interno/todos">
+                <Button variant="outline" className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-3 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all">
+                  <History className="w-4 h-4" />
+                  Ver Todas as OS
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
+          </div>
+        </CardContent>
+      </Card>
         </Card>
 
         {/* BACKUP SECTION */}
