@@ -49,12 +49,12 @@ const statusConfig = {
     bg: "bg-green-50",
     message: "Seu tênis está pronto! Em breve entraremos em contato para retirada ou entrega.",
   },
-  Entregue: {
-    icon: Truck,
-    color: "text-slate-500",
-    bg: "bg-slate-50",
-      message: "Pedido finalizado. Obrigado por confiar na tenislab.",
-    },
+    Entregue: {
+      icon: Truck,
+      color: "text-slate-500",
+      bg: "bg-slate-50",
+        message: "Pedido finalizado. Obrigado por confiar na Tenislab.",
+      },
     Cancelado: {
     icon: AlertCircle,
     color: "text-red-500",
@@ -286,7 +286,7 @@ export default function StatusPage() {
     <header className="flex flex-col items-center gap-6 mb-8">
           <img 
             src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-            alt="TENISLAB Logo" 
+            alt="Tenislab Logo" 
             className="h-48 w-auto object-contain"
           />
     </header>
@@ -301,7 +301,7 @@ export default function StatusPage() {
 
       <footer className="mt-auto pt-12 text-center pb-8 flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
-          tenislab. o laboratório do seu tênis
+          Tenislab · O laboratório do seu tênis
         </p>
       </footer>
     </div>

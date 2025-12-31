@@ -236,11 +236,12 @@ export default function OSViewPage() {
           const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
           const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
           
-            const message = encodeURIComponent(
-              `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
-              `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
-              `Qualquer dúvida, estamos à disposição!`
-            );
+      const message = encodeURIComponent(
+        `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
+        `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
+        `Qualquer dúvida, estamos à disposição!`
+      );
           
           window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
         }
@@ -255,6 +256,7 @@ export default function OSViewPage() {
       const message = encodeURIComponent(
         `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
         `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
         `Qualquer dúvida, estamos à disposição!`
       );
       
