@@ -369,34 +369,44 @@ export default function DashboardPage() {
     const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2;
     const isOverdue = order.delivery_date && new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) && order.status !== "Entregue" && order.status !== "Cancelado";
 
+    // Dynamic button based on status
+    const getActionButton = () => {
+      switch (order.status) {
+        case "Recebido":
+          return { label: "Ver Detalhes", icon: Eye };
+        case "Em espera":
+          return { label: "Iniciar Produção", icon: CheckCircle2 };
+        case "Em serviço":
+          return { label: "Finalizar Serviço", icon: CheckCircle2 };
+        case "Em finalização":
+          return { label: "Pronto p/ Entrega", icon: CheckCircle2 };
+        case "Pronto para entrega ou retirada":
+          return { label: "Marcar Entregue", icon: CheckCircle2 };
+        default:
+          return { label: "Ver OS", icon: Eye };
+      }
+    };
+
+    const action = getActionButton();
+
     return (
       <Card 
-        className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all hover:ring-2 ring-blue-400/30 group relative ${order.priority ? 'bg-amber-50/30' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''}`}
+        className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all hover:ring-2 ring-blue-400/30 group relative ${order.priority ? 'bg-amber-50/20 ring-1 ring-amber-200' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''}`}
       >
         <CardContent className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                {new Date(order.entry_date).toLocaleDateString("pt-BR")}
-                {order.delivery_date && (
-                  <>
-                    <span className="mx-1">•</span>
-                    <span className={isOverdue ? "text-red-500 font-black animate-pulse" : ""}>
-                      ENTREGA: {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
-                    </span>
-                  </>
-                )}
+                {order.status === "Recebido" ? "ENTRADA: " : "ACEITO EM: "}
+                {new Date(order.accepted_at || order.entry_date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-black text-blue-600">{order.os_number}</span>
-                {isVeryRecent && <Badge className="bg-red-500 text-white border-none px-1.5 py-0 text-[8px] font-black animate-blink">NOVO</Badge>}
-              </div>
+              <span className="text-2xl font-black text-blue-600 tracking-tight mt-1">{order.os_number}</span>
             </div>
             <div className="flex flex-col items-end gap-1">
               {getStatusBadge(order.status)}
-              {(order.status === "Em espera" || order.status === "Em serviço") && (
-                <span className={`text-[8px] font-black uppercase tracking-tighter ${isVeryRecent ? 'text-red-500' : 'text-amber-500'}`}>
-                  ACEITO {order.accepted_at ? `ÀS ${new Date(order.accepted_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}
+              {isOverdue && (
+                <span className="text-[8px] font-black text-red-500 uppercase animate-pulse">
+                  ATRASADA: {new Date(order.delivery_date!).toLocaleDateString("pt-BR")}
                 </span>
               )}
             </div>
@@ -421,50 +431,42 @@ export default function DashboardPage() {
               <span className="text-sm font-bold text-slate-700 truncate">{order.clients?.name}</span>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
-                {order.payment_confirmed ? (
-                  <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-bold px-1.5 py-0">PAGO</Badge>
-                ) : order.pay_on_entry ? (
-                  <Badge className="bg-blue-100 text-blue-700 border-none text-[8px] font-bold px-1.5 py-0">NA ENTREG.</Badge>
-                ) : (
-                  <Badge className="bg-slate-100 text-slate-400 border-none text-[8px] font-bold px-1.5 py-0">PENDENTE</Badge>
-                )}
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Select
-              value={order.status}
-              disabled={order.status === "Entregue" || order.status === "Cancelado"}
-              onValueChange={(v) => handleStatusChange(order.id, v as Status)}
-            >
-              <SelectTrigger className="flex-1 h-10 text-xs rounded-xl border-slate-100 bg-slate-50 font-bold shadow-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                {(role === "ADMIN" || role === "ATENDENTE" || role === "OPERACIONAL") && (
-                  <>
-                    <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                    <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                    <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                    <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
-                    <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto p/ Entrega</SelectItem>
-                  </>
-                )}
-                {(role === "ADMIN" || role === "ATENDENTE") && (
-                  <>
-                    <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                    <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-
-            <Link href={`/interno/os/${order.os_number.replace("/", "-")}`} className="shrink-0">
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm bg-white border border-slate-50">
-                <Eye className="w-4 h-4" />
+          <div className="flex flex-col gap-2">
+            <Link href={`/interno/os/${order.os_number.replace("/", "-")}`} className="w-full">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-between rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 font-bold text-xs h-12 px-5 transition-all active:scale-95"
+              >
+                {action.label}
+                <div className="w-6 h-6 rounded-full border border-slate-200 flex items-center justify-center bg-white group-hover:border-blue-200">
+                  <action.icon className="w-3 h-3" />
+                </div>
               </Button>
             </Link>
+
+            {order.status !== "Entregue" && order.status !== "Cancelado" && (
+              <Select
+                value={order.status}
+                onValueChange={(v) => handleStatusChange(order.id, v as Status)}
+              >
+                <SelectTrigger className="h-8 text-[9px] rounded-xl border-none bg-transparent hover:bg-slate-50 font-black uppercase tracking-widest text-slate-400">
+                  <SelectValue placeholder="Alterar Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                  <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                  <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                  <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                  <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
+                  <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto p/ Entrega</SelectItem>
+                  <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                  <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -596,143 +598,94 @@ export default function DashboardPage() {
       {/* RECENT NOTIFICATIONS / CONFIRMATIONS */}
       {recentConfirmations.length > 0 && (
         <section className="animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-6">
             <Bell className="w-5 h-5 text-amber-500 fill-amber-500" />
             <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Ações Necessárias: OS Confirmadas</h2>
           </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {recentConfirmations.map((order) => {
-                  const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2; // 2 hours
-
-                  return (
-                    <Card 
-                      key={order.id} 
-                      className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all cursor-pointer group relative ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : 'hover:ring-2 ring-amber-400/30'}`} 
-                      onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}
-                    >
-                      {isVeryRecent && (
-                        <div className="absolute top-4 right-4 z-10">
-                          <Badge className="bg-red-500 text-white border-none px-2 py-0.5 text-[10px] font-black animate-bounce shadow-lg">
-                            NOVO ACEITE
-                          </Badge>
-                        </div>
-                      )}
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                              {isVeryRecent && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-blink" />}
-                              Aceito em: {new Date(order.accepted_at || order.updated_at || "").toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                            </span>
-
-                            <span className="text-xl font-black text-blue-600">{order.os_number}</span>
-                          </div>
-                          {!isVeryRecent && (
-                            <Badge className="bg-green-100 text-green-700 border-none px-2 py-0.5 text-[10px] font-bold">
-                              ACEITO PELO CLIENTE
-                            </Badge>
-                          )}
-                        </div>
-
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
-                      <UserIcon className="w-5 h-5 text-slate-400" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-700 truncate max-w-[150px]">{order.clients?.name}</span>
-                      <span className="text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <Button variant="ghost" className="w-full justify-between rounded-xl bg-slate-50 group-hover:bg-blue-50 group-hover:text-blue-600 font-bold text-xs transition-colors">
-                    Iniciar Produção
-                    <CheckCircle2 className="w-4 h-4" />
-                  </Button>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recentConfirmations.map((order) => (
+              <OrderCard key={order.id} order={order} />
             ))}
           </div>
         </section>
       )}
 
       {/* MAIN LIST */}
-      <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
-        <CardHeader className="bg-white border-b border-slate-50 p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex flex-col gap-4">
-              <CardTitle className="flex items-center gap-3 text-slate-900 font-black text-xl uppercase tracking-tight">
-                <Package className="w-6 h-6 text-blue-500" />
-                Gestão de Ordens
-              </CardTitle>
-              <div className="flex flex-wrap gap-2">
-                {sortOptions.map((opt) => (
-                  <Button
-                    key={opt.value}
-                    variant={sortConfig.key === opt.value ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleSort(opt.value)}
-                    className={`rounded-full px-4 h-8 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                      sortConfig.key === opt.value 
-                        ? "bg-blue-600 text-white border-blue-600" 
-                        : "border-slate-200 text-slate-500 hover:border-blue-200 hover:text-blue-600"
-                    }`}
-                  >
-                    {opt.label}
-                    {sortConfig.key === opt.value && (
-                      sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 ml-1" /> : <ArrowDown className="w-3 h-3 ml-1" />
-                    )}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="relative w-full md:w-96 self-end">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Buscar por OS ou cliente..."
-                className="pl-11 h-12 bg-slate-50 border-none rounded-2xl focus-visible:ring-2 ring-blue-500/20 font-medium"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-8">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin" />
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronizando Ordens...</span>
-            </div>
-          ) : sortedAndFilteredOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
-              <Package className="w-16 h-16 opacity-10" />
-              <span className="font-black uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sortedAndFilteredOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+              <Package className="w-5 h-5 text-blue-500" />
+              Gestão de Ordens
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {sortOptions.map((opt) => (
+                <Button
+                  key={opt.value}
+                  variant={sortConfig.key === opt.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleSort(opt.value)}
+                  className={`rounded-full px-5 h-9 text-[10px] font-black uppercase tracking-widest transition-all ${
+                    sortConfig.key === opt.value 
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100" 
+                      : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600 shadow-sm"
+                  }`}
+                >
+                  {opt.label}
+                  {sortConfig.key === opt.value && (
+                    sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 ml-2" /> : <ArrowDown className="w-3 h-3 ml-2" />
+                  )}
+                </Button>
               ))}
             </div>
-          )}
-
-          <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-slate-50 pt-8">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Mostrando as {sortedAndFilteredOrders.length} ordens mais relevantes
-            </p>
-            {(role === "ADMIN" || role === "ATENDENTE") && (
-              <Link href="/interno/todos">
-                <Button variant="outline" className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-3 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all">
-                  <History className="w-4 h-4" />
-                  Ver Todas as OS
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            )}
           </div>
-        </CardContent>
-      </Card>
-        </Card>
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por OS ou cliente..."
+              className="pl-11 h-12 bg-white border-none rounded-2xl shadow-sm focus-visible:ring-2 ring-blue-500/20 font-medium"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
 
-        {/* BACKUP SECTION */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin" />
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronizando Ordens...</span>
+          </div>
+        ) : sortedAndFilteredOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300 gap-4">
+            <Package className="w-16 h-16 opacity-10" />
+            <span className="font-black uppercase tracking-widest text-xs">Nenhuma ordem encontrada</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {sortedAndFilteredOrders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
+        )}
+
+        <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-slate-100 pt-8">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Mostrando {sortedAndFilteredOrders.length} ordens recentes
+          </p>
+          {(role === "ADMIN" || role === "ATENDENTE") && (
+            <Link href="/interno/todos">
+              <Button variant="outline" className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-8 gap-3 border-slate-200 bg-white hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm">
+                <History className="w-4 h-4" />
+                Ver Todas as OS
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {/* BACKUP SECTION */}
+
         {(role === "ADMIN") && (
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2 mb-4">
