@@ -101,12 +101,12 @@ export default function OSViewPage() {
           const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
           
           const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
-          const message = encodeURIComponent(
-            `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da TENISLAB.\n\n` +
-            `📍 *IMPORTANTE:* O prazo de entrega do seu tênis só começa a contar a partir do momento do seu *ACEITE DIGITAL* no link abaixo.\n\n` +
-            `Para conferir os detalhes e autorizar o serviço, acesse:\n${acceptanceLink}\n\n` +
-            `Qualquer dúvida, estamos à disposição!`
-          );
+            const message = encodeURIComponent(
+              `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da Tenislab.\n\n` +
+              `📍 *IMPORTANTE:* O prazo de entrega do seu tênis só começa a contar a partir do momento do seu *ACEITE DIGITAL* no link abaixo.\n\n` +
+              `Para conferir os detalhes e autorizar o serviço, acesse:\n${acceptanceLink}\n\n` +
+              `Qualquer dúvida, estamos à disposição!`
+            );
           
           window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
         };
@@ -237,7 +237,7 @@ export default function OSViewPage() {
           const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
           
             const message = encodeURIComponent(
-              `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab.\n\n` +
+              `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
               `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
               `Qualquer dúvida, estamos à disposição!`
             );
@@ -253,7 +253,7 @@ export default function OSViewPage() {
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
       
       const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tênis Lab.\n\n` +
+        `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
         `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
         `Qualquer dúvida, estamos à disposição!`
       );
@@ -338,7 +338,7 @@ export default function OSViewPage() {
         `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue! 📦\n\n` +
         `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
         `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CU_FNQNTD6CIDFMI1/review\n\n` +
+        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
         `Obrigado pela preferência!`
       );
       
@@ -359,7 +359,7 @@ export default function OSViewPage() {
         `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue! 📦\n\n` +
         `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
         `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CU_FNQNTD6CIDFMI1/review\n\n` +
+        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
         `Obrigado pela preferência!`
       );
       
@@ -501,7 +501,7 @@ export default function OSViewPage() {
                 <span class="date-value">${order?.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : '--/--'}</span>
               </div>
             </div>
-            <div class="footer">TENISLAB</div>
+            <div class="footer">Tenislab</div>
           </div>
         `;
       }).join('');

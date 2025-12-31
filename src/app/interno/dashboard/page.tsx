@@ -273,24 +273,24 @@ export default function DashboardPage() {
         if (newStatus === "Pronto para entrega ou retirada" && data?.clients) {
           const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
           const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-          const message = encodeURIComponent(
-            `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tênis Lab. ✨\n\n` +
-            `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
-            `Qualquer dúvida, estamos à disposição!`
-          );
-          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-        } else if (newStatus === "Entregue" && data?.clients) {
-          const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
-          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-          const paymentLink = `${window.location.origin}/pagamento/${data.id}`;
-          
-          const message = encodeURIComponent(
-            `Olá ${data.clients.name}! Seu pedido #${data.os_number} foi entregue! 📦\n\n` +
-            `Valor total: R$ ${Number(data.total).toFixed(2)}\n\n` +
-            `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-            `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CU_FNQNTD6CIDFMI1/review\n\n` +
-            `Obrigado pela preferência!`
-          );
+            const message = encodeURIComponent(
+              `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tenislab. ✨\n\n` +
+              `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+              `Qualquer dúvida, estamos à disposição!`
+            );
+            window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+          } else if (newStatus === "Entregue" && data?.clients) {
+            const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
+            const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+            const paymentLink = `${window.location.origin}/pagamento/${data.id}`;
+            
+            const message = encodeURIComponent(
+              `Olá ${data.clients.name}! Seu pedido #${data.os_number} foi entregue! 📦\n\n` +
+              `Valor total: R$ ${Number(data.total).toFixed(2)}\n\n` +
+              `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+              `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
+              `Obrigado pela preferência!`
+            );
           window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
         }
       }
@@ -537,14 +537,14 @@ export default function DashboardPage() {
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
         <div className="flex flex-col gap-4">
           <Link href="/interno">
-            <h1 className="font-black text-2xl hover:text-blue-600 transition-colors cursor-pointer">TENISLAB</h1>
+            <h1 className="font-black text-2xl hover:text-blue-600 transition-colors cursor-pointer">Tenislab</h1>
           </Link>
           <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight">
                 Dashboard Interno
               </h1>
               <p className="text-slate-500 font-medium">
-                Gestão de OS TENISLAB
+                Gestão de OS Tenislab
               </p>
             </div>
           </div>

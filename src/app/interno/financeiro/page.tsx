@@ -94,28 +94,29 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
   
       const stats = useMemo(() => {
         const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+        const totalReceived = confirmedOrders.reduce((acc, o) => acc + Number(o.total || 0), 0);
         const totalCash = confirmedOrders.reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
-  
+
         const projectedRevenue = orders
           .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
           .reduce((acc, o) => acc + Number(o.total || 0), 0);
-  
-        const totalProjected = totalCash + projectedRevenue;
-  
+
+        const totalProjected = totalReceived + projectedRevenue;
+
         const lostRevenue = orders
           .filter(o => o.status === "Cancelado")
           .reduce((acc, o) => acc + Number(o.total || 0), 0);
-  
+
         const activeOrders = orders.filter(o => o.status !== "Cancelado");
         const averageTicket = activeOrders.length > 0 
           ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
           : 0;
-  
+
         // Payment method breakdown
         const paymentBreakdown: Record<string, number> = {};
         confirmedOrders.forEach(o => {
           const method = o.payment_method || "Não informado";
-          paymentBreakdown[method] = (paymentBreakdown[method] || 0) + (Number(o.total || 0) - Number(o.machine_fee || 0));
+          paymentBreakdown[method] = (paymentBreakdown[method] || 0) + Number(o.total || 0);
         });
 
       // Status distribution
@@ -133,7 +134,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
         }
       });
 
-      return { totalCash, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
+      return { totalReceived, totalCash, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
     }, [orders]);
 
     const monthlyData = useMemo(() => {
@@ -145,7 +146,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
         .forEach(o => {
           const date = new Date(o.entry_date);
           const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
-          months[key] = (months[key] || 0) + (Number(o.total || 0) - Number(o.machine_fee || 0));
+          months[key] = (months[key] || 0) + Number(o.total || 0);
         });
 
       return Object.entries(months)
@@ -224,15 +225,15 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
         <main className="flex flex-col gap-8">
             {/* CARDS TOP */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden col-span-1 md:col-span-1">
+                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden">
                   <CardContent className="p-8">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Saldo em Caixa</span>
-                      <span className="text-3xl font-black tracking-tighter">R$ {stats.totalCash.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Total Recebido</span>
+                      <span className="text-3xl font-black tracking-tighter">R$ {stats.totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div className="mt-6 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full w-fit">
                       <div className="w-2 h-2 rounded-full bg-green-400" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">Realizado</span>
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-white/70">Já Recebi</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -258,7 +259,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">A Receber</span>
                       <span className="text-2xl font-black text-blue-600">R$ {stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Pagamentos Pendentes</p>
+                      <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Aguardando Pagamento</p>
                     </div>
                   </div>
                 </Card>
