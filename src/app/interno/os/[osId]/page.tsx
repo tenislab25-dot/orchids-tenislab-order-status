@@ -1221,24 +1221,24 @@ export default function OSViewPage() {
               </div>
             </div>
 
-              <DialogFooter className="flex flex-col gap-2">
-                <Button 
-                  onClick={confirmPayment} 
-                  className={`w-full h-12 rounded-xl font-bold transition-all ${isConfirmingPayment ? 'bg-amber-500 hover:bg-amber-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
-                >
-                  {isConfirmingPayment ? "Clique novamente para confirmar" : "Confirmar Recebimento"}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => {
-                    setPaymentModalOpen(false);
-                    setIsConfirmingPayment(false);
-                  }} 
-                  className="w-full h-12 rounded-xl"
-                >
-                  Cancelar
-                </Button>
-              </DialogFooter>
+                <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+                  <Button 
+                    onClick={confirmPayment} 
+                    className={`w-full h-12 rounded-xl font-bold transition-all ${isConfirmingPayment ? 'bg-amber-500 hover:bg-amber-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                  >
+                    {isConfirmingPayment ? "Clique novamente para confirmar" : "Confirmar Recebimento"}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      setPaymentModalOpen(false);
+                      setIsConfirmingPayment(false);
+                    }} 
+                    className="w-full h-12 rounded-xl"
+                  >
+                    Cancelar
+                  </Button>
+                </DialogFooter>
 
           </DialogContent>
         </Dialog>
@@ -1265,10 +1265,10 @@ export default function OSViewPage() {
                   className="mt-2 rounded-2xl"
                 />
               </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setCancelModalOpen(false)}>Voltar</Button>
-                <Button onClick={confirmCancel} className="bg-red-600 text-white">Confirmar Cancelamento</Button>
-              </DialogFooter>
+                <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
+                  <Button onClick={confirmCancel} className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold">Confirmar Cancelamento</Button>
+                  <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="w-full h-12 rounded-2xl text-slate-500 font-bold">Voltar</Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
 
@@ -1286,7 +1286,7 @@ export default function OSViewPage() {
                     </DialogDescription>
                   </div>
                 </DialogHeader>
-                <DialogFooter className="flex-col gap-2 pt-4">
+                <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
                   <Button 
                     variant="destructive"
                     onClick={handleDeletePhoto}
@@ -1322,7 +1322,7 @@ export default function OSViewPage() {
                     </DialogDescription>
                   </div>
                 </DialogHeader>
-                <DialogFooter className="flex-col gap-2 pt-4">
+                <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
                   <Button 
                     variant="destructive"
                     onClick={handleDeleteOS}
@@ -1380,28 +1380,28 @@ export default function OSViewPage() {
                     </DialogDescription>
                   </div>
                 </DialogHeader>
-                <DialogFooter className="flex-col gap-2 pt-4">
-                  <Button 
-                    onClick={() => handleDeliveryConfirm(true)}
-                    className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold"
-                  >
-                    Entregar e Enviar Link
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleDeliveryConfirm(false)}
-                    className="w-full h-12 rounded-2xl border-slate-200 text-slate-600 font-bold"
-                  >
-                    Entregar sem Enviar Link
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setDeliveryModalOpen(false)}
-                    className="w-full h-10 rounded-2xl text-slate-400 font-bold"
-                  >
-                    Voltar
-                  </Button>
-                </DialogFooter>
+                  <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
+                    <Button 
+                      onClick={() => handleDeliveryConfirm(true)}
+                      className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold"
+                    >
+                      Entregar e Enviar Link
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleDeliveryConfirm(false)}
+                      className="w-full h-12 rounded-2xl border-slate-200 text-slate-600 font-bold"
+                    >
+                      Entregar sem Enviar Link
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setDeliveryModalOpen(false)}
+                      className="w-full h-10 rounded-2xl text-slate-400 font-bold"
+                    >
+                      Voltar
+                    </Button>
+                  </DialogFooter>
               </DialogContent>
             </Dialog>
   
