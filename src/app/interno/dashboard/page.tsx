@@ -88,12 +88,11 @@ export default function DashboardPage() {
     direction: 'asc'
   });
 
-  const sortOptions = [
-    { label: "Data", value: "entry_date" },
-    { label: "Entrega", value: "delivery_date" },
-    { label: "OS", value: "os_number" },
-    { label: "Nome", value: "client" },
-  ];
+    const sortOptions = [
+      { label: "ENTRADA", value: "entry_date" },
+      { label: "ENTREGA", value: "delivery_date" },
+      { label: "OS", value: "os_number" },
+    ];
 
   const handleSort = (key: string) => {
     setSortConfig(prev => ({
@@ -357,78 +356,78 @@ export default function DashboardPage() {
     );
   };
 
-  const OrderCard = ({ order }: { order: Order }) => {
-    const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2;
-    const isOverdue = order.delivery_date && new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) && order.status !== "Entregue" && order.status !== "Cancelado";
+    const OrderCard = ({ order }: { order: Order }) => {
+      const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2;
+      const isOverdue = order.delivery_date && new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) && order.status !== "Entregue" && order.status !== "Cancelado";
 
-    // Dynamic button based on status
-    const getActionButton = () => {
-      switch (order.status) {
-        case "Recebido":
-          return { label: "Ver Detalhes", icon: Eye };
-        case "Em espera":
-          return { label: "Iniciar Produção", icon: CheckCircle2 };
-        case "Em serviço":
-          return { label: "Finalizar Serviço", icon: CheckCircle2 };
-        case "Em finalização":
-          return { label: "Pronto p/ Entrega", icon: CheckCircle2 };
-        case "Pronto para entrega ou retirada":
-          return { label: "Marcar Entregue", icon: CheckCircle2 };
-        default:
-          return { label: "Ver OS", icon: Eye };
-      }
-    };
+      // Dynamic button based on status
+      const getActionButton = () => {
+        switch (order.status) {
+          case "Recebido":
+            return { label: "Ver Detalhes", icon: Eye };
+          case "Em espera":
+            return { label: "Iniciar Produção", icon: CheckCircle2 };
+          case "Em serviço":
+            return { label: "Finalizar Serviço", icon: CheckCircle2 };
+          case "Em finalização":
+            return { label: "Pronto p/ Entrega", icon: CheckCircle2 };
+          case "Pronto para entrega ou retirada":
+            return { label: "Marcar Entregue", icon: CheckCircle2 };
+          default:
+            return { label: "Ver OS", icon: Eye };
+        }
+      };
 
-    const action = getActionButton();
+      const action = getActionButton();
 
-    return (
-      <Card 
-        className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all hover:ring-2 ring-blue-400/30 group relative ${order.priority ? 'bg-amber-50/20 ring-1 ring-amber-200' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''}`}
-      >
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                {order.status === "Recebido" ? "ENTRADA: " : "ACEITO EM: "}
-                {new Date(order.accepted_at || order.entry_date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-              </span>
-              <span className="text-2xl font-black text-blue-600 tracking-tight mt-1">{order.os_number}</span>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              {getStatusBadge(order.status)}
-              {isOverdue && (
-                <span className="text-[8px] font-black text-red-500 uppercase animate-pulse">
-                  ATRASADA: {new Date(order.delivery_date!).toLocaleDateString("pt-BR")}
+      return (
+        <Card 
+          onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}
+          className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all hover:ring-2 ring-blue-400/30 group relative cursor-pointer ${order.priority ? 'bg-amber-50/20 ring-1 ring-amber-200' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''}`}
+        >
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  {order.status === "Recebido" ? "ENTRADA: " : "ACEITO EM: "}
+                  {new Date(order.accepted_at || order.entry_date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                 </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center relative">
-              <UserIcon className="w-5 h-5 text-slate-400" />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePriority(order.id, order.priority);
-                }}
-                className={`absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-sm bg-white border border-slate-100 transition-all ${order.priority ? 'text-amber-500' : 'text-slate-200'}`}
-              >
-                <Star className={`w-3 h-3 ${order.priority ? 'fill-current' : ''}`} />
-              </Button>
-            </div>
-            <div className="flex flex-col flex-1 min-w-0">
-              <span className="text-sm font-bold text-slate-700 truncate">{order.clients?.name}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
+                <span className="text-2xl font-black text-blue-600 tracking-tight mt-1">{order.os_number}</span>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {getStatusBadge(order.status)}
+                {order.delivery_date && (
+                  <span className={`text-[10px] font-black uppercase tracking-tight flex items-center gap-1 ${isOverdue ? 'text-red-500 animate-pulse' : 'text-slate-900'}`}>
+                    ENTREGA: {new Date(order.delivery_date).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                  </span>
+                )}
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <Link href={`/interno/os/${order.os_number.replace("/", "-")}`} className="w-full">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center relative">
+                <UserIcon className="w-5 h-5 text-slate-400" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePriority(order.id, order.priority);
+                  }}
+                  className={`absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-sm bg-white border border-slate-100 transition-all ${order.priority ? 'text-amber-500' : 'text-slate-200'}`}
+                >
+                  <Star className={`w-3 h-3 ${order.priority ? 'fill-current' : ''}`} />
+                </Button>
+              </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-sm font-bold text-slate-700 truncate">{order.clients?.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
               <Button 
                 variant="ghost" 
                 className="w-full justify-between rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 font-bold text-xs h-12 px-5 transition-all active:scale-95"
@@ -438,32 +437,33 @@ export default function DashboardPage() {
                   <action.icon className="w-3 h-3" />
                 </div>
               </Button>
-            </Link>
 
-            {order.status !== "Entregue" && order.status !== "Cancelado" && (
-              <Select
-                value={order.status}
-                onValueChange={(v) => handleStatusChange(order.id, v as Status)}
-              >
-                <SelectTrigger className="h-8 text-[9px] rounded-xl border-none bg-transparent hover:bg-slate-50 font-black uppercase tracking-widest text-slate-400">
-                  <SelectValue placeholder="Alterar Status" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                  <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                  <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                  <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                  <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
-                  <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto p/ Entrega</SelectItem>
-                  <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                  <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+              {order.status !== "Entregue" && order.status !== "Cancelado" && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Select
+                    value={order.status}
+                    onValueChange={(v) => handleStatusChange(order.id, v as Status)}
+                  >
+                    <SelectTrigger className="h-8 text-[9px] rounded-xl border-none bg-transparent hover:bg-slate-50 font-black uppercase tracking-widest text-slate-400">
+                      <SelectValue placeholder="Alterar Status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                      <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
+                      <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
+                      <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
+                      <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
+                      <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto p/ Entrega</SelectItem>
+                      <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
+                      <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    };
 
 
     const metrics = useMemo(() => {
