@@ -181,8 +181,8 @@ export default function TodosPedidosPage() {
     const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
     const message = encodeURIComponent(
       `Olá ${order.clients.name}! Sua Ordem de Serviço #${order.os_number} está no sistema da TENISLAB.\n\n` +
-      `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
-      `Lembrando que o prazo de entrega começa a contar a partir do momento do seu aceite!\n\n` +
+      `📍 *IMPORTANTE:* O prazo de entrega do seu tênis só começa a contar a partir do momento do seu *ACEITE DIGITAL* no link abaixo.\n\n` +
+      `Para conferir os detalhes e autorizar o serviço, acesse:\n${acceptanceLink}\n\n` +
       `Qualquer dúvida, estamos à disposição!`
     );
     

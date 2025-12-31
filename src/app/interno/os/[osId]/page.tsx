@@ -94,22 +94,22 @@ export default function OSViewPage() {
   const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
     
-      const handleShareLink = () => {
-        if (!order) return;
-        
-        const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-        
-        const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
-        const message = encodeURIComponent(
-          `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da TENISLAB.\n\n` +
-          `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
-          `Lembrando que o prazo de entrega começa a contar a partir do momento do seu aceite!\n\n` +
-          `Qualquer dúvida, estamos à disposição!`
-        );
-        
-        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-      };
+        const handleShareLink = () => {
+          if (!order) return;
+          
+          const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
+          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+          
+          const acceptanceLink = `${window.location.origin}/aceite/${order.id}`;
+          const message = encodeURIComponent(
+            `Olá ${order.clients?.name}! Sua Ordem de Serviço #${order.os_number} está pronta no sistema da TENISLAB.\n\n` +
+            `📍 *IMPORTANTE:* O prazo de entrega do seu tênis só começa a contar a partir do momento do seu *ACEITE DIGITAL* no link abaixo.\n\n` +
+            `Para conferir os detalhes e autorizar o serviço, acesse:\n${acceptanceLink}\n\n` +
+            `Qualquer dúvida, estamos à disposição!`
+          );
+          
+          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        };
     
     // Payment edit states
     const [newPaymentMethod, setNewPaymentMethod] = useState("");

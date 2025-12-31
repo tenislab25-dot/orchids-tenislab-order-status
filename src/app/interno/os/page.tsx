@@ -406,23 +406,23 @@ export default function OSPage() {
       }
     };
 
-    const sendWhatsAppLink = () => {
-      if (!createdOS) return;
-      
-      const cleanPhone = clientPhone.replace(/\D/g, "");
-      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-      
-      const acceptanceLink = `${window.location.origin}/aceite/${createdOS.id}`;
-      const message = encodeURIComponent(
-        `Olá ${clientName}! Sua Ordem de Serviço #${osNumber} foi criada na TENISLAB.\n\n` +
-        `Para conferir os detalhes e dar o seu aceite digital, acesse o link abaixo:\n${acceptanceLink}\n\n` +
-        `Lembrando que o prazo de entrega começa a contar a partir do momento do seu aceite!\n\n` +
-        `Qualquer dúvida, estamos à disposição!`
-      );
-      
-      window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-      router.push("/interno/dashboard");
-    };
+      const sendWhatsAppLink = () => {
+        if (!createdOS) return;
+        
+        const cleanPhone = clientPhone.replace(/\D/g, "");
+        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+        
+        const acceptanceLink = `${window.location.origin}/aceite/${createdOS.id}`;
+        const message = encodeURIComponent(
+          `Olá ${clientName}! Sua Ordem de Serviço #${osNumber} foi criada na TENISLAB.\n\n` +
+          `📍 *IMPORTANTE:* O prazo de entrega do seu tênis só começa a contar a partir do momento do seu *ACEITE DIGITAL* no link abaixo.\n\n` +
+          `Para conferir os detalhes e autorizar o serviço, acesse:\n${acceptanceLink}\n\n` +
+          `Qualquer dúvida, estamos à disposição!`
+        );
+        
+        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        router.push("/interno/dashboard");
+      };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
