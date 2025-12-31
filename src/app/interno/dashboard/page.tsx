@@ -259,27 +259,38 @@ export default function DashboardPage() {
 
     if (error) {
       toast.error("Erro ao atualizar status: " + error.message);
-    } else {
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-      toast.success("Status atualizado!");
-
-      if (newStatus === "Pronto para entrega ou retirada" && data?.clients) {
-        const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
-        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-        const message = encodeURIComponent(
-          `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tênis Lab.\n\n` +
-          `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
-          `Qualquer dúvida, estamos à disposição!`
+      } else {
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.id === orderId ? { ...order, status: newStatus } : order
+          )
         );
-        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-      } else if (newStatus === "Entregue") {
-        toast.info("Certifique-se de enviar o link p/pagamento.", { duration: 6000 });
+        toast.success("Status atualizado!");
+
+        if (newStatus === "Pronto para entrega ou retirada" && data?.clients) {
+          const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
+          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+          const message = encodeURIComponent(
+            `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tênis Lab. ✨\n\n` +
+            `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+            `Qualquer dúvida, estamos à disposição!`
+          );
+          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        } else if (newStatus === "Entregue" && data?.clients) {
+          const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
+          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+          const paymentLink = `${window.location.origin}/pagamento/${data.id}`;
+          
+          const message = encodeURIComponent(
+            `Olá ${data.clients.name}! Seu pedido #${data.os_number} foi entregue! 📦\n\n` +
+            `Valor total: R$ ${Number(data.total).toFixed(2)}\n\n` +
+            `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+            `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CU_FNQNTD6CIDFMI1/review\n\n` +
+            `Obrigado pela preferência!`
+          );
+          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        }
       }
-    }
   };
 
   const sortedAndFilteredOrders = useMemo(() => {
