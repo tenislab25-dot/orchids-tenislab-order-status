@@ -350,8 +350,13 @@ export default function DashboardPage() {
       Cancelado: "bg-red-100 text-red-700",
     };
     return (
-      <Badge className={`${styles[status]} border-none px-3 py-1`}>
-        {status}
+      <Badge className={`${styles[status]} border-none px-3 py-1 h-auto whitespace-normal text-center`}>
+        {status === "Pronto para entrega ou retirada" ? (
+          <span className="flex flex-col leading-none py-0.5">
+            <span>PRONTO P/</span>
+            <span>ENTREGA</span>
+          </span>
+        ) : status}
       </Badge>
     );
   };
