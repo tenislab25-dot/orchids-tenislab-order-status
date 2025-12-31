@@ -361,6 +361,32 @@ export default function DashboardPage() {
     );
   };
 
+  const metrics = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const monthlyTotal = orders
+      .filter(o => {
+        const entryDate = new Date(o.entry_date);
+        return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear && o.status !== "Cancelado";
+      })
+      .reduce((acc, o) => acc + (o.total || 0), 0);
+
+    const pendingAcceptance = orders.filter(o => o.status === "Recebido").length;
+    const inProduction = orders.filter(o => ["Em espera", "Em serviço", "Em finalização"].includes(o.status)).length;
+    
+    const overdue = orders.filter(o => {
+      if (!o.delivery_date || o.status === "Entregue" || o.status === "Cancelado") return false;
+      const delivery = new Date(o.delivery_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return delivery < today;
+    }).length;
+
+    return { monthlyTotal, pendingAcceptance, inProduction, overdue };
+  }, [orders]);
+
   return (
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
@@ -405,6 +431,57 @@ export default function DashboardPage() {
           </div>
       </header>
 
+      {/* KPI METRICS */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-4 duration-500 delay-75">
+        <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <DollarSign className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento Mês</span>
+            </div>
+            <p className="text-2xl font-black text-slate-900">R$ {metrics.monthlyTotal.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                <Search className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aguardando Aceite</span>
+            </div>
+            <p className="text-2xl font-black text-slate-900">{metrics.pendingAcceptance}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <Package className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Em Produção</span>
+            </div>
+            <p className="text-2xl font-black text-slate-900">{metrics.inProduction}</p>
+          </CardContent>
+        </Card>
+
+        <Card className={`border-none shadow-sm rounded-3xl bg-white overflow-hidden ${metrics.overdue > 0 ? 'ring-2 ring-red-100' : ''}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${metrics.overdue > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'}`}>
+                <Calendar className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">OS Atrasadas</span>
+            </div>
+            <p className={`text-2xl font-black ${metrics.overdue > 0 ? 'text-red-600' : 'text-slate-900'}`}>{metrics.overdue}</p>
+          </CardContent>
+        </Card>
+      </section>
+
       {/* RECENT NOTIFICATIONS / CONFIRMATIONS */}
       {recentConfirmations.length > 0 && (
         <section className="animate-in fade-in slide-in-from-top-4 duration-700">
@@ -414,12 +491,12 @@ export default function DashboardPage() {
           </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {recentConfirmations.map((order) => {
-                  const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60; // 60 minutes
+                  const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2; // 2 hours
 
                   return (
                     <Card 
                       key={order.id} 
-                      className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all cursor-pointer group relative ${isVeryRecent ? 'ring-2 ring-red-500 animate-pulse-red' : 'hover:ring-2 ring-amber-400/30'}`} 
+                      className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all cursor-pointer group relative ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : 'hover:ring-2 ring-amber-400/30'}`} 
                       onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}
                     >
                       {isVeryRecent && (
@@ -515,18 +592,20 @@ export default function DashboardPage() {
                         Entrada {getSortIcon('entry_date')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => handleSort('delivery_date')}
-                    >
-                      <div className="flex items-center">
-                        Previsão {getSortIcon('delivery_date')}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => handleSort('status')}
-                    >
+                      <TableHead 
+                        className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort('delivery_date')}
+                      >
+                        <div className="flex items-center">
+                          Previsão {getSortIcon('delivery_date')}
+                        </div>
+                      </TableHead>
+                      <TableHead className="font-bold text-slate-500 text-center">Pagamento</TableHead>
+                      <TableHead 
+                        className="font-bold text-slate-500 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => handleSort('status')}
+                      >
+
                       <div className="flex items-center">
                         Status {getSortIcon('status')}
                       </div>
@@ -563,8 +642,9 @@ export default function DashboardPage() {
                     </TableRow>
                   ) : (
                     <>
-                          {sortedAndFilteredOrders.map((order) => {
-                            const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60; // 60 minutes
+                            {sortedAndFilteredOrders.map((order) => {
+                              const isVeryRecent = order.accepted_at && (new Date().getTime() - new Date(order.accepted_at).getTime()) < 1000 * 60 * 60 * 2; // 2 hours
+
 
                             return (
                               <TableRow key={order.id} className={`hover:bg-slate-50/50 transition-colors border-b border-slate-50 group ${order.priority ? 'bg-amber-50/30' : ''} ${isVeryRecent ? 'bg-red-50/10 border-l-4 border-l-red-500' : ''}`}>
@@ -599,18 +679,28 @@ export default function DashboardPage() {
                           <TableCell className="text-slate-500 text-xs font-bold">
                             {new Date(order.entry_date).toLocaleDateString("pt-BR")}
                           </TableCell>
-                          <TableCell>
-                            {order.delivery_date ? (
-                              <span className={`text-xs font-black ${
-                                new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
-                                ? "text-red-500 animate-pulse" 
-                                : "text-slate-500"
-                              }`}>
-                                {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
-                              </span>
-                            ) : "--/--"}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                            <TableCell>
+                              {order.delivery_date ? (
+                                <span className={`text-xs font-black ${
+                                  new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
+                                  ? "text-red-500 animate-pulse" 
+                                  : "text-slate-500"
+                                }`}>
+                                  {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
+                                </span>
+                              ) : "--/--"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {order.payment_confirmed ? (
+                                <Badge className="bg-emerald-100 text-emerald-700 border-none text-[10px] font-bold">PAGO</Badge>
+                              ) : order.pay_on_entry ? (
+                                <Badge className="bg-blue-100 text-blue-700 border-none text-[10px] font-bold">NA ENTREG.</Badge>
+                              ) : (
+                                <Badge className="bg-slate-100 text-slate-400 border-none text-[10px] font-bold">PENDENTE</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>{getStatusBadge(order.status)}</TableCell>
+
                             <TableCell className="text-center">
                               <Button
                                 variant="ghost"
