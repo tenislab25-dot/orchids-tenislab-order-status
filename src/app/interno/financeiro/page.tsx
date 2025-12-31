@@ -97,7 +97,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
         const totalCash = confirmedOrders.reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
   
         const projectedRevenue = orders
-          .filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
+          .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
           .reduce((acc, o) => acc + Number(o.total || 0), 0);
   
         const totalProjected = totalCash + projectedRevenue;
@@ -455,23 +455,23 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {orders.filter(o => 
-                          activeTab === "confirmados" 
-                            ? (o.payment_confirmed || o.pay_on_entry)
-                            : (o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
-                        ).length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center py-10 text-slate-400">
-                              Nenhuma transação encontrada.
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          orders
-                            .filter(o => 
-                              activeTab === "confirmados" 
-                                ? (o.payment_confirmed || o.pay_on_entry)
-                                : (o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
-                            )
+                          {orders.filter(o => 
+                            activeTab === "confirmados" 
+                              ? (o.payment_confirmed || o.pay_on_entry)
+                              : (o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
+                          ).length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center py-10 text-slate-400">
+                                Nenhuma transação encontrada.
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            orders
+                              .filter(o => 
+                                activeTab === "confirmados" 
+                                  ? (o.payment_confirmed || o.pay_on_entry)
+                                  : (o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
+                              )
                             .map((order) => (
                               <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
                                 <TableCell className="pl-8 font-mono font-black text-blue-600">

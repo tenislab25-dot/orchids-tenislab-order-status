@@ -304,7 +304,7 @@ export default function DashboardPage() {
     );
 
     if (filter === "pendentes") {
-      result = result.filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry));
+      result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
     } else if (filter !== "all") {
       result = result.filter(o => o.status === filter);
     }
@@ -524,9 +524,9 @@ export default function DashboardPage() {
       return delivery < today;
     }).length;
 
-    const pendingPayments = orders.filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry)).length;
+    const pendingPayments = orders.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry)).length;
     const pendingAmount = orders
-      .filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
+      .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
       .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
     return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount };
