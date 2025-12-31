@@ -58,6 +58,8 @@ interface Order {
   delivery_date?: string;
   total?: number;
   priority: boolean;
+  payment_confirmed: boolean;
+  pay_on_entry: boolean;
   updated_at?: string;
   accepted_at?: string;
   items: any[];
@@ -81,6 +83,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<Status | "all" | "pendentes">("all");
   const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
@@ -296,9 +299,15 @@ export default function DashboardPage() {
   const sortedAndFilteredOrders = useMemo(() => {
     let result = orders.filter(
       (order) =>
-        order.os_number.toLowerCase().includes(search.toLowerCase()) ||
-        order.clients?.name.toLowerCase().includes(search.toLowerCase())
+        (order.os_number.toLowerCase().includes(search.toLowerCase()) ||
+        order.clients?.name.toLowerCase().includes(search.toLowerCase()))
     );
+
+    if (filter === "pendentes") {
+      result = result.filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry));
+    } else if (filter !== "all") {
+      result = result.filter(o => o.status === filter);
+    }
 
     if (sortConfig.key && sortConfig.direction) {
       result.sort((a, b) => {
@@ -357,7 +366,7 @@ export default function DashboardPage() {
     }
 
     return result.slice(0, 20);
-  }, [orders, search, sortConfig]);
+  }, [orders, search, sortConfig, filter]);
 
   const getStatusBadge = (status: Status) => {
     const styles = {
@@ -515,7 +524,12 @@ export default function DashboardPage() {
       return delivery < today;
     }).length;
 
-    return { sneakersMonth, pendingAcceptance, inProduction, overdue };
+    const pendingPayments = orders.filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry)).length;
+    const pendingAmount = orders
+      .filter(o => o.status !== "Cancelado" && !(o.payment_confirmed || o.pay_on_entry))
+      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+
+    return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount };
   }, [orders]);
 
   return (
@@ -563,7 +577,7 @@ export default function DashboardPage() {
       </header>
 
       {/* KPI METRICS */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-4 duration-500 delay-75">
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-in fade-in slide-in-from-top-4 duration-500 delay-75">
         <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-2">
@@ -611,6 +625,24 @@ export default function DashboardPage() {
             <p className={`text-2xl font-black ${metrics.overdue > 0 ? 'text-red-600' : 'text-slate-900'}`}>{metrics.overdue}</p>
           </CardContent>
         </Card>
+
+        {(role === "ADMIN") && (
+          <Card 
+            onClick={() => setFilter(filter === "pendentes" ? "all" : "pendentes")}
+            className={`border-none shadow-sm rounded-3xl bg-white overflow-hidden cursor-pointer transition-all hover:scale-[1.02] active:scale-95 ${filter === "pendentes" ? 'ring-2 ring-blue-500 bg-blue-50/30' : ''}`}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">A Receber</span>
+              </div>
+              <p className="text-2xl font-black text-slate-900">R$ {metrics.pendingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1">{metrics.pendingPayments} PENDENTES</p>
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       {/* MAIN LIST */}
@@ -640,6 +672,20 @@ export default function DashboardPage() {
                   )}
                 </Button>
               ))}
+              {(role === "ADMIN") && (
+                <Button
+                  variant={filter === "pendentes" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilter(filter === "pendentes" ? "all" : "pendentes")}
+                  className={`rounded-full px-5 h-9 text-[10px] font-black uppercase tracking-widest transition-all ${
+                    filter === "pendentes" 
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100" 
+                      : "border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+                  }`}
+                >
+                  PENDENTES DE PAGAMENTO
+                </Button>
+              )}
             </div>
           </div>
           <div className="relative w-full md:w-96">
