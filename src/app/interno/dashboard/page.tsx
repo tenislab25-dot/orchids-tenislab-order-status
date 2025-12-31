@@ -250,10 +250,12 @@ export default function DashboardPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: Status) => {
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from("service_orders")
       .update({ status: newStatus })
-      .eq("id", orderId);
+      .eq("id", orderId)
+      .select(`*, clients(name, phone)`)
+      .single();
 
     if (error) {
       toast.error("Erro ao atualizar status: " + error.message);
@@ -265,8 +267,15 @@ export default function DashboardPage() {
       );
       toast.success("Status atualizado!");
 
-      if (newStatus === "Pronto para entrega ou retirada") {
-        toast.info("Certifique-se de enviar notificação ao cliente que o pedido esta pronto.", { duration: 6000 });
+      if (newStatus === "Pronto para entrega ou retirada" && data?.clients) {
+        const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
+        const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+        const message = encodeURIComponent(
+          `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tênis Lab.\n\n` +
+          `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+          `Qualquer dúvida, estamos à disposição!`
+        );
+        window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
       } else if (newStatus === "Entregue") {
         toast.info("Certifique-se de enviar o link p/pagamento.", { duration: 6000 });
       }

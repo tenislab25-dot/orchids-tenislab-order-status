@@ -808,6 +808,54 @@ export default function OSViewPage() {
                   </CardHeader>
 
                 <CardContent className="p-6 space-y-6">
+                    {((item.photosBefore && item.photosBefore.length > 0) || (item.photosAfter && item.photosAfter.length > 0)) && (
+                      <div className="space-y-4">
+                        {item.photosBefore && item.photosBefore.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500" />
+                              ANTES
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {item.photosBefore.map((photo: string, pIdx: number) => (
+                                <div 
+                                  key={pIdx} 
+                                  className="relative aspect-video rounded-2xl overflow-hidden border-2 border-blue-200 cursor-pointer group"
+                                  onClick={() => setSelectedImage(photo)}
+                                >
+                                  <Image src={photo} alt={`Antes ${pIdx + 1}`} fill className="object-cover" />
+                                  <div className="absolute top-2 left-2">
+                                    <Badge className="bg-blue-500 text-white text-[8px] font-bold">ANTES</Badge>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {item.photosAfter && item.photosAfter.length > 0 && (
+                          <div className="space-y-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-green-500 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-green-500" />
+                              DEPOIS
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {item.photosAfter.map((photo: string, pIdx: number) => (
+                                <div 
+                                  key={pIdx} 
+                                  className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
+                                  onClick={() => setSelectedImage(photo)}
+                                >
+                                  <Image src={photo} alt={`Depois ${pIdx + 1}`} fill className="object-cover" />
+                                  <div className="absolute top-2 left-2">
+                                    <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 {item.photos && item.photos.length > 0 && (
                           <div className="grid grid-cols-2 gap-2 pb-2">
                               {item.photos.map((photo: string, pIdx: number) => {

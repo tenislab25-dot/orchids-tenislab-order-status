@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,7 +14,9 @@ import {
       ArrowUp,
       ArrowDown,
       ArrowUpDown,
-      Star
+      Star,
+      ChevronLeft,
+      ChevronRight
     } from "lucide-react";
 
 
@@ -30,7 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -52,15 +54,28 @@ interface Order {
   } | null;
 }
 
+const PAGE_SIZE = 20;
+
 export default function TodosPedidosPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' | null }>({
     key: 'updated_at',
     direction: 'desc'
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' | null = 'asc';
@@ -70,6 +85,7 @@ export default function TodosPedidosPage() {
       direction = null;
     }
     setSortConfig({ key, direction });
+    setCurrentPage(1);
   };
 
     const getSortIcon = (key: string) => {
@@ -106,16 +122,14 @@ export default function TodosPedidosPage() {
           router.push("/interno/dashboard");
           return;
         }
-        fetchOrders();
       }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const from = (currentPage - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-    // Fetch orders that are NOT completed > 30 days
-    const { data, error } = await supabase
+    let query = supabase
       .from("service_orders")
       .select(`
         *,
@@ -123,23 +137,37 @@ export default function TodosPedidosPage() {
           name,
           phone
         )
-      `)
-      .order("updated_at", { ascending: false });
+      `, { count: 'exact' });
+
+    if (debouncedSearch) {
+      query = query.or(`os_number.ilike.%${debouncedSearch}%,clients.name.ilike.%${debouncedSearch}%`);
+    }
+
+    if (sortConfig.key && sortConfig.direction) {
+      const column = sortConfig.key === 'client' ? 'clients(name)' : sortConfig.key;
+      query = query.order(sortConfig.key, { ascending: sortConfig.direction === 'asc' });
+    } else {
+      query = query.order('updated_at', { ascending: false });
+    }
+
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
 
     if (error) {
       toast.error("Erro ao buscar ordens: " + error.message);
     } else {
-      // Filter out archived ones in JS for simplicity, or we could do it in SQL
-      const filtered = data?.filter((o: any) => {
-        const isDone = o.status === "Entregue" || o.status === "Cancelado";
-        if (!isDone) return true;
-        const updatedAt = new Date(o.updated_at || o.created_at);
-        return updatedAt > thirtyDaysAgo;
-      });
-      setOrders(filtered as Order[]);
+      setOrders(data as Order[]);
+      setTotalCount(count || 0);
     }
     setLoading(false);
-  };
+  }, [currentPage, debouncedSearch, sortConfig]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const handleShareLink = (order: Order) => {
     if (!order.clients?.phone) {
@@ -160,61 +188,6 @@ export default function TodosPedidosPage() {
     
     window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
   };
-
-  const filteredOrders = useMemo(() => {
-    let result = orders.filter(
-      (order) =>
-        order.os_number.toLowerCase().includes(search.toLowerCase()) ||
-        order.clients?.name.toLowerCase().includes(search.toLowerCase())
-    );
-
-    if (sortConfig.key && sortConfig.direction) {
-      result.sort((a, b) => {
-        let aValue: any;
-        let bValue: any;
-
-        switch (sortConfig.key) {
-          case 'os_number':
-            aValue = a.os_number;
-            bValue = b.os_number;
-            break;
-          case 'client':
-            aValue = a.clients?.name || '';
-            bValue = b.clients?.name || '';
-            break;
-          case 'entry_date':
-            aValue = new Date(a.entry_date).getTime();
-            bValue = new Date(b.entry_date).getTime();
-            break;
-            case 'status':
-              aValue = a.status;
-              bValue = b.status;
-              break;
-            case 'priority':
-              aValue = a.priority ? 1 : 0;
-              bValue = b.priority ? 1 : 0;
-              break;
-            case 'delivery_date':
-              aValue = new Date(a.delivery_date || '9999-12-31').getTime();
-              bValue = new Date(b.delivery_date || '9999-12-31').getTime();
-              break;
-            case 'updated_at':
-
-            aValue = new Date(a.updated_at || 0).getTime();
-            bValue = new Date(b.updated_at || 0).getTime();
-            break;
-          default:
-            return 0;
-        }
-
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return result;
-  }, [orders, search, sortConfig]);
 
       const getStatusBadge = (status: Status) => {
         const styles = {
@@ -321,10 +294,10 @@ export default function TodosPedidosPage() {
                 <TableBody>
                     {loading ? (
                       <TableRow><TableCell colSpan={7} className="text-center py-20">Carregando...</TableCell></TableRow>
-                    ) : filteredOrders.length === 0 ? (
+                    ) : orders.length === 0 ? (
                       <TableRow><TableCell colSpan={7} className="text-center py-20 text-slate-400">Nenhuma OS encontrada</TableCell></TableRow>
                     ) : (
-                    filteredOrders.map((order) => (
+                    orders.map((order) => (
                         <TableRow key={order.id} className={`hover:bg-slate-50/50 border-b border-slate-50 ${order.priority ? 'bg-amber-50/30' : ''}`}>
                           <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
                           <TableCell className="font-bold text-slate-700">
@@ -382,8 +355,34 @@ export default function TodosPedidosPage() {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+</CardContent>
+          <CardFooter className="border-t border-slate-100 p-6 flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              {totalCount} OS no total · Página {currentPage} de {totalPages || 1}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1 || loading}
+                className="h-10 w-10 rounded-xl border-slate-200"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-bold text-slate-600 px-3">{currentPage}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage >= totalPages || loading}
+                className="h-10 w-10 rounded-xl border-slate-200"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
     </div>
   );
 }

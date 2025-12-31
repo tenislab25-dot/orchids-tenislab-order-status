@@ -57,6 +57,8 @@ interface OSItem {
   notes: string;
   subtotal: number;
   photos?: string[];
+  photosBefore?: string[];
+  photosAfter?: string[];
   status?: string;
 }
 
@@ -139,7 +141,7 @@ export default function EditOSPage() {
     }, {} as Record<string, { id: string, name: string, price: number }[]>);
   }, [services]);
 
-  const handleFileChange = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>, type: 'before' | 'after' = 'before') => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -150,7 +152,7 @@ export default function EditOSPage() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const compressedFile = await compressImage(file, 1920, 0.85);
-        const fileName = `${Math.random()}.jpg`;
+        const fileName = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
         const { data, error } = await supabase.storage.from('photos').upload(fileName, compressedFile);
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('photos').getPublicUrl(fileName);
@@ -159,7 +161,11 @@ export default function EditOSPage() {
 
       setItems(items.map(item => {
         if (item.id === itemId) {
-          return { ...item, photos: [...(item.photos || []), ...newPhotoUrls] };
+          if (type === 'before') {
+            return { ...item, photosBefore: [...(item.photosBefore || []), ...newPhotoUrls] };
+          } else {
+            return { ...item, photosAfter: [...(item.photosAfter || []), ...newPhotoUrls] };
+          }
         }
         return item;
       }));
@@ -329,42 +335,83 @@ export default function EditOSPage() {
                 </Button>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Fotos do par</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {item.photos?.map((photo, pIdx) => (
-                      <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group">
-                        <Image src={photo} alt="Foto do par" fill className="object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-                          <button 
-                            type="button"
-                            onClick={() => {
-                              setItems(items.map(it => {
-                                if (it.id === item.id) {
-                                  return { ...it, photos: it.photos?.filter((_, i) => i !== pIdx) };
-                                }
-                                return it;
-                              }));
-                            }}
-                            className="bg-red-500 text-white p-4 rounded-full shadow-2xl"
-                          >
-                            <Trash2 className="w-6 h-6" />
-                          </button>
-                        </div>
+<div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-blue-500 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500" />
+                        Fotos ANTES (Entrada)
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {item.photosBefore?.map((photo: string, pIdx: number) => (
+                          <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-blue-200 group">
+                            <Image src={photo} alt="Foto antes" fill className="object-cover" />
+                            <div className="absolute top-2 left-2">
+                              <Badge className="bg-blue-500 text-white text-[8px] font-bold">ANTES</Badge>
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setItems(items.map(it => {
+                                    if (it.id === item.id) {
+                                      return { ...it, photosBefore: it.photosBefore?.filter((_: string, i: number) => i !== pIdx) };
+                                    }
+                                    return it;
+                                  }));
+                                }}
+                                className="bg-red-500 text-white p-4 rounded-full shadow-2xl"
+                              >
+                                <Trash2 className="w-6 h-6" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        <label className="aspect-video w-full rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex flex-col items-center justify-center gap-2 text-blue-400 hover:bg-blue-100 cursor-pointer">
+                          <Camera className="w-8 h-8" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">ANTES</span>
+                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(item.id, e, 'before')} />
+                        </label>
                       </div>
-                    ))}
-                    <label className="aspect-video w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:bg-slate-200 cursor-pointer">
-                      <Camera className="w-8 h-8" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Tirar foto</span>
-                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(item.id, e)} />
-                    </label>
-                    <label className="aspect-video w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:bg-slate-200 cursor-pointer">
-                      <ImagePlus className="w-8 h-8" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Galeria</span>
-                      <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFileChange(item.id, e)} />
-                    </label>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-green-500 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                        Fotos DEPOIS (Finalizado)
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {item.photosAfter?.map((photo: string, pIdx: number) => (
+                          <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 group">
+                            <Image src={photo} alt="Foto depois" fill className="object-cover" />
+                            <div className="absolute top-2 left-2">
+                              <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setItems(items.map(it => {
+                                    if (it.id === item.id) {
+                                      return { ...it, photosAfter: it.photosAfter?.filter((_: string, i: number) => i !== pIdx) };
+                                    }
+                                    return it;
+                                  }));
+                                }}
+                                className="bg-red-500 text-white p-4 rounded-full shadow-2xl"
+                              >
+                                <Trash2 className="w-6 h-6" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        <label className="aspect-video w-full rounded-2xl bg-green-50 border-2 border-dashed border-green-200 flex flex-col items-center justify-center gap-2 text-green-400 hover:bg-green-100 cursor-pointer">
+                          <Camera className="w-8 h-8" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">DEPOIS</span>
+                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(item.id, e, 'after')} />
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
                 <div className="space-y-2">
                   <Label>Serviços</Label>

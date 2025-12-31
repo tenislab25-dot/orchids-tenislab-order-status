@@ -11,7 +11,8 @@ import {
   Calendar as CalendarIcon,
   CreditCard,
   Banknote,
-  PieChart
+  PieChart,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -28,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell, LineChart, Line, CartesianGrid } from "recharts";
 
 type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
@@ -41,6 +43,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
     pay_on_entry: boolean;
     payment_confirmed: boolean;
     machine_fee: number;
+    items: any[];
     clients: {
       name: string;
     } | null;
@@ -74,6 +77,7 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
           pay_on_entry,
           payment_confirmed,
           machine_fee,
+          items,
           clients (
             name
           )
@@ -130,6 +134,45 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
       });
 
       return { totalCash, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
+    }, [orders]);
+
+    const monthlyData = useMemo(() => {
+      const months: Record<string, number> = {};
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      
+      orders
+        .filter(o => o.payment_confirmed || o.pay_on_entry)
+        .forEach(o => {
+          const date = new Date(o.entry_date);
+          const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+          months[key] = (months[key] || 0) + (Number(o.total || 0) - Number(o.machine_fee || 0));
+        });
+
+      return Object.entries(months)
+        .slice(-6)
+        .map(([month, total]) => ({ month, total }));
+    }, [orders]);
+
+    const popularServices = useMemo(() => {
+      const servicesCount: Record<string, number> = {};
+      
+      orders.forEach(order => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach((item: any) => {
+            if (item.services && Array.isArray(item.services)) {
+              item.services.forEach((service: any) => {
+                const name = service.name || 'Desconhecido';
+                servicesCount[name] = (servicesCount[name] || 0) + 1;
+              });
+            }
+          });
+        }
+      });
+
+      return Object.entries(servicesCount)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([name, count]) => ({ name, count }));
     }, [orders]);
 
   if (role !== "ADMIN") {
@@ -231,6 +274,86 @@ type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
                     <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Total perdido</p>
                   </div>
                 </div>
+              </Card>
+            </div>
+
+            {/* CHARTS ROW */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* MONTHLY REVENUE CHART */}
+              <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden">
+                <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
+                  <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-500" />
+                    Faturamento Mensal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {monthlyData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={monthlyData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} />
+                        <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={(v) => `R$${(v/1000).toFixed(0)}k`} />
+                        <Tooltip 
+                          formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Faturamento']}
+                          contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                        />
+                        <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                          {monthlyData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={index === monthlyData.length - 1 ? '#3b82f6' : '#e2e8f0'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[250px] flex items-center justify-center text-slate-400 text-sm">
+                      Sem dados suficientes
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* POPULAR SERVICES CHART */}
+              <Card className="rounded-[2rem] border-none shadow-sm bg-white overflow-hidden">
+                <CardHeader className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
+                  <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-blue-500" />
+                    Serviços Mais Populares
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {popularServices.length > 0 ? (
+                    <div className="flex flex-col gap-4">
+                      {popularServices.map((service, idx) => {
+                        const maxCount = popularServices[0]?.count || 1;
+                        const percentage = (service.count / maxCount) * 100;
+                        return (
+                          <div key={service.name} className="flex items-center gap-4">
+                            <span className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500">
+                              {idx + 1}
+                            </span>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs font-bold text-slate-700 truncate max-w-[200px]">{service.name}</span>
+                                <span className="text-xs font-black text-slate-900">{service.count}x</span>
+                              </div>
+                              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="h-[250px] flex items-center justify-center text-slate-400 text-sm">
+                      Sem dados de serviços
+                    </div>
+                  )}
+                </CardContent>
               </Card>
             </div>
 
