@@ -145,13 +145,23 @@ export default function CustomerAcceptancePage() {
       })
       .eq("id", id);
 
-    if (error) {
-      toast.error("Erro ao confirmar serviço");
-    } else {
-      setOrder({ ...order, status: "Em espera", accepted_at: acceptedAt, delivery_date: deliveryDateStr });
-      setIsConfirmed(true);
-      toast.success("Serviço aceito com sucesso!");
-    }
+if (error) {
+        toast.error("Erro ao confirmar serviço");
+      } else {
+        setOrder({ ...order, status: "Em espera", accepted_at: acceptedAt, delivery_date: deliveryDateStr });
+        setIsConfirmed(true);
+        toast.success("Serviço aceito com sucesso!");
+
+        fetch("/api/notifications/client-accepted", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientName: order.clients?.name || "Cliente",
+            osNumber: order.os_number,
+            deliveryDate: deliveryDateStr,
+          }),
+        }).catch(console.error);
+      }
     setConfirming(false);
   };
 

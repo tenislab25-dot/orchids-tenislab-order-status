@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Lock, Mail, AlertCircle, Loader2 } from "lucide-react";
+import { Lock, Mail, AlertCircle, Loader2, ShieldCheck } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 import { supabase } from "@/lib/supabase";
 
@@ -17,6 +18,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [show2FA, setShow2FA] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [pendingUser, setPendingUser] = useState<{ id: string; email: string } | null>(null);
+  const [sending2FA, setSending2FA] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -62,12 +67,20 @@ export default function LoginPage() {
       if (authData.user) {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, two_factor_enabled")
           .eq("id", authData.user.id)
           .single();
 
         if (profileError || !profileData) {
           setError("Perfil não encontrado. Entre em contato com o administrador.");
+          setLoading(false);
+          return;
+        }
+
+        if (profileData.two_factor_enabled) {
+          setPendingUser({ id: authData.user.id, email: authData.user.email || email });
+          await send2FACode(authData.user.id, authData.user.email || email);
+          setShow2FA(true);
           setLoading(false);
           return;
         }
@@ -82,10 +95,156 @@ export default function LoginPage() {
     }
   };
 
+  const send2FACode = async (userId: string, userEmail: string) => {
+    setSending2FA(true);
+    try {
+      const response = await fetch("/api/auth/two-factor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send", userId, email: userEmail }),
+      });
+
+      if (!response.ok) {
+        setError("Erro ao enviar código de verificação");
+      }
+    } catch (err) {
+      setError("Erro ao enviar código");
+    } finally {
+      setSending2FA(false);
+    }
+  };
+
+  const verify2FACode = async () => {
+    if (!pendingUser || twoFactorCode.length !== 6) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/two-factor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify", userId: pendingUser.id, code: twoFactorCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.verified) {
+        setError(data.error || "Código inválido");
+        setLoading(false);
+        return;
+      }
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", pendingUser.id)
+        .single();
+
+      if (profileData) {
+        localStorage.setItem("tenislab_role", profileData.role);
+      }
+
+      router.push("/interno");
+    } catch (err) {
+      setError("Erro ao verificar código");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (twoFactorCode.length === 6) {
+      verify2FACode();
+    }
+  }, [twoFactorCode]);
+
   if (isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  if (show2FA) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-12 bg-slate-50 animate-in fade-in duration-500">
+        <div className="w-full max-w-sm flex flex-col gap-10">
+          <header className="flex flex-col items-center gap-6">
+            <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center">
+              <ShieldCheck className="w-10 h-10 text-white" />
+            </div>
+            <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">
+              Verificação em duas etapas
+            </p>
+          </header>
+
+          <Card className="border-none shadow-2xl shadow-slate-200/60 rounded-[2.5rem] overflow-hidden bg-white">
+            <CardHeader className="pt-8 pb-4 px-8">
+              <CardTitle className="text-2xl font-black text-slate-900 tracking-tight text-center">
+                Digite o código
+              </CardTitle>
+              <CardDescription className="text-slate-400 font-medium text-center">
+                Enviamos um código de 6 dígitos para {pendingUser?.email}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-8 pb-8">
+              <div className="flex flex-col items-center gap-6">
+                <InputOTP
+                  maxLength={6}
+                  value={twoFactorCode}
+                  onChange={(value) => setTwoFactorCode(value)}
+                  disabled={loading}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} className="w-12 h-14 text-xl font-bold" />
+                    <InputOTPSlot index={1} className="w-12 h-14 text-xl font-bold" />
+                    <InputOTPSlot index={2} className="w-12 h-14 text-xl font-bold" />
+                    <InputOTPSlot index={3} className="w-12 h-14 text-xl font-bold" />
+                    <InputOTPSlot index={4} className="w-12 h-14 text-xl font-bold" />
+                    <InputOTPSlot index={5} className="w-12 h-14 text-xl font-bold" />
+                  </InputOTPGroup>
+                </InputOTP>
+
+                {error && (
+                  <Alert variant="destructive" className="bg-red-50 border-red-100 text-red-600 rounded-2xl py-4 animate-in fade-in zoom-in-95 duration-200">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs font-bold">{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {loading && (
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-sm font-medium">Verificando...</span>
+                  </div>
+                )}
+
+                <Button
+                  variant="ghost"
+                  onClick={() => pendingUser && send2FACode(pendingUser.id, pendingUser.email)}
+                  disabled={sending2FA}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  {sending2FA ? "Enviando..." : "Reenviar código"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShow2FA(false);
+                    setPendingUser(null);
+                    setTwoFactorCode("");
+                    supabase.auth.signOut();
+                  }}
+                  className="text-slate-500"
+                >
+                  Voltar ao login
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

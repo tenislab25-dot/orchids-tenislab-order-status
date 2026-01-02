@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { canAccessPage, type UserRole } from "@/lib/auth";
@@ -18,6 +18,7 @@ export function useAuth(): AuthContextValue {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const hasChecked = useRef(false);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -28,6 +29,9 @@ export function useAuth(): AuthContextValue {
   }, [router]);
 
   useEffect(() => {
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -90,7 +94,7 @@ export function useAuth(): AuthContextValue {
     });
 
     return () => subscription.unsubscribe();
-  }, [pathname, router]);
+  }, []);
 
   return { user, role, loading, signOut };
 }

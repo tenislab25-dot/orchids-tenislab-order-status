@@ -116,11 +116,12 @@ export default function OSViewPage() {
     const [machineFee, setMachineFee] = useState("0");
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
-      useEffect(() => {
-        if (!authLoading && role) {
+    useEffect(() => {
+          if (authLoading) return;
+          if (!role) return;
+          
           fetchOrder();
 
-          // Subscribe to changes for this OS
           const channel = supabase
             .channel(`os-${osIdRaw}`)
             .on(
@@ -150,8 +151,7 @@ export default function OSViewPage() {
           return () => {
             supabase.removeChannel(channel);
           };
-        }
-      }, [osNumber, authLoading, role, osIdRaw]);
+        }, [osNumber, osIdRaw, authLoading]);
 
   const fetchOrder = async () => {
     setLoading(true);

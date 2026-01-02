@@ -110,3 +110,78 @@
 .animate-blink {
   animation: blink 1s infinite;
 }
+
+@keyframes slide-in-from-bottom {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-from-top {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes status-change {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); background-color: rgba(59, 130, 246, 0.1); }
+  100% { transform: scale(1); }
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-from-bottom 0.4s ease-out;
+}
+
+.animate-slide-in-top {
+  animation: slide-in-from-top 0.4s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+.animate-status-change {
+  animation: status-change 0.5s ease-out;
+}
+
+.transition-all-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media print {
+  .thermal-print {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 2mm !important;
+    font-size: 10px !important;
+  }
+  .thermal-print * {
+    font-size: inherit !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .mobile-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .mobile-stack {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  .mobile-text-sm {
+    font-size: 0.875rem !important;
+  }
+  .mobile-p-4 {
+    padding: 1rem !important;
+  }
+}

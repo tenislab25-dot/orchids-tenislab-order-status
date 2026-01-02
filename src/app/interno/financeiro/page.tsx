@@ -13,7 +13,8 @@ import {
   Banknote,
   PieChart,
   BarChart3,
-  CalendarDays
+  CalendarDays,
+  FileDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -31,6 +32,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell, LineChart, Line, CartesianGrid } from "recharts";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type Status = "Recebido" | "Em serviço" | "Pronto" | "Entregue" | "Cancelado";
 
@@ -55,6 +58,90 @@ export default function FinanceiroPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"confirmados" | "a_receber" | "total_projecao">("confirmados");
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  const handleExportPDF = () => {
+    setExportingPdf(true);
+    try {
+      const doc = new jsPDF();
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("pt-BR");
+      
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("TENISLAB - Relatório Financeiro", 105, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Gerado em: ${dateStr}`, 105, 28, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Resumo", 14, 40);
+
+      const summaryData = [
+        ["Este Mês", `R$ ${stats.thisMonthTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ["Esta Semana", `R$ ${stats.thisWeekTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ["Total Recebido", `R$ ${stats.totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ["A Receber", `R$ ${stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ["Projeção Total", `R$ ${stats.totalProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ["Cancelados", `R$ ${stats.lostRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ["Ticket Médio", `R$ ${stats.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+      ];
+
+      autoTable(doc, {
+        startY: 45,
+        head: [["Métrica", "Valor"]],
+        body: summaryData,
+        theme: "grid",
+        headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: "bold" },
+        styles: { fontSize: 10, cellPadding: 4 },
+        columnStyles: { 1: { halign: "right", fontStyle: "bold" } },
+      });
+
+      const lastY = (doc as any).lastAutoTable.finalY + 10;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Transações Confirmadas", 14, lastY);
+
+      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+      const transactionsData = confirmedOrders.slice(0, 30).map(o => [
+        o.os_number,
+        o.clients?.name || "N/A",
+        new Date(o.entry_date).toLocaleDateString("pt-BR"),
+        o.payment_method || "N/A",
+        `R$ ${Number(o.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+      ]);
+
+      autoTable(doc, {
+        startY: lastY + 5,
+        head: [["OS", "Cliente", "Data", "Pagamento", "Valor"]],
+        body: transactionsData,
+        theme: "striped",
+        headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: "bold" },
+        styles: { fontSize: 8, cellPadding: 3 },
+        columnStyles: { 4: { halign: "right" } },
+      });
+
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
+        doc.text("TENISLAB - O Laboratório do seu Tênis", 105, 295, { align: "center" });
+      }
+
+      doc.save(`relatorio_financeiro_tenislab_${now.toISOString().split('T')[0]}.pdf`);
+      toast.success("PDF exportado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao exportar PDF");
+      console.error(error);
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
@@ -264,24 +351,34 @@ export default function FinanceiroPage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col min-h-screen px-4 py-8 animate-in fade-in bg-slate-50">
-      <header className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <Link href="/interno/dashboard">
-            <Button variant="ghost" size="icon" className="rounded-full -ml-2">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
+        <header className="flex flex-col gap-4 mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/interno/dashboard">
+                <Button variant="ghost" size="icon" className="rounded-full -ml-2">
+                  <ArrowLeft className="w-5 h-5 text-slate-600" />
+                </Button>
+              </Link>
+              <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase">Financeiro</h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 w-full">
+            <Button 
+              onClick={handleExportPDF}
+              disabled={exportingPdf}
+              className="flex-1 md:flex-none rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              {exportingPdf ? "..." : "PDF"}
             </Button>
-          </Link>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Financeiro</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/interno/financeiro/relatorio">
-            <Button className="rounded-full bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-4">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Relatório
-            </Button>
-          </Link>
-        </div>
-      </header>
+            <Link href="/interno/financeiro/relatorio" className="flex-1 md:flex-none">
+              <Button className="w-full rounded-full bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-4">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Relatório
+              </Button>
+            </Link>
+          </div>
+        </header>
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">

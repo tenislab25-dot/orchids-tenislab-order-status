@@ -364,6 +364,12 @@ export default function OSPage() {
       return;
     }
 
+    const itemsWithoutService = items.filter(item => item.services.length === 0 && !item.customService?.name);
+    if (itemsWithoutService.length > 0) {
+      toast.error("Todos os itens devem ter pelo menos um serviço selecionado");
+      return;
+    }
+
     try {
       let clientId = selectedClientId;
 
@@ -378,6 +384,12 @@ export default function OSPage() {
         clientId = newClient.id;
       }
 
+      const itemsWithPhotosBefore = items.map(item => ({
+        ...item,
+        photosBefore: item.photos || [],
+        photos: undefined
+      }));
+
       const { data: newOS, error: osError } = await supabase
         .from("service_orders")
         .insert([{
@@ -390,7 +402,7 @@ export default function OSPage() {
           payment_method: paymentMethod,
           pay_on_entry: payOnEntry,
           total: finalTotal,
-          items: items,
+          items: itemsWithPhotosBefore,
           status: "Recebido"
         }])
         .select()

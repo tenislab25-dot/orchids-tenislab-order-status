@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import Script from "next/script";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -69,6 +71,8 @@ export default function RootLayout({
         <main className="min-h-screen">
           {children}
         </main>
+        <OfflineIndicator />
+        <InstallPrompt />
         <Toaster />
         <Script id="sw-register" strategy="afterInteractive">
           {`

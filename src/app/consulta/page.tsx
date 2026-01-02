@@ -360,32 +360,85 @@ function OrderContent() {
                             ))}
                           </div>
 
-                          {item.photos && item.photos.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2">
-                              {item.photos.map((photo: string, pIdx: number) => (
-                                  <div 
-                                    key={pIdx} 
-                                    className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all bg-slate-100"
-                                    onClick={() => setSelectedImage(photo)}
-                                  >
-                                    <Image 
-                                      src={photo} 
-                                      alt={`Foto do item ${idx + 1}`} 
-                                      fill
-                                      unoptimized
-                                      className="object-cover"
-                                      sizes="(max-width: 768px) 50vw, 33vw"
-                                    />
-
-                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-                                    <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
-                                      <ZoomIn className="w-5 h-5 text-slate-700" />
-                                    </div>
+{((item.photos && item.photos.length > 0) || (item.photos_after && item.photos_after.length > 0)) && (
+                            <div className="flex flex-col gap-3">
+                              {item.photos && item.photos.length > 0 && item.photos_after && item.photos_after.length > 0 ? (
+                                <div className="flex flex-col gap-2">
+                                  <div className="flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-widest">
+                                    <span className="text-slate-400">Antes</span>
+                                    <ArrowLeft className="w-3 h-3 text-slate-300 rotate-180" />
+                                    <span className="text-emerald-600">Depois</span>
                                   </div>
+                                  {item.photos.map((photo: string, pIdx: number) => (
+                                    <div key={pIdx} className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+                                      <div 
+                                        className="relative w-full aspect-square cursor-pointer group"
+                                        onClick={() => setSelectedImage(photo)}
+                                      >
+                                        <Image 
+                                          src={photo} 
+                                          alt={`Antes ${pIdx + 1}`} 
+                                          fill
+                                          unoptimized
+                                          className="object-cover"
+                                          sizes="(max-width: 768px) 50vw, 33vw"
+                                        />
+                                        <div className="absolute top-2 left-2 bg-slate-900/70 text-white text-[8px] font-bold uppercase px-2 py-1 rounded-full">
+                                          Antes
+                                        </div>
+                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                          <ZoomIn className="w-5 h-5 text-white" />
+                                        </div>
+                                      </div>
+                                      <div 
+                                        className="relative w-full aspect-square cursor-pointer group"
+                                        onClick={() => setSelectedImage(item.photos_after?.[pIdx] || item.photos_after?.[0])}
+                                      >
+                                        <Image 
+                                          src={item.photos_after?.[pIdx] || item.photos_after?.[0]} 
+                                          alt={`Depois ${pIdx + 1}`} 
+                                          fill
+                                          unoptimized
+                                          className="object-cover"
+                                          sizes="(max-width: 768px) 50vw, 33vw"
+                                        />
+                                        <div className="absolute top-2 right-2 bg-emerald-600/90 text-white text-[8px] font-bold uppercase px-2 py-1 rounded-full">
+                                          Depois
+                                        </div>
+                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                          <ZoomIn className="w-5 h-5 text-white" />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                          </div>
-                        )}
+                              ) : (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {(item.photos || []).map((photo: string, pIdx: number) => (
+                                    <div 
+                                      key={pIdx} 
+                                      className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all bg-slate-100"
+                                      onClick={() => setSelectedImage(photo)}
+                                    >
+                                      <Image 
+                                        src={photo} 
+                                        alt={`Foto do item ${idx + 1}`} 
+                                        fill
+                                        unoptimized
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 50vw, 33vw"
+                                      />
+                                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+                                          <ZoomIn className="w-5 h-5 text-slate-700" />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>

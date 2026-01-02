@@ -9,16 +9,17 @@ import {
   Search, 
   Phone, 
   Mail, 
-  MapPin, 
   ChevronLeft,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  Gift,
+  Star
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 
 interface Client {
   id: string;
@@ -44,36 +46,46 @@ interface Client {
   created_at: string;
 }
 
-    export default function ClientsPage() {
-      const router = useRouter();
-      const [clients, setClients] = useState<Client[]>([]);
-      const [loading, setLoading] = useState(true);
-      const [search, setSearch] = useState("");
-      const [isDialogOpen, setIsDialogOpen] = useState(false);
-      const [editingClient, setEditingClient] = useState<Client | null>(null);
-      const [role, setRole] = useState<string | null>(null);
-      
-      // Form state
-    const [formData, setFormData] = useState({
-      name: "",
-      phone: "",
-      email: "",
-      address: ""
-    });
+interface LoyaltyData {
+  total_services: number;
+  free_services_available: number;
+  progress_to_next: number;
+}
 
-      useEffect(() => {
-        const storedRole = localStorage.getItem("tenislab_role");
-        if (!storedRole) {
-          router.push("/interno/login");
-          return;
-        }
-        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/interno/dashboard");
-          return;
-        }
-        setRole(storedRole);
-        fetchClients();
-      }, []);
+export default function ClientsPage() {
+  const router = useRouter();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [loyaltyDialog, setLoyaltyDialog] = useState<{ open: boolean; client: Client | null; data: LoyaltyData | null }>({
+    open: false,
+    client: null,
+    data: null
+  });
+  
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: ""
+  });
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("tenislab_role");
+    if (!storedRole) {
+      router.push("/interno/login");
+      return;
+    }
+    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+      router.push("/interno/dashboard");
+      return;
+    }
+    setRole(storedRole);
+    fetchClients();
+  }, []);
 
   async function fetchClients() {
     try {
@@ -157,6 +169,52 @@ interface Client {
     }
   };
 
+  const openLoyaltyDialog = async (client: Client) => {
+    try {
+      const response = await fetch(`/api/loyalty?clientId=${client.id}`);
+      const data = await response.json();
+      setLoyaltyDialog({ open: true, client, data });
+    } catch (error) {
+      toast.error("Erro ao carregar fidelidade");
+    }
+  };
+
+  const useFreeService = async () => {
+    if (!loyaltyDialog.client) return;
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Sessão expirada");
+        return;
+      }
+
+      const response = await fetch("/api/loyalty", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          clientId: loyaltyDialog.client.id,
+          action: "use_free_service"
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        toast.error(data.error);
+        return;
+      }
+
+      toast.success(data.message);
+      openLoyaltyDialog(loyaltyDialog.client);
+    } catch (error) {
+      toast.error("Erro ao usar serviço grátis");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -218,6 +276,15 @@ interface Client {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                      onClick={() => openLoyaltyDialog(client)}
+                      title="Programa de Fidelidade"
+                    >
+                      <Star className="w-4 h-4" />
+                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
@@ -293,6 +360,63 @@ interface Client {
               {editingClient ? "Salvar Alterações" : "Cadastrar Cliente"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={loyaltyDialog.open} onOpenChange={(open) => setLoyaltyDialog({ ...loyaltyDialog, open })}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-amber-500" />
+              Programa de Fidelidade
+            </DialogTitle>
+          </DialogHeader>
+          {loyaltyDialog.client && loyaltyDialog.data && (
+            <div className="flex flex-col gap-6 py-4">
+              <div className="text-center">
+                <p className="text-sm text-slate-500 mb-1">Cliente</p>
+                <p className="font-bold text-lg">{loyaltyDialog.client.name}</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">Total de serviços</p>
+                    <p className="text-3xl font-black text-amber-700">{loyaltyDialog.data.total_services}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-green-600 font-bold uppercase tracking-wider">Grátis disponíveis</p>
+                    <p className="text-3xl font-black text-green-600">{loyaltyDialog.data.free_services_available}</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-slate-500 mb-2">
+                    <span>Progresso para próximo grátis</span>
+                    <span>{loyaltyDialog.data.progress_to_next}/10</span>
+                  </div>
+                  <Progress value={loyaltyDialog.data.progress_to_next * 10} className="h-3" />
+                  <p className="text-xs text-slate-400 mt-2 text-center">
+                    Faltam {10 - loyaltyDialog.data.progress_to_next} serviços para ganhar 1 higienização grátis
+                  </p>
+                </div>
+              </div>
+
+              {loyaltyDialog.data.free_services_available > 0 && (
+                <Button 
+                  onClick={useFreeService}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
+                >
+                  <Gift className="w-4 h-4" />
+                  Usar 1 Higienização Grátis
+                </Button>
+              )}
+
+              <p className="text-xs text-slate-400 text-center">
+                A cada 10 serviços realizados, o cliente ganha 1 higienização grátis!
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

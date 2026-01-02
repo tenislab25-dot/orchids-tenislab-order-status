@@ -248,6 +248,12 @@ export default function EditOSPage() {
       return;
     }
 
+    const itemsWithoutService = items.filter(item => item.services.length === 0 && !item.customService?.name);
+    if (itemsWithoutService.length > 0) {
+      toast.error("Todos os itens devem ter pelo menos um serviço selecionado");
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -335,83 +341,43 @@ export default function EditOSPage() {
                 </Button>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-<div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-blue-500 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-blue-500" />
-                        Fotos ANTES (Entrada)
-                      </Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {item.photosBefore?.map((photo: string, pIdx: number) => (
-                          <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-blue-200 group">
-                            <Image src={photo} alt="Foto antes" fill className="object-cover" />
-                            <div className="absolute top-2 left-2">
-                              <Badge className="bg-blue-500 text-white text-[8px] font-bold">ANTES</Badge>
+<div className="space-y-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-green-500 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          Fotos DEPOIS (Finalizado)
+                        </Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {item.photosAfter?.map((photo: string, pIdx: number) => (
+                            <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 group">
+                              <Image src={photo} alt="Foto depois" fill className="object-cover" />
+                              <div className="absolute top-2 left-2">
+                                <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                              </div>
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    setItems(items.map(it => {
+                                      if (it.id === item.id) {
+                                        return { ...it, photosAfter: it.photosAfter?.filter((_: string, i: number) => i !== pIdx) };
+                                      }
+                                      return it;
+                                    }));
+                                  }}
+                                  className="bg-red-500 text-white p-4 rounded-full shadow-2xl"
+                                >
+                                  <Trash2 className="w-6 h-6" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-                              <button 
-                                type="button"
-                                onClick={() => {
-                                  setItems(items.map(it => {
-                                    if (it.id === item.id) {
-                                      return { ...it, photosBefore: it.photosBefore?.filter((_: string, i: number) => i !== pIdx) };
-                                    }
-                                    return it;
-                                  }));
-                                }}
-                                className="bg-red-500 text-white p-4 rounded-full shadow-2xl"
-                              >
-                                <Trash2 className="w-6 h-6" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        <label className="aspect-video w-full rounded-2xl bg-blue-50 border-2 border-dashed border-blue-200 flex flex-col items-center justify-center gap-2 text-blue-400 hover:bg-blue-100 cursor-pointer">
-                          <Camera className="w-8 h-8" />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">ANTES</span>
-                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(item.id, e, 'before')} />
-                        </label>
+                          ))}
+                          <label className="aspect-video w-full rounded-2xl bg-green-50 border-2 border-dashed border-green-200 flex flex-col items-center justify-center gap-2 text-green-400 hover:bg-green-100 cursor-pointer">
+                            <Camera className="w-8 h-8" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">DEPOIS</span>
+                            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(item.id, e, 'after')} multiple />
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-green-500 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500" />
-                        Fotos DEPOIS (Finalizado)
-                      </Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {item.photosAfter?.map((photo: string, pIdx: number) => (
-                          <div key={pIdx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 group">
-                            <Image src={photo} alt="Foto depois" fill className="object-cover" />
-                            <div className="absolute top-2 left-2">
-                              <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
-                            </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-                              <button 
-                                type="button"
-                                onClick={() => {
-                                  setItems(items.map(it => {
-                                    if (it.id === item.id) {
-                                      return { ...it, photosAfter: it.photosAfter?.filter((_: string, i: number) => i !== pIdx) };
-                                    }
-                                    return it;
-                                  }));
-                                }}
-                                className="bg-red-500 text-white p-4 rounded-full shadow-2xl"
-                              >
-                                <Trash2 className="w-6 h-6" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        <label className="aspect-video w-full rounded-2xl bg-green-50 border-2 border-dashed border-green-200 flex flex-col items-center justify-center gap-2 text-green-400 hover:bg-green-100 cursor-pointer">
-                          <Camera className="w-8 h-8" />
-                          <span className="text-[10px] font-bold uppercase tracking-widest">DEPOIS</span>
-                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileChange(item.id, e, 'after')} />
-                        </label>
-                      </div>
-                    </div>
-                  </div>
 
                 <div className="space-y-2">
                   <Label>Serviços</Label>
