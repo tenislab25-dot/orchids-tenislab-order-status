@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,25 @@ export default function LoginPage() {
     checkSession();
   }, [router]);
 
+  const send2FACode = useCallback(async (userId: string, userEmail: string) => {
+    setSending2FA(true);
+    try {
+      const response = await fetch("/api/auth/two-factor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send", userId, email: userEmail }),
+      });
+
+      if (!response.ok) {
+        setError("Erro ao enviar código de verificação");
+      }
+    } catch {
+      setError("Erro ao enviar código");
+    } finally {
+      setSending2FA(false);
+    }
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -91,36 +110,16 @@ export default function LoginPage() {
           return;
         }
 
-          localStorage.setItem("tenislab_role", profileData.role);
-          window.location.href = "/interno";
-          return;
-        }
-      } catch (err) {
-        setError("Erro ao realizar login");
-        setLoading(false);
+        localStorage.setItem("tenislab_role", profileData.role);
+        window.location.href = "/interno";
       }
-    };
-
-  const send2FACode = async (userId: string, userEmail: string) => {
-    setSending2FA(true);
-    try {
-      const response = await fetch("/api/auth/two-factor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "send", userId, email: userEmail }),
-      });
-
-      if (!response.ok) {
-        setError("Erro ao enviar código de verificação");
-      }
-    } catch (err) {
-      setError("Erro ao enviar código");
-    } finally {
-      setSending2FA(false);
+    } catch {
+      setError("Erro ao realizar login");
+      setLoading(false);
     }
   };
 
-  const verify2FACode = async () => {
+  const verify2FACode = useCallback(async () => {
     if (!pendingUser || twoFactorCode.length !== 6) return;
 
     setLoading(true);
@@ -152,17 +151,17 @@ export default function LoginPage() {
       }
 
       router.push("/interno");
-    } catch (err) {
+    } catch {
       setError("Erro ao verificar código");
       setLoading(false);
     }
-  };
+  }, [pendingUser, twoFactorCode, router]);
 
   useEffect(() => {
     if (twoFactorCode.length === 6) {
       verify2FACode();
     }
-  }, [twoFactorCode]);
+  }, [twoFactorCode, verify2FACode]);
 
   if (isChecking) {
     return (
@@ -258,20 +257,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-12 bg-slate-50 animate-in fade-in duration-500">
       <div className="w-full max-w-sm flex flex-col gap-10">
-            {/* SECTION 1 — BRAND */}
-                  <header className="flex flex-col items-center gap-6">
-                    <img 
-                      src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-                      alt="TENISLAB Logo" 
-                      className="h-40 w-auto object-contain"
-                    />
+        <header className="flex flex-col items-center gap-6">
+          <img 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
+            alt="TENISLAB Logo" 
+            className="h-40 w-auto object-contain"
+          />
           <div className="h-px w-12 bg-slate-200" />
           <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">
             Acesso interno ao sistema
           </p>
         </header>
 
-        {/* SECTION 2 — LOGIN FORM */}
         <Card className="border-none shadow-2xl shadow-slate-200/60 rounded-[2.5rem] overflow-hidden bg-white">
           <CardHeader className="pt-8 pb-4 px-8">
             <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">Entrar</CardTitle>
@@ -324,17 +321,16 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98] mt-2 shadow-lg shadow-slate-200"
-                  disabled={loading}
-                >
-                  {loading ? "Entrando..." : "Entrar"}
-                </Button>
+              <Button 
+                type="submit" 
+                className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98] mt-2 shadow-lg shadow-slate-200"
+                disabled={loading}
+              >
+                {loading ? "Entrando..." : "Entrar"}
+              </Button>
             </form>
           </CardContent>
           
-          {/* SECTION 7 — FOOTER */}
           <CardFooter className="flex justify-center border-t border-slate-50 bg-slate-50/30 py-6">
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 text-center px-4">
               Uso exclusivo da equipe tenislab.
