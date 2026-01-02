@@ -91,15 +91,15 @@ export default function LoginPage() {
           return;
         }
 
-        localStorage.setItem("tenislab_role", profileData.role);
-        router.push("/interno");
+          localStorage.setItem("tenislab_role", profileData.role);
+          window.location.href = "/interno";
+          return;
+        }
+      } catch (err) {
+        setError("Erro ao realizar login");
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Erro ao realizar login");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   const send2FACode = async (userId: string, userEmail: string) => {
     setSending2FA(true);
