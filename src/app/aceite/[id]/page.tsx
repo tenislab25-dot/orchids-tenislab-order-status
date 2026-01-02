@@ -340,24 +340,28 @@ if (error) {
                 </CardTitle>
               </CardHeader>
 <CardContent className="p-6 space-y-6">
-                      {item.photos && item.photos.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2 pb-2">
-                          {item.photos.map((photo: string, pIdx: number) => (
-                            <div 
-                              key={pIdx} 
-                              className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
-                              onClick={() => setSelectedImage(photo)}
-                            >
-                              <img src={photo} alt={`Foto do item ${item.itemNumber}`} className="object-cover w-full h-full" />
-                              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-                                <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
-                                  <ZoomIn className="w-5 h-5 text-slate-700" />
+                      {(() => {
+                        const photos = item.photosBefore || item.photos || [];
+                        if (photos.length === 0) return null;
+                        return (
+                          <div className="grid grid-cols-2 gap-2 pb-2">
+                            {photos.map((photo: string, pIdx: number) => (
+                              <div 
+                                key={pIdx} 
+                                className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all"
+                                onClick={() => setSelectedImage(photo)}
+                              >
+                                <img src={photo} alt={`Foto do item ${item.itemNumber}`} className="object-cover w-full h-full" />
+                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                  <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+                                    <ZoomIn className="w-5 h-5 text-slate-700" />
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                            ))}
+                          </div>
+                        );
+                      })()}
                     <div className="space-y-4">
                     <div className="space-y-2">
                     <div className="flex items-center justify-between ml-1">
