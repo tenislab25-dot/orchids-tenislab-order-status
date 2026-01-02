@@ -20,7 +20,8 @@ import {
     X,
     Trash2,
     Pencil,
-    Star
+    Star,
+    MessageCircle
   } from "lucide-react";
 
   import { Button } from "@/components/ui/button";
@@ -93,6 +94,13 @@ export default function OSViewPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
+
+    const handleWhatsAppDirect = () => {
+      if (!order || !order.clients?.phone) return;
+      const cleanPhone = order.clients.phone.replace(/\D/g, "");
+      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+      window.open(`https://wa.me/${whatsappPhone}`, "_blank");
+    };
     
         const handleShareLink = () => {
           if (!order) return;
@@ -111,7 +119,6 @@ export default function OSViewPage() {
           window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
         };
     
-    // Payment edit states
     const [newPaymentMethod, setNewPaymentMethod] = useState("");
     const [machineFee, setMachineFee] = useState("0");
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
@@ -415,7 +422,6 @@ export default function OSViewPage() {
       const togglePriority = async () => {
         if (!order) return;
         
-        // Restrict to ADMIN and ATENDENTE
         if (role !== "ADMIN" && role !== "ATENDENTE") {
           toast.error("Apenas administradores e atendentes podem alterar a prioridade.");
           return;
@@ -464,8 +470,6 @@ export default function OSViewPage() {
       .from("service_orders")
       .update({ 
         status: "Cancelado",
-        // We could add a cancellation_reason column if needed, 
-        // but for now let's just update the status as per the current schema
       })
       .eq("os_number", osNumber);
 
@@ -669,7 +673,6 @@ export default function OSViewPage() {
 
       <main className="max-w-6xl mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-8 items-start animate-in fade-in duration-500">
         
-        {/* CLIENT INFO */}
         <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-5 mb-5 lg:mb-0">
           <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
           <div className="flex items-start justify-between">
@@ -710,6 +713,16 @@ export default function OSViewPage() {
               </div>
               {getStatusBadge(order.status)}
             </div>
+
+            {(role === "ADMIN" || role === "ATENDENTE") && (
+              <Button 
+                onClick={handleWhatsAppDirect}
+                className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2 shadow-lg shadow-green-100 transition-all active:scale-[0.98]"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp do Cliente
+              </Button>
+            )}
 
 <Button 
                 onClick={handleShareLink}
@@ -766,7 +779,6 @@ export default function OSViewPage() {
           </section>
         </div>
 
-        {/* ITEMS */}
         <div className="lg:col-span-8 lg:row-start-1 lg:row-span-10 flex flex-col gap-4">
           <div className="flex items-center justify-between mx-2">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pares de Tênis</h3>
@@ -791,624 +803,403 @@ export default function OSViewPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => handlePrintLabel([item])}
-                        className="h-7 px-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
                       >
-                        <Printer className="w-3.5 h-3.5" />
+                        <Printer className="w-3 h-3" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant={item.status === 'Pronto' ? 'default' : 'outline'}
+                        size="sm"
                         onClick={() => toggleItemStatus(idx)}
-                        className={`h-7 px-3 rounded-full text-[10px] font-black uppercase tracking-tighter gap-1.5 transition-all ${
+                        className={`h-7 text-[9px] font-bold uppercase tracking-wider gap-1 px-3 ${
                           item.status === 'Pronto' 
-                          ? 'bg-green-500 text-white hover:bg-green-600' 
-                          : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                          ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
+                          : 'bg-white border-slate-200 text-slate-500'
                         }`}
                       >
-                        {item.status === 'Pronto' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                        {item.status || 'Pendente'}
+                        <CheckCircle2 className="w-3 h-3" />
+                        {item.status === 'Pronto' ? 'Pronto' : 'Pendente'}
                       </Button>
                     </div>
                   </CardHeader>
-
-                <CardContent className="p-6 space-y-6">
-                    {((item.photosBefore && item.photosBefore.length > 0) || (item.photosAfter && item.photosAfter.length > 0)) && (
-                      <div className="space-y-4">
-                        {item.photosBefore && item.photosBefore.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500 flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-blue-500" />
-                              ANTES
-                            </span>
-                            <div className="grid grid-cols-2 gap-2">
-                              {item.photosBefore.map((photo: string, pIdx: number) => (
-                                <div 
-                                  key={pIdx} 
-                                  className="relative aspect-video rounded-2xl overflow-hidden border-2 border-blue-200 cursor-pointer group"
-                                  onClick={() => setSelectedImage(photo)}
-                                >
-                                  <Image src={photo} alt={`Antes ${pIdx + 1}`} fill className="object-cover" />
-                                  <div className="absolute top-2 left-2">
-                                    <Badge className="bg-blue-500 text-white text-[8px] font-bold">ANTES</Badge>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {item.photosAfter && item.photosAfter.length > 0 && (
-                          <div className="space-y-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-green-500 flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-green-500" />
-                              DEPOIS
-                            </span>
-                            <div className="grid grid-cols-2 gap-2">
-                              {item.photosAfter.map((photo: string, pIdx: number) => (
-                                <div 
-                                  key={pIdx} 
-                                  className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
-                                  onClick={() => setSelectedImage(photo)}
-                                >
-                                  <Image src={photo} alt={`Depois ${pIdx + 1}`} fill className="object-cover" />
-                                  <div className="absolute top-2 left-2">
-                                    <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-{item.photos && item.photos.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2 pb-2">
-                              {item.photos.map((photo: string, pIdx: number) => {
-                                const isActive = activePhotoIndex?.itemIdx === idx && activePhotoIndex?.photoIdx === pIdx;
-                                return (
-                                  <div 
-                                    key={pIdx} 
-                                    className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group"
-                                    onClick={() => {
-                                      if (isActive) {
-                                        setActivePhotoIndex(null);
-                                      } else {
-                                        setActivePhotoIndex({itemIdx: idx, photoIdx: pIdx});
-                                      }
-                                    }}
-                                  >
-                                    <Image src={photo} alt={`Foto do item ${idx + 1}`} fill className="object-cover" />
-                                    <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-3 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                      <button 
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedImage(photo);
-                                          setActivePhotoIndex(null);
-                                        }}
-                                        className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 hover:bg-white/30 transition-colors"
-                                      >
-                                        <Search className="w-6 h-6 text-white" />
-                                      </button>
-                                        <button 
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPhotoToDelete({itemIdx: idx, photoIdx: pIdx});
-                                            setDeletePhotoModalOpen(true);
-                                            setActivePhotoIndex(null);
-                                          }}
-                                          className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-2xl hover:bg-red-600 transition-colors"
-                                        >
-                                          <Trash2 className="w-6 h-6 text-white" />
-                                        </button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                      )}
-                  <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Serviços</span>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <ul className="space-y-2">
-                        {item.services.map((service: any, i: number) => (
-                          <li key={i} className="flex flex-col gap-0.5 py-1 first:pt-0 last:pb-0 border-b border-slate-100 last:border-0">
-                            <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                              {service.name}
-                            </div>
-                            {service.description && (
-                              <p className="text-[10px] text-slate-500 ml-3.5 leading-tight">
-                                {service.description}
-                              </p>
-                            )}
-                          </li>
-                        ))}
-
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      {item.services?.map((s: any, i: number) => (
+                        <Badge key={i} className="bg-blue-50 text-blue-700 border-blue-100 font-bold text-[10px] rounded-lg px-3 py-1">
+                          {s.name} - R$ {Number(s.price).toFixed(2)}
+                        </Badge>
+                      ))}
                       {item.customService?.name && (
-                        <li className="flex items-center gap-2 text-sm font-bold text-blue-600">
-                          <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                          {item.customService.name} (Extra)
-                        </li>
+                        <Badge className="bg-purple-50 text-purple-700 border-purple-100 font-bold text-[10px] rounded-lg px-3 py-1">
+                          {item.customService.name} - R$ {Number(item.customService.price).toFixed(2)}
+                        </Badge>
                       )}
-                    </ul>
-                  </div>
-                </div>
-
-                {item.notes && (
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Observações</span>
-                    <div className="bg-amber-50/30 rounded-2xl p-4 border border-amber-100/50">
-                      <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
-                        "{item.notes}"
-                      </p>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
-        {/* FINANCIAL SUMMARY */}
-        {role !== "OPERACIONAL" && (
-          <div className="lg:col-span-4 lg:col-start-9">
-            <section>
-                <Card className="rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
-                    <CardHeader className="py-4 px-6 border-b border-white/10 flex flex-row items-center justify-between">
-                      <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Resumo da OS</CardTitle>
-                      {!order.payment_confirmed && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 text-[10px] uppercase font-bold text-blue-400 hover:text-blue-300 hover:bg-white/5"
-                        onClick={() => {
-                          setNewPaymentMethod(order.payment_method);
-                          setMachineFee(String(order.machine_fee || 0));
-                          setPaymentModalOpen(true);
-                        }}
-                      >
-                        Editar Pgto
-                      </Button>
+                    {item.notes && (
+                      <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                        <p className="text-xs text-amber-800 font-medium">{item.notes}</p>
+                      </div>
                     )}
-                  </CardHeader>
-<CardContent className="p-6 flex flex-col gap-4">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-white/60">Método de Pagamento</span>
-                        <span className="font-bold">{order.payment_method}</span>
-                      </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-white/60">Status de Pagamento</span>
-                          <div className="flex items-center gap-2">
-                            <span className={`font-bold ${order.payment_confirmed || order.pay_on_entry ? "text-green-400" : "text-amber-400"}`}>
-                              {order.payment_confirmed || order.pay_on_entry ? "Pago" : "Aguardando"}
-                            </span>
-                            <Badge variant="outline" className="text-[9px] border-white/20 text-white/40 uppercase">
-                              {order.pay_on_entry ? "Antecipado" : "Na Entrega"}
-                            </Badge>
-                          </div>
-                        </div>
-    
-                        {order.delivery_fee > 0 && (
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-white/60">Taxa de Entrega</span>
-                            <span className="font-bold text-green-400">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
-                          </div>
-                        )}
 
-                        {(order.machine_fee > 0 || order.payment_confirmed) && (
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-white/60">Desconto Maquineta</span>
-                            <span className="font-bold text-red-400">- R$ {Number(order.machine_fee).toFixed(2)}</span>
-                          </div>
-                        )}
-  
-                      <div className="h-px bg-white/10 my-2" />
-                      
-                      <div className="flex flex-col gap-2 mb-2">
-                        {!order.payment_confirmed ? (
-                          <>
-                          <Button 
-                            onClick={() => {
-                              setNewPaymentMethod(order.payment_method);
-                              setMachineFee(String(order.machine_fee || 0));
-                              setPaymentModalOpen(true);
-                            }}
-                            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-10 rounded-xl text-xs"
-                          >
-                            Confirmar Pagamento
-                          </Button>
-                          <Button 
-                            onClick={handleSharePaymentLink}
-                            variant="outline"
-                            className="w-full border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 font-bold h-10 rounded-xl text-xs gap-2"
-                          >
-                            <Share2 className="w-3.5 h-3.5" />
-                            Enviar Link p/ Pagamento
-                          </Button>
-                        </>
-                      ) : (
-                          <Button 
-                            variant="outline"
-                            onClick={handleRevertPayment}
-                            className="w-full border-white/20 bg-transparent text-white/60 hover:bg-white/5 font-bold h-10 rounded-xl text-xs"
-                          >
-                            Estornar / Marcar como Pendente
-                          </Button>
-                        )}
+                    {((item.photos && item.photos.length > 0) || (item.photosBefore && item.photosBefore.length > 0)) && (
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          Fotos ANTES (Recebimento)
+                        </span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[...(item.photos || []), ...(item.photosBefore || [])].map((photo: string, pIdx: number) => (
+                            <div 
+                              key={pIdx} 
+                              className="relative aspect-square rounded-2xl overflow-hidden border-2 border-blue-200 cursor-pointer group"
+                              onClick={() => setSelectedImage(photo)}
+                            >
+                              <Image src={photo} alt={`Foto ${pIdx + 1}`} fill className="object-cover" />
+                              <div className="absolute top-1 left-1">
+                                <Badge className="bg-blue-500 text-white text-[8px] font-bold">ANTES</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-  
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">
-                        {order.payment_confirmed ? "Líquido Recebido" : "Total Geral"}
-                      </span>
-                      <span className="text-3xl font-black text-blue-400 tracking-tighter">
-                        R$ {(Number(order.total) - (order.payment_confirmed ? Number(order.machine_fee || 0) : 0)).toFixed(2)}
-                      </span>
+                    )}
+
+                    {item.photosAfter && item.photosAfter.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          Fotos DEPOIS (Finalizado)
+                        </span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {item.photosAfter.map((photo: string, pIdx: number) => (
+                            <div 
+                              key={pIdx} 
+                              className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
+                              onClick={() => setSelectedImage(photo)}
+                            >
+                              <Image src={photo} alt={`Foto depois ${pIdx + 1}`} fill className="object-cover" />
+                              <div className="absolute top-1 left-1">
+                                <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end pt-2 border-t border-slate-50">
+                      <span className="text-lg font-black text-slate-900">R$ {Number(item.subtotal).toFixed(2)}</span>
                     </div>
                   </CardContent>
                 </Card>
-              </section>
+              ))}
+
+          <Card className="rounded-3xl border-none shadow-md bg-slate-900 text-white overflow-hidden">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Subtotal</span>
+                <span className="text-sm font-bold text-white/70">R$ {order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0).toFixed(2)}</span>
+              </div>
+              {order.discount_percent > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Desconto ({order.discount_percent}%)</span>
+                  <span className="text-sm font-bold text-red-400">- R$ {((order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                </div>
+              )}
+              {order.delivery_fee > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Taxa Entrega</span>
+                  <span className="text-sm font-bold text-green-400">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                <span className="text-xs font-bold text-white/60 uppercase tracking-widest">Total</span>
+                <span className="text-3xl font-black text-blue-400">R$ {Number(order.total).toFixed(2)}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
+            <CardHeader className="py-4 px-6 border-b border-slate-100 bg-slate-50/50">
+              <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">Pagamento</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Método</span>
+                  <span className="text-sm font-bold text-slate-700">{order.payment_method || "Não definido"}</span>
+                </div>
+                <div className="flex flex-col gap-1 items-end">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
+                  {order.payment_confirmed || order.pay_on_entry ? (
+                    <Badge className="bg-green-100 text-green-700 font-bold">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      {order.pay_on_entry ? "Pago na Entrada" : "Confirmado"}
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-amber-100 text-amber-700 font-bold">
+                      <Clock className="w-3 h-3 mr-1" />
+                      Pendente
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {role === "ADMIN" && (
+                <div className="flex gap-2 pt-4 border-t border-slate-100">
+                  {!order.payment_confirmed && !order.pay_on_entry ? (
+                    <Button 
+                      onClick={() => setPaymentModalOpen(true)}
+                      className="flex-1 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-xs"
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Confirmar Pagamento
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleRevertPayment}
+                      variant="outline"
+                      className="flex-1 h-10 rounded-xl border-amber-200 text-amber-600 font-bold text-xs hover:bg-amber-50"
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      Marcar como Pendente
+                    </Button>
+                  )}
+                  <Button 
+                    onClick={handleSharePaymentLink}
+                    variant="outline"
+                    className="h-10 rounded-xl border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
+            <CardHeader className="py-4 px-6 border-b border-slate-100 bg-slate-50/50">
+              <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">Atualizar Status</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                {getAllowedStatuses(role as UserRole).map((status) => (
+                  <Button
+                    key={status}
+                    variant={order.status === status ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (status === "Entregue") {
+                        handleEntregueClick();
+                      } else {
+                        handleStatusUpdate(status);
+                      }
+                    }}
+                    disabled={order.status === status}
+                    className={`h-auto py-2 px-3 text-[10px] font-bold uppercase tracking-wider rounded-xl whitespace-normal leading-tight ${
+                      order.status === status 
+                        ? "bg-blue-600 text-white border-blue-600" 
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {status === "Pronto para entrega ou retirada" ? "Pronto p/ entrega" : status}
+                  </Button>
+                ))}
+              </div>
+
+              {order.status === "Pronto para entrega ou retirada" && (
+                <Button 
+                  onClick={handleSendReadyNotification}
+                  className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
+                >
+                  <Bell className="w-4 h-4" />
+                  Notificar Cliente (Pronto)
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {(role === "ADMIN" || role === "ATENDENTE") && (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => setCancelModalOpen(true)}
+                disabled={order.status === "Cancelado" || order.status === "Entregue"}
+                className="flex-1 h-12 rounded-2xl border-red-200 text-red-600 font-bold hover:bg-red-50"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar OS
+              </Button>
+              {role === "ADMIN" && (
+                <Button 
+                  variant="outline"
+                  onClick={() => setDeleteModalOpen(true)}
+                  className="h-12 rounded-2xl border-red-200 text-red-600 font-bold hover:bg-red-50 px-4"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           )}
-  
-            {/* ACTIONS */}
-              <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-3 mt-4 lg:mt-0">
-                  <div className="flex flex-col gap-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Atualizar Status</p>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                    {role && canChangeToStatus(role as UserRole, "Em serviço") && (
-                          <Button
-                            onClick={() => handleStatusUpdate("Em serviço")}
-                            variant="outline"
-                            className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em serviço" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                          >
-                            <Clock className="w-4 h-4 mr-2" />
-                            Em Serviço
-                          </Button>
-                    )}
-
-                    {role && canChangeToStatus(role as UserRole, "Em finalização") && (
-                          <Button
-                            onClick={() => handleStatusUpdate("Em finalização")}
-                            variant="outline"
-                            className={`h-12 rounded-xl font-bold border-2 ${order.status === "Em finalização" ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                          >
-                            <PackageCheck className="w-4 h-4 mr-2" />
-                            Em Finalização
-                          </Button>
-                    )}
-                          
-                    {role && canChangeToStatus(role as UserRole, "Pronto para entrega ou retirada") && (
-                              <Button
-                              onClick={() => handleStatusUpdate("Pronto para entrega ou retirada")}
-                              variant="outline"
-                              className={`h-12 rounded-xl font-bold border-2 leading-tight py-1 ${order.status === "Pronto para entrega ou retirada" ? "bg-green-50 border-green-200 text-green-700" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
-                            >
-                              <div className="flex flex-col items-center">
-                                <div className="flex items-center gap-1">
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>Pronto para</span>
-                                </div>
-                                <span>entrega/retirada</span>
-                              </div>
-                            </Button>
-                    )}
-      
-                      {role && canChangeToStatus(role as UserRole, "Entregue") && (
-                            <Button
-                              onClick={handleEntregueClick}
-                              className={`h-12 rounded-xl font-bold transition-all shadow-lg ${
-                                order.status === "Entregue" 
-                                ? "bg-green-600 hover:bg-green-700 text-white shadow-green-100" 
-                                : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-200"
-                              }`}
-                            >
-                              <Truck className="w-4 h-4 mr-2" />
-                              Entregue
-                            </Button>
-                      )}
-
-                      {role && canChangeToStatus(role as UserRole, "Cancelado") && (
-                              <Button
-                                onClick={() => setCancelModalOpen(true)}
-                                variant="outline"
-                                className="h-12 rounded-xl border-2 border-red-100 bg-red-50 text-red-600 font-bold hover:bg-red-100"
-                              >
-                                Cancelar OS
-                              </Button>
-                      )}
-                        </div>
-                      </div>
-    
-                      {(role === "ADMIN" || role === "ATENDENTE") && (
-                        <div className="flex flex-col gap-2 mt-4">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Notificações</p>
-                          <Button
-                            onClick={handleSendReadyNotification}
-                            className="h-auto min-h-12 py-3 px-4 rounded-xl font-bold border-2 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 shadow-sm whitespace-normal"
-                          >
-                            <div className="flex items-center justify-center w-full">
-                              <Bell className="w-4 h-4 mr-2 shrink-0" />
-                              <span className="text-center leading-tight">Enviar notificação que o pedido está pronto</span>
-                            </div>
-                          </Button>
-                        </div>
-                      )}
-
-                      {role === "ADMIN" && (
-                        <div className="flex flex-col gap-2 mt-4">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Zona de Perigo</p>
-                      <Button
-                        onClick={() => setDeleteModalOpen(true)}
-                        variant="destructive"
-                        className="h-12 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-100"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir OS Permanentemente
-                      </Button>
-                    </div>
-                  )}
-
-
-            <Link href={role === "ATENDENTE" ? "/interno/os" : "/interno/dashboard"} className="w-full mt-4">
-            <Button 
-              className="w-full h-14 rounded-2xl bg-white border-2 border-slate-200 text-slate-900 font-black shadow-sm"
-            >
-              <LayoutDashboard className="w-5 h-5 mr-2" />
-              VOLTAR AO {role === "ATENDENTE" ? "LISTAGEM" : "DASHBOARD"}
-            </Button>
-          </Link>
         </div>
+      </main>
 
-        {/* PAYMENT MODAL */}
-        <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-          <DialogContent className="rounded-3xl max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-black">Confirmar Pagamento</DialogTitle>
-              <DialogDescription className="font-medium">
-                Ajuste os detalhes finais antes de confirmar.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="flex flex-col gap-5 py-4">
-              <div className="flex flex-col gap-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Método de Pagamento</Label>
-                <Select value={newPaymentMethod} onValueChange={setNewPaymentMethod}>
-                  <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                    <SelectValue placeholder="Selecione o método" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
-                    <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Taxa/Desconto Maquineta (R$)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={machineFee}
-                  onChange={(e) => setMachineFee(e.target.value)}
-                  className="h-12 rounded-xl border-slate-200 font-bold text-red-500"
-                />
-                <p className="text-[9px] text-slate-400 font-medium px-1">
-                  Este valor será subtraído do total bruto no relatório financeiro.
-                </p>
-              </div>
-
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500">Valor Bruto</span>
-                  <span className="font-bold text-slate-700">R$ {Number(order.total).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500">Desconto Maquineta</span>
-                  <span className="font-bold text-red-500">- R$ {Number(machineFee || 0).toFixed(2)}</span>
-                </div>
-                <div className="h-px bg-slate-200 my-1" />
-                <div className="flex justify-between items-center text-sm font-black">
-                  <span className="text-slate-900">VALOR LÍQUIDO</span>
-                  <span className="text-blue-600">R$ {(Number(order.total) - Number(machineFee || 0)).toFixed(2)}</span>
-                </div>
-              </div>
+      <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black">Cancelar OS</DialogTitle>
+            <DialogDescription>Esta ação não pode ser desfeita.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Motivo do cancelamento</Label>
+              <Textarea
+                placeholder="Descreva o motivo do cancelamento..."
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                className="min-h-[100px] rounded-xl"
+              />
             </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setCancelModalOpen(false)} className="rounded-xl">
+              Voltar
+            </Button>
+            <Button onClick={confirmCancel} className="bg-red-600 hover:bg-red-700 rounded-xl">
+              Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-                <DialogFooter className="flex flex-col gap-2 sm:flex-col">
-                  <Button 
-                    onClick={confirmPayment} 
-                    className={`w-full h-12 rounded-xl font-bold transition-all ${isConfirmingPayment ? 'bg-amber-500 hover:bg-amber-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
-                  >
-                    {isConfirmingPayment ? "Clique novamente para confirmar" : "Confirmar Recebimento"}
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => {
-                      setPaymentModalOpen(false);
-                      setIsConfirmingPayment(false);
-                    }} 
-                    className="w-full h-12 rounded-xl"
-                  >
-                    Cancelar
-                  </Button>
-                </DialogFooter>
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black text-red-600">Excluir OS Permanentemente</DialogTitle>
+            <DialogDescription>
+              Esta ação é IRREVERSÍVEL. A OS será excluída permanentemente do sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-4">
+            <Button variant="outline" onClick={() => setDeleteModalOpen(false)} className="rounded-xl">
+              Cancelar
+            </Button>
+            <Button onClick={handleDeleteOS} className="bg-red-600 hover:bg-red-700 rounded-xl">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir Permanentemente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          </DialogContent>
-        </Dialog>
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black">Confirmar Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Método de Pagamento</Label>
+              <Select value={newPaymentMethod || order?.payment_method} onValueChange={setNewPaymentMethod}>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pix">Pix</SelectItem>
+                  <SelectItem value="Cartão">Cartão</SelectItem>
+                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Taxa da Maquininha (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={machineFee}
+                onChange={(e) => setMachineFee(e.target.value)}
+                placeholder="0.00"
+                className="h-12 rounded-xl"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setPaymentModalOpen(false); setIsConfirmingPayment(false); }} className="rounded-xl">
+              Cancelar
+            </Button>
+            <Button onClick={confirmPayment} className="bg-green-600 hover:bg-green-700 rounded-xl">
+              {isConfirmingPayment ? "Confirmar Definitivamente" : "Confirmar Pagamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* CANCELLATION DIALOG */}
-    
-            <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
-            <DialogContent className="rounded-3xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                  Cancelar OS
-                </DialogTitle>
-                <DialogDescription>
-                  Esta ação é irreversível e removerá a OS do fluxo de trabalho.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Motivo</Label>
-                <Textarea 
-                  placeholder="Descreva o motivo..."
-                  value={cancellationReason}
-                  onChange={(e) => setCancellationReason(e.target.value)}
-                  className="mt-2 rounded-2xl"
-                />
-              </div>
-                <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
-                  <Button onClick={confirmCancel} className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold">Confirmar Cancelamento</Button>
-                  <Button variant="ghost" onClick={() => setCancelModalOpen(false)} className="w-full h-12 rounded-2xl text-slate-500 font-bold">Voltar</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+      <Dialog open={deliveryModalOpen} onOpenChange={setDeliveryModalOpen}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black">Marcar como Entregue</DialogTitle>
+            <DialogDescription>
+              O pagamento ainda não foi confirmado. Deseja enviar o link de pagamento?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-4 flex-col sm:flex-row">
+            <Button 
+              variant="outline" 
+              onClick={() => handleDeliveryConfirm(false)} 
+              className="rounded-xl w-full sm:w-auto"
+            >
+              Apenas Marcar Entregue
+            </Button>
+            <Button 
+              onClick={() => handleDeliveryConfirm(true)} 
+              className="bg-green-600 hover:bg-green-700 rounded-xl w-full sm:w-auto"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Marcar e Enviar Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-            {/* DELETE PHOTO DIALOG */}
-            <Dialog open={deletePhotoModalOpen} onOpenChange={setDeletePhotoModalOpen}>
-              <DialogContent className="rounded-[2.5rem] max-w-sm">
-                <DialogHeader className="items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-                    <Trash2 className="w-8 h-8 text-red-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <DialogTitle className="text-xl font-black text-slate-900">Excluir esta foto?</DialogTitle>
-                    <DialogDescription className="font-medium">
-                      Tem certeza que deseja remover esta foto da Ordem de Serviço?
-                    </DialogDescription>
-                  </div>
-                </DialogHeader>
-                <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
-                  <Button 
-                    variant="destructive"
-                    onClick={handleDeletePhoto}
-                    className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold"
-                  >
-                    Sim, excluir foto
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => {
-                      setDeletePhotoModalOpen(false);
-                      setPhotoToDelete(null);
-                    }}
-                    className="w-full h-12 rounded-2xl text-slate-500 font-bold"
-                  >
-                    Cancelar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-3xl p-0 rounded-3xl overflow-hidden bg-black/90">
+          <div className="relative aspect-square w-full">
+            {selectedImage && (
+              <Image src={selectedImage} alt="Foto ampliada" fill className="object-contain" />
+            )}
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full"
+          >
+            <X className="w-6 h-6" />
+          </Button>
+        </DialogContent>
+      </Dialog>
 
-            {/* DELETE DIALOG */}
-            <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-              <DialogContent className="rounded-[2.5rem] max-w-sm">
-                <DialogHeader className="items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
-                    <Trash2 className="w-8 h-8 text-red-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <DialogTitle className="text-xl font-black text-slate-900">Excluir Permanentemente?</DialogTitle>
-                    <DialogDescription className="font-medium">
-                      Esta ação <strong>NÃO pode ser desfeita</strong>. A OS {order.os_number} será removida do banco de dados para sempre.
-                    </DialogDescription>
-                  </div>
-                </DialogHeader>
-                <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
-                  <Button 
-                    variant="destructive"
-                    onClick={handleDeleteOS}
-                    className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold"
-                  >
-                    Sim, excluir agora
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setDeleteModalOpen(false)}
-                    className="w-full h-12 rounded-2xl text-slate-500 font-bold"
-                  >
-                    Manter OS
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-  
-{/* IMAGE LIGHTBOX */}
-            <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-              <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
-                {selectedImage && (
-                  <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
-                    <div className="absolute top-4 right-4 z-50">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-white bg-black/40 hover:bg-black/60 rounded-full w-10 h-10"
-                        onClick={() => setSelectedImage(null)}
-                      >
-                        <X className="w-6 h-6" />
-                      </Button>
-                    </div>
-                    <img 
-                      src={selectedImage} 
-                      alt="Visualização ampliada" 
-                      className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
-                    />
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
-
-            {/* DELIVERY CONFIRMATION MODAL */}
-            <Dialog open={deliveryModalOpen} onOpenChange={setDeliveryModalOpen}>
-              <DialogContent className="rounded-[2.5rem] max-w-sm">
-                <DialogHeader className="items-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
-                    <Truck className="w-8 h-8 text-amber-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <DialogTitle className="text-xl font-black text-slate-900">Confirmar Entrega</DialogTitle>
-                    <DialogDescription className="font-medium">
-                      O pedido será marcado como <strong>Entregue</strong>. Deseja enviar o link de pagamento agora?
-                    </DialogDescription>
-                  </div>
-                </DialogHeader>
-                  <DialogFooter className="flex flex-col gap-2 pt-4 sm:flex-col">
-                    <Button 
-                      onClick={() => handleDeliveryConfirm(true)}
-                      className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold"
-                    >
-                      Entregar e Enviar Link
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => handleDeliveryConfirm(false)}
-                      className="w-full h-12 rounded-2xl border-slate-200 text-slate-600 font-bold"
-                    >
-                      Entregar sem Enviar Link
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      onClick={() => setDeliveryModalOpen(false)}
-                      className="w-full h-10 rounded-2xl text-slate-400 font-bold"
-                    >
-                      Voltar
-                    </Button>
-                  </DialogFooter>
-              </DialogContent>
-            </Dialog>
-  
-          </main>
-
-        </div>
-      );
-    }
+      <Dialog open={deletePhotoModalOpen} onOpenChange={setDeletePhotoModalOpen}>
+        <DialogContent className="rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black">Excluir Foto</DialogTitle>
+            <DialogDescription>Tem certeza que deseja excluir esta foto?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-4">
+            <Button variant="outline" onClick={() => { setDeletePhotoModalOpen(false); setPhotoToDelete(null); }} className="rounded-xl">
+              Cancelar
+            </Button>
+            <Button onClick={handleDeletePhoto} className="bg-red-600 hover:bg-red-700 rounded-xl">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

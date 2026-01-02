@@ -14,7 +14,8 @@ import {
   PieChart,
   BarChart3,
   CalendarDays,
-  FileDown
+  FileDown,
+  FileSpreadsheet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -59,6 +60,51 @@ export default function FinanceiroPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"confirmados" | "a_receber" | "total_projecao">("confirmados");
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
+
+  const handleExportExcel = () => {
+    setExportingExcel(true);
+    try {
+      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+      
+      let csvContent = "OS,Cliente,Data,Pagamento,Status,Valor\n";
+      
+      confirmedOrders.forEach(o => {
+        const row = [
+          o.os_number,
+          `"${o.clients?.name || 'N/A'}"`,
+          new Date(o.entry_date).toLocaleDateString("pt-BR"),
+          o.payment_method || "N/A",
+          o.status,
+          Number(o.total || 0).toFixed(2).replace('.', ',')
+        ].join(";");
+        csvContent += row + "\n";
+      });
+
+      csvContent += "\n";
+      csvContent += `Total Recebido;${stats.totalReceived.toFixed(2).replace('.', ',')}\n`;
+      csvContent += `A Receber;${stats.projectedRevenue.toFixed(2).replace('.', ',')}\n`;
+      csvContent += `Projecao Total;${stats.totalProjected.toFixed(2).replace('.', ',')}\n`;
+      csvContent += `Cancelados;${stats.lostRevenue.toFixed(2).replace('.', ',')}\n`;
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `relatorio_financeiro_tenislab_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Excel/CSV exportado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao exportar Excel");
+      console.error(error);
+    } finally {
+      setExportingExcel(false);
+    }
+  };
 
   const handleExportPDF = () => {
     setExportingPdf(true);
@@ -370,6 +416,14 @@ export default function FinanceiroPage() {
             >
               <FileDown className="w-4 h-4 mr-2" />
               {exportingPdf ? "..." : "PDF"}
+            </Button>
+            <Button 
+              onClick={handleExportExcel}
+              disabled={exportingExcel}
+              className="flex-1 md:flex-none rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-4"
+            >
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              {exportingExcel ? "..." : "Excel"}
             </Button>
             <Link href="/interno/financeiro/relatorio" className="flex-1 md:flex-none">
               <Button className="w-full rounded-full bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-4">
