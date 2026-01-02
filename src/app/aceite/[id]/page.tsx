@@ -360,12 +360,9 @@ if (error) {
                       )}
                     <div className="space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between ml-1">
-                        <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Contratados</Label>
-                        <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase">
-                          Total do Tênis: R$ {item.services.reduce((acc: number, s: any) => acc + Number(s.price || 0), 0).toFixed(2)}
+                    <div className="flex items-center justify-between ml-1">
+                          <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Contratados</Label>
                         </div>
-                      </div>
                       <div className="flex flex-col gap-2">
                         {item.services.map((s: any) => (
 

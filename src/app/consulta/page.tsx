@@ -247,6 +247,7 @@ function OrderContent() {
         os_number,
         status,
         items,
+        delivery_date,
         clients (
           phone
         )

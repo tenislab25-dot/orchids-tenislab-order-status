@@ -97,7 +97,7 @@ export default function CalendarioPage() {
     return orders.filter(order => {
       if (statusFilter === "all") return true;
       
-      const deliveryDate = new Date(order.delivery_date);
+      const deliveryDate = new Date(order.delivery_date + 'T12:00:00');
       const isPast = deliveryDate < today;
       
       if (statusFilter === "delivered") return order.status === "Entregue";
@@ -119,7 +119,7 @@ export default function CalendarioPage() {
     const ordersByDate: Record<string, Order[]> = {};
     filteredOrders.forEach(order => {
       if (order.delivery_date) {
-        const dateKey = order.delivery_date;
+        const dateKey = order.delivery_date.split('T')[0];
         if (!ordersByDate[dateKey]) {
           ordersByDate[dateKey] = [];
         }
@@ -170,14 +170,15 @@ export default function CalendarioPage() {
 
   const selectedDayOrders = useMemo(() => {
     if (!selectedDate) return [];
-    return filteredOrders.filter(o => o.delivery_date === selectedDate);
+    return filteredOrders.filter(o => o.delivery_date?.split('T')[0] === selectedDate);
   }, [selectedDate, filteredOrders]);
 
   const monthStats = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const monthOrders = orders.filter(o => {
-      const d = new Date(o.delivery_date);
+      if (!o.delivery_date) return false;
+      const d = new Date(o.delivery_date + 'T12:00:00');
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
@@ -187,7 +188,7 @@ export default function CalendarioPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const overdue = monthOrders.filter(o => {
-      const d = new Date(o.delivery_date);
+      const d = new Date(o.delivery_date + 'T12:00:00');
       return d < today && o.status !== "Entregue";
     }).length;
 

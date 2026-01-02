@@ -48,6 +48,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { 
   playNotificationSound, 
+  playAcceptedSound,
   requestNotificationPermission, 
   showBrowserNotification,
   checkOrderAlerts,
@@ -196,6 +197,21 @@ export default function DashboardPage() {
             showBrowserNotification("Nova OS Criada", `OS ${(payload.new as any).os_number} foi criada`);
             toast.success("Nova OS criada!", { duration: 5000 });
           }
+          
+          if (payload.eventType === "UPDATE" && soundEnabledRef.current) {
+            const newData = payload.new as any;
+            const oldData = payload.old as any;
+            
+            if (oldData.status === "Recebido" && newData.status !== "Recebido" && newData.accepted_at) {
+              playAcceptedSound();
+              showBrowserNotification("Cliente Aceitou!", `OS ${newData.os_number} foi aceita pelo cliente`);
+              toast.success(`OS ${newData.os_number} aceita pelo cliente!`, { 
+                duration: 8000,
+                style: { background: '#22c55e', color: 'white' }
+              });
+            }
+          }
+          
           fetchOrders();
         }
       )
