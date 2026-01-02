@@ -97,6 +97,31 @@ export default function FinanceiroPage() {
     const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
     const totalReceived = confirmedOrders.reduce((acc, o) => acc + Number(o.total || 0), 0);
     
+    // Este Mês (confirmados)
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const thisMonthTotal = confirmedOrders
+      .filter(o => {
+        const d = new Date(o.entry_date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
+      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+
+    // Esta Semana (confirmados)
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    const thisWeekTotal = confirmedOrders
+      .filter(o => {
+        const d = new Date(o.entry_date);
+        return d >= startOfWeek && d <= endOfWeek;
+      })
+      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+
     // A Receber: apenas ordens entregues e não pagas
     const projectedRevenue = orders
       .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
@@ -140,7 +165,7 @@ export default function FinanceiroPage() {
       }
     });
 
-    return { totalReceived, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution };
+    return { totalReceived, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution, thisMonthTotal, thisWeekTotal };
   }, [orders]);
 
   const projectionBreakdown = useMemo(() => {
@@ -248,7 +273,14 @@ export default function FinanceiroPage() {
           </Link>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Financeiro</h1>
         </div>
-        <h1 className="font-black text-xl">Tenislab</h1>
+        <div className="flex items-center gap-3">
+          <Link href="/interno/financeiro/relatorio">
+            <Button className="rounded-full bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-4">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Relatório
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {loading ? (
@@ -257,7 +289,46 @@ export default function FinanceiroPage() {
         </div>
       ) : (
         <main className="flex flex-col gap-8">
-          {/* CARDS TOP */}
+          {/* CARDS TOP - ESTE MÊS E ESTA SEMANA */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="rounded-[2rem] border-none shadow-xl shadow-emerald-200/30 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white overflow-hidden">
+              <CardContent className="p-8">
+                <div className="flex items-start justify-between">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Este Mês</span>
+                    <span className="text-4xl font-black tracking-tighter">R$ {stats.thisMonthTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <CalendarIcon className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+                <div className="mt-6 flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full w-fit">
+                  <div className="w-2 h-2 rounded-full bg-white" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest">Faturamento Confirmado</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[2rem] border-none shadow-xl shadow-blue-200/30 bg-gradient-to-br from-blue-500 to-blue-600 text-white overflow-hidden">
+              <CardContent className="p-8">
+                <div className="flex items-start justify-between">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Esta Semana</span>
+                    <span className="text-4xl font-black tracking-tighter">R$ {stats.thisWeekTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                    <CalendarDays className="w-7 h-7 text-white" />
+                  </div>
+                </div>
+                <div className="mt-6 flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full w-fit">
+                  <div className="w-2 h-2 rounded-full bg-white" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest">Faturamento Confirmado</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* CARDS SECUNDÁRIOS */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden">
               <CardContent className="p-8">
