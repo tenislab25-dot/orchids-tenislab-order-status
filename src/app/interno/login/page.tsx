@@ -26,14 +26,20 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
+      const timeout = setTimeout(() => {
+        setIsChecking(false);
+      }, 3000);
+      
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        clearTimeout(timeout);
         if (session) {
           router.push("/interno");
           return;
         }
       } catch (err) {
         console.error("Session check error:", err);
+        clearTimeout(timeout);
       } finally {
         setIsChecking(false);
       }

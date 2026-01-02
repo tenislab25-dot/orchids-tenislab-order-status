@@ -21,7 +21,9 @@ import {
     Trash2,
     Pencil,
     Star,
-    MessageCircle
+    MessageCircle,
+    Camera,
+    Loader2
   } from "lucide-react";
 
   import { Button } from "@/components/ui/button";
@@ -321,6 +323,47 @@ export default function OSViewPage() {
 
   const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number} | null>(null);
+  const [uploadingAfterPhoto, setUploadingAfterPhoto] = useState<number | null>(null);
+
+  const handleAddAfterPhoto = async (itemIdx: number, file: File) => {
+    if (!order) return;
+    
+    setUploadingAfterPhoto(itemIdx);
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${order.id}_item${itemIdx}_after_${Date.now()}.${fileExt}`;
+      const filePath = `service-orders/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filePath);
+      
+      const newItems = [...order.items];
+      const currentPhotosAfter = newItems[itemIdx].photosAfter || [];
+      newItems[itemIdx].photosAfter = [...currentPhotosAfter, publicUrl];
+      
+      const { error: updateError } = await supabase
+        .from("service_orders")
+        .update({ items: newItems })
+        .eq("os_number", osNumber);
+      
+      if (updateError) throw updateError;
+      
+      setOrder({ ...order, items: newItems });
+      toast.success("Foto DEPOIS adicionada!");
+    } catch (error: any) {
+      toast.error("Erro ao adicionar foto: " + error.message);
+    } finally {
+      setUploadingAfterPhoto(null);
+    }
+  };
 
   const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
     const { error } = await supabase
@@ -868,28 +911,49 @@ export default function OSViewPage() {
                       </div>
                     )}
 
-                    {item.photosAfter && item.photosAfter.length > 0 && (
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500" />
-                          Fotos DEPOIS (Finalizado)
-                        </span>
-                        <div className="grid grid-cols-3 gap-2">
-                          {item.photosAfter.map((photo: string, pIdx: number) => (
-                            <div 
-                              key={pIdx} 
-                              className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
-                              onClick={() => setSelectedImage(photo)}
-                            >
-                              <Image src={photo} alt={`Foto depois ${pIdx + 1}`} fill className="object-cover" />
-                              <div className="absolute top-1 left-1">
-                                <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+{(role === "ADMIN" || role === "ATENDENTE") && (
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-500" />
+                            Fotos DEPOIS (Finalizado)
+                          </span>
+                          <div className="grid grid-cols-3 gap-2">
+                            {item.photosAfter?.map((photo: string, pIdx: number) => (
+                              <div 
+                                key={pIdx} 
+                                className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
+                                onClick={() => setSelectedImage(photo)}
+                              >
+                                <Image src={photo} alt={`Foto depois ${pIdx + 1}`} fill className="object-cover" />
+                                <div className="absolute top-1 left-1">
+                                  <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                            <label className="relative aspect-square rounded-2xl overflow-hidden border-2 border-dashed border-green-300 cursor-pointer flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 transition-colors">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden"
+                                disabled={uploadingAfterPhoto === idx}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleAddAfterPhoto(idx, file);
+                                  e.target.value = '';
+                                }}
+                              />
+                              {uploadingAfterPhoto === idx ? (
+                                <Loader2 className="w-6 h-6 text-green-500 animate-spin" />
+                              ) : (
+                                <>
+                                  <Camera className="w-6 h-6 text-green-500" />
+                                  <span className="text-[8px] font-bold text-green-600 mt-1">ADICIONAR</span>
+                                </>
+                              )}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     <div className="flex justify-end pt-2 border-t border-slate-50">
                       <span className="text-lg font-black text-slate-900">R$ {Number(item.subtotal).toFixed(2)}</span>
