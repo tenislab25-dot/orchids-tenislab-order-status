@@ -322,7 +322,7 @@ export default function OSViewPage() {
     };
 
   const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
-  const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number} | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number, type: 'before' | 'after'} | null>(null);
   const [uploadingAfterPhoto, setUploadingAfterPhoto] = useState<number | null>(null);
 
   const handleAddAfterPhoto = async (itemIdx: number, file: File) => {
@@ -421,11 +421,18 @@ export default function OSViewPage() {
   const handleDeletePhoto = async () => {
     if (!order || !photoToDelete) return;
     
-    const { itemIdx, photoIdx } = photoToDelete;
+    const { itemIdx, photoIdx, type } = photoToDelete;
     const newItems = [...order.items];
-    const photos = [...(newItems[itemIdx].photos || [])];
-    photos.splice(photoIdx, 1);
-    newItems[itemIdx].photos = photos;
+    
+    if (type === 'before') {
+      const photos = [...(newItems[itemIdx].photos || [])];
+      photos.splice(photoIdx, 1);
+      newItems[itemIdx].photos = photos;
+    } else {
+      const photos = [...(newItems[itemIdx].photosAfter || [])];
+      photos.splice(photoIdx, 1);
+      newItems[itemIdx].photosAfter = photos;
+    }
 
     const { error } = await supabase
       .from("service_orders")
@@ -928,6 +935,16 @@ export default function OSViewPage() {
                                 <div className="absolute top-1 left-1">
                                   <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
                                 </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPhotoToDelete({ itemIdx: idx, photoIdx: pIdx, type: 'after' });
+                                    setDeletePhotoModalOpen(true);
+                                  }}
+                                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
                               </div>
                             ))}
                             <label className="relative aspect-square rounded-2xl overflow-hidden border-2 border-dashed border-green-300 cursor-pointer flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 transition-colors">
@@ -1250,7 +1267,7 @@ export default function OSViewPage() {
       <Dialog open={deletePhotoModalOpen} onOpenChange={setDeletePhotoModalOpen}>
         <DialogContent className="rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black">Excluir Foto</DialogTitle>
+            <DialogTitle className="text-lg font-black">Excluir Foto {photoToDelete?.type === 'after' ? 'do Depois' : 'do Antes'}</DialogTitle>
             <DialogDescription>Tem certeza que deseja excluir esta foto?</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 pt-4">

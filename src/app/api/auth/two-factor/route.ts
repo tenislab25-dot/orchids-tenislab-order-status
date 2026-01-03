@@ -6,8 +6,11 @@ function generateCode(): string {
 }
 
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const failedAttemptsMap = new Map<string, { count: number; blockedUntil: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000;
 const MAX_REQUESTS = 5;
+const MAX_FAILED_ATTEMPTS = 5;
+const BLOCK_DURATION = 15 * 60 * 1000;
 
 function checkRateLimit(key: string): boolean {
   const now = Date.now();
@@ -26,11 +29,45 @@ function checkRateLimit(key: string): boolean {
   return true;
 }
 
+function checkBruteForce(key: string): { allowed: boolean; remainingTime?: number } {
+  const now = Date.now();
+  const record = failedAttemptsMap.get(key);
+  
+  if (!record) return { allowed: true };
+  
+  if (record.blockedUntil > now) {
+    return { allowed: false, remainingTime: Math.ceil((record.blockedUntil - now) / 1000) };
+  }
+  
+  return { allowed: true };
+}
+
+function recordFailedAttempt(key: string) {
+  const now = Date.now();
+  const record = failedAttemptsMap.get(key) || { count: 0, blockedUntil: 0 };
+  
+  record.count++;
+  if (record.count >= MAX_FAILED_ATTEMPTS) {
+    record.blockedUntil = now + BLOCK_DURATION;
+    record.count = 0;
+  }
+  
+  failedAttemptsMap.set(key, record);
+}
+
+function clearFailedAttempts(key: string) {
+  failedAttemptsMap.delete(key);
+}
+
 export async function POST(request: Request) {
   try {
     const { action, userId, email, code } = await request.json();
 
     if (!action || !userId) {
+      return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+    }
+
+    if (typeof userId !== "string" || userId.length > 50) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
     }
 
@@ -42,8 +79,8 @@ export async function POST(request: Request) {
     }
 
     if (action === "send") {
-      if (!email) {
-        return NextResponse.json({ error: "Email é obrigatório" }, { status: 400 });
+      if (!email || typeof email !== "string" || !email.includes("@")) {
+        return NextResponse.json({ error: "Email inválido" }, { status: 400 });
       }
 
       const newCode = generateCode();
@@ -67,14 +104,23 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Erro ao gerar código" }, { status: 500 });
       }
 
-      console.log(`[2FA] Código para ${email}: ${newCode}`);
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[2FA] Código para ${email}: ${newCode}`);
+      }
 
       return NextResponse.json({ success: true, message: "Código enviado" });
     }
 
     if (action === "verify") {
-      if (!code) {
-        return NextResponse.json({ error: "Código é obrigatório" }, { status: 400 });
+      if (!code || typeof code !== "string" || !/^\d{6}$/.test(code)) {
+        return NextResponse.json({ error: "Código inválido" }, { status: 400 });
+      }
+
+      const bruteForceCheck = checkBruteForce(rateLimitKey);
+      if (!bruteForceCheck.allowed) {
+        return NextResponse.json({ 
+          error: `Muitas tentativas falhas. Tente novamente em ${bruteForceCheck.remainingTime} segundos.` 
+        }, { status: 429 });
       }
 
       const { data: storedCode, error: fetchError } = await supabaseAdmin
@@ -93,10 +139,12 @@ export async function POST(request: Request) {
       }
 
       if (storedCode.code !== code) {
+        recordFailedAttempt(rateLimitKey);
         return NextResponse.json({ error: "Código inválido", verified: false }, { status: 400 });
       }
 
       await supabaseAdmin.from("two_factor_codes").delete().eq("user_id", userId);
+      clearFailedAttempts(rateLimitKey);
 
       return NextResponse.json({ verified: true });
     }

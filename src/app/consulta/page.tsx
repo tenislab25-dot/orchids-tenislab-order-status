@@ -248,7 +248,7 @@ function OrderContent() {
         status,
         items,
         delivery_date,
-        clients (
+        clients!inner (
           phone
         )
       `)
@@ -261,9 +261,11 @@ function OrderContent() {
         return;
       }
 
-    // Verify phone (very simple check)
-    const dbPhone = data.clients?.phone.replace(/\D/g, "");
-    if (dbPhone && !dbPhone.includes(searchPhone) && !searchPhone.includes(dbPhone)) {
+    const dbPhone = data.clients?.phone?.replace(/\D/g, "") || "";
+    const last4Db = dbPhone.slice(-4);
+    const last4Search = searchPhone.slice(-4);
+    
+    if (!dbPhone || last4Db !== last4Search) {
       setError("Telefone não confere com o cadastro.");
       setLoading(false);
       return;

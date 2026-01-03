@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { canChangeToStatus, type UserRole, type Status } from "@/lib/auth";
 
+const VALID_STATUSES = [
+  "Recebido",
+  "Em espera",
+  "Em serviço",
+  "Em finalização",
+  "Pronto para entrega ou retirada",
+  "Entregue",
+  "Cancelado"
+];
+
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -30,6 +40,14 @@ export async function POST(request: Request) {
 
     if (!orderId || !status) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+    }
+
+    if (typeof orderId !== "string" || orderId.length > 50) {
+      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+    }
+
+    if (!VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     }
 
     const userRole = profile.role as UserRole;

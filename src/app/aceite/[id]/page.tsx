@@ -131,6 +131,18 @@ export default function CustomerAcceptancePage() {
   const handleConfirm = async () => {
     setConfirming(true);
     
+    const { data: currentOrder } = await supabase
+      .from("service_orders")
+      .select("status, accepted_at")
+      .eq("id", id)
+      .single();
+    
+    if (currentOrder?.accepted_at || (currentOrder?.status !== "Recebido")) {
+      setIsConfirmed(true);
+      setConfirming(false);
+      return;
+    }
+    
     const acceptedAt = new Date().toISOString();
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 5);
@@ -143,7 +155,8 @@ export default function CustomerAcceptancePage() {
         accepted_at: acceptedAt,
         delivery_date: deliveryDateStr
       })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", "Recebido");
 
 if (error) {
         toast.error("Erro ao confirmar serviço");
