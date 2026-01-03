@@ -91,7 +91,7 @@ export default function EditOSPage() {
   const [paymentMethod, setPaymentMethod] = useState("Pix");
   const [payOnEntry, setPayOnEntry] = useState(false);
   const [items, setItems] = useState<OSItem[]>([]);
-  const [photoToDelete, setPhotoToDelete] = useState<{ itemId: string; type: 'photos' | 'photosBefore'; index: number } | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<{ itemId: string; type: 'photos' | 'photosBefore' | 'photosAfter'; index: number } | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
 
@@ -254,23 +254,24 @@ export default function EditOSPage() {
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
   const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
 
-  const confirmDeletePhoto = async () => {
-    if (!photoToDelete) return;
-    
-    // We update the local state. On save, it will be persisted to DB.
-    setItems(items.map(it => {
-      if (it.id === photoToDelete.itemId) {
-        if (photoToDelete.type === 'photos') {
-          return { ...it, photos: it.photos?.filter((_: string, i: number) => i !== photoToDelete.index) };
-        } else {
-          return { ...it, photosBefore: it.photosBefore?.filter((_: string, i: number) => i !== photoToDelete.index) };
+const confirmDeletePhoto = async () => {
+      if (!photoToDelete) return;
+      
+      setItems(items.map(it => {
+        if (it.id === photoToDelete.itemId) {
+          if (photoToDelete.type === 'photos') {
+            return { ...it, photos: it.photos?.filter((_: string, i: number) => i !== photoToDelete.index) };
+          } else if (photoToDelete.type === 'photosBefore') {
+            return { ...it, photosBefore: it.photosBefore?.filter((_: string, i: number) => i !== photoToDelete.index) };
+          } else if (photoToDelete.type === 'photosAfter') {
+            return { ...it, photosAfter: it.photosAfter?.filter((_: string, i: number) => i !== photoToDelete.index) };
+          }
         }
-      }
-      return it;
-    }));
-    setPhotoToDelete(null);
-    toast.success("Foto removida da lista. Salve para confirmar.");
-  };
+        return it;
+      }));
+      setPhotoToDelete(null);
+      toast.success("Foto removida da lista. Salve para confirmar.");
+    };
 
   const handleSave = async () => {
     if (items.length === 0) {
@@ -425,29 +426,64 @@ export default function EditOSPage() {
                                 </div>
                               </div>
                             ))}
-                            <label className="relative aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-amber-300 cursor-pointer flex flex-col items-center justify-center bg-amber-50/50 hover:bg-amber-50 transition-colors">
-                              <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden"
-                                disabled={uploadingPhoto === item.id}
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleAddPhoto(item.id, file);
-                                  e.target.value = '';
-                                }}
-                              />
-                              {uploadingPhoto === item.id ? (
-                                <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
-                              ) : (
-                                <>
-                                  <Camera className="w-6 h-6 text-amber-500" />
-                                  <span className="text-[9px] font-black text-amber-600 mt-1 uppercase tracking-widest">Adicionar Foto</span>
-                                </>
-                              )}
-                            </label>
+<label className="relative aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-amber-300 cursor-pointer flex flex-col items-center justify-center bg-amber-50/50 hover:bg-amber-50 transition-colors">
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  className="hidden"
+                                  disabled={uploadingPhoto === item.id}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleAddPhoto(item.id, file);
+                                    e.target.value = '';
+                                  }}
+                                />
+                                {uploadingPhoto === item.id ? (
+                                  <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Camera className="w-6 h-6 text-amber-500" />
+                                    <span className="text-[9px] font-black text-amber-600 mt-1 uppercase tracking-widest">Adicionar Foto</span>
+                                  </>
+                                )}
+                              </label>
+                            </div>
                           </div>
-                        </div>
+
+                          {item.photosAfter && item.photosAfter.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-green-500 flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-green-500" />
+                              Fotos DEPOIS (Finalizado)
+                            </Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {item.photosAfter.map((photo: string, pIdx: number) => (
+                                <div key={`after-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 group">
+                                  <Image src={photo} alt="Foto depois" fill className="object-cover" />
+                                  <div className="absolute top-2 left-2">
+                                    <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                                  </div>
+                                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                    <button 
+                                      type="button"
+                                      onClick={() => setSelectedPhoto(photo)}
+                                      className="bg-blue-500 text-white p-2.5 rounded-full shadow-lg"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button 
+                                      type="button"
+                                      onClick={() => setPhotoToDelete({ itemId: item.id, type: 'photosAfter', index: pIdx })}
+                                      className="bg-red-500 text-white p-2.5 rounded-full shadow-lg"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          )}
 
                   <div className="space-y-2">
                   <Label>Serviços</Label>
