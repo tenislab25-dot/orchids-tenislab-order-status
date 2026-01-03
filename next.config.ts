@@ -22,8 +22,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
-    remotePatterns: [
+    images: {
+      unoptimized: true,
+      remotePatterns: [
       {
         protocol: 'https',
         hostname: '**',

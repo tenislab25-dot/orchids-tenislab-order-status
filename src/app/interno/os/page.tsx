@@ -373,15 +373,23 @@ export default function OSPage() {
     try {
       let clientId = selectedClientId;
 
+      const formattedName = clientName.toUpperCase().trim();
+      const formattedPhone = clientPhone.replace(/\D/g, "").replace(/^55/, "");
+
       if (selectedClientId === "new") {
         const { data: newClient, error: clientError } = await supabase
           .from("clients")
-          .insert([{ name: clientName, phone: clientPhone }])
+          .insert([{ name: formattedName, phone: formattedPhone }])
           .select()
           .single();
         
         if (clientError) throw clientError;
         clientId = newClient.id;
+      } else {
+        await supabase
+          .from("clients")
+          .update({ name: formattedName, phone: formattedPhone })
+          .eq("id", selectedClientId);
       }
 
       const itemsWithPhotosBefore = items.map(item => ({

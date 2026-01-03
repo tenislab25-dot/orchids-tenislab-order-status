@@ -15,8 +15,10 @@ import {
   Save,
   Loader2,
   Plus,
-  Eye
+  Eye,
+  Camera
 } from "lucide-react";
+import { compressImage } from "@/lib/image-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +93,40 @@ export default function EditOSPage() {
   const [items, setItems] = useState<OSItem[]>([]);
   const [photoToDelete, setPhotoToDelete] = useState<{ itemId: string; type: 'photos' | 'photosBefore'; index: number } | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
+
+  const handleAddPhoto = async (itemId: string, file: File) => {
+    setUploadingPhoto(itemId);
+    try {
+      const compressedFile = await compressImage(file, 1080, 0.7);
+      const fileExt = 'jpg';
+      const fileName = `${order.id}_item${itemId}_before_${Date.now()}.${fileExt}`;
+      const filePath = `service-orders/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(filePath, compressedFile);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filePath);
+      
+      setItems(items.map(it => {
+        if (it.id === itemId) {
+          const currentPhotos = it.photosBefore || [];
+          return { ...it, photosBefore: [...currentPhotos, publicUrl] };
+        }
+        return it;
+      }));
+      toast.success("Foto adicionada!");
+    } catch (error: any) {
+      toast.error("Erro ao adicionar foto: " + error.message);
+    } finally {
+      setUploadingPhoto(null);
+    }
+  };
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
@@ -218,8 +254,10 @@ export default function EditOSPage() {
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
   const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
 
-  const confirmDeletePhoto = () => {
+  const confirmDeletePhoto = async () => {
     if (!photoToDelete) return;
+    
+    // We update the local state. On save, it will be persisted to DB.
     setItems(items.map(it => {
       if (it.id === photoToDelete.itemId) {
         if (photoToDelete.type === 'photos') {
@@ -231,6 +269,7 @@ export default function EditOSPage() {
       return it;
     }));
     setPhotoToDelete(null);
+    toast.success("Foto removida da lista. Salve para confirmar.");
   };
 
   const handleSave = async () => {
@@ -332,64 +371,83 @@ export default function EditOSPage() {
                 </Button>
               </CardHeader>
 <CardContent className="p-4 space-y-4">
-                  {((item.photos && item.photos.length > 0) || (item.photosBefore && item.photosBefore.length > 0)) && (
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-amber-500 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-500" />
-                        Fotos ANTES (Na Entrada)
-                      </Label>
-<div className="grid grid-cols-2 gap-2">
-                          {item.photos?.map((photo: string, pIdx: number) => (
-                            <div key={`photo-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-amber-200 group">
-                              <Image src={photo} alt="Foto antes" fill className="object-cover" />
-                              <div className="absolute top-2 left-2">
-                                <Badge className="bg-amber-500 text-white text-[8px] font-bold">ANTES</Badge>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest text-amber-500 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            Fotos ANTES (Na Entrada)
+                          </Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {item.photos?.map((photo: string, pIdx: number) => (
+                              <div key={`photo-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-amber-200 group">
+                                <Image src={photo} alt="Foto antes" fill className="object-cover" />
+                                <div className="absolute top-2 left-2">
+                                  <Badge className="bg-amber-500 text-white text-[8px] font-bold">ANTES</Badge>
+                                </div>
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                  <button 
+                                    type="button"
+                                    onClick={() => setSelectedPhoto(photo)}
+                                    className="bg-blue-500 text-white p-2.5 rounded-full shadow-lg"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    onClick={() => setPhotoToDelete({ itemId: item.id, type: 'photos', index: pIdx })}
+                                    className="bg-red-500 text-white p-2.5 rounded-full shadow-lg"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                <button 
-                                  type="button"
-                                  onClick={() => setSelectedPhoto(photo)}
-                                  className="bg-blue-500 text-white p-3 rounded-full shadow-2xl"
-                                >
-                                  <Eye className="w-5 h-5" />
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => setPhotoToDelete({ itemId: item.id, type: 'photos', index: pIdx })}
-                                  className="bg-red-500 text-white p-3 rounded-full shadow-2xl"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </button>
+                            ))}
+                            {item.photosBefore?.map((photo: string, pIdx: number) => (
+                              <div key={`before-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-amber-200 group">
+                                <Image src={photo} alt="Foto antes" fill className="object-cover" />
+                                <div className="absolute top-2 left-2">
+                                  <Badge className="bg-amber-500 text-white text-[8px] font-bold">ANTES</Badge>
+                                </div>
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                  <button 
+                                    type="button"
+                                    onClick={() => setSelectedPhoto(photo)}
+                                    className="bg-blue-500 text-white p-2.5 rounded-full shadow-lg"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    type="button"
+                                    onClick={() => setPhotoToDelete({ itemId: item.id, type: 'photosBefore', index: pIdx })}
+                                    className="bg-red-500 text-white p-2.5 rounded-full shadow-lg"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                          {item.photosBefore?.map((photo: string, pIdx: number) => (
-                            <div key={`before-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-amber-200 group">
-                              <Image src={photo} alt="Foto antes" fill className="object-cover" />
-                              <div className="absolute top-2 left-2">
-                                <Badge className="bg-amber-500 text-white text-[8px] font-bold">ANTES</Badge>
-                              </div>
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                <button 
-                                  type="button"
-                                  onClick={() => setSelectedPhoto(photo)}
-                                  className="bg-blue-500 text-white p-3 rounded-full shadow-2xl"
-                                >
-                                  <Eye className="w-5 h-5" />
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => setPhotoToDelete({ itemId: item.id, type: 'photosBefore', index: pIdx })}
-                                  className="bg-red-500 text-white p-3 rounded-full shadow-2xl"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                            <label className="relative aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-amber-300 cursor-pointer flex flex-col items-center justify-center bg-amber-50/50 hover:bg-amber-50 transition-colors">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden"
+                                disabled={uploadingPhoto === item.id}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleAddPhoto(item.id, file);
+                                  e.target.value = '';
+                                }}
+                              />
+                              {uploadingPhoto === item.id ? (
+                                <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+                              ) : (
+                                <>
+                                  <Camera className="w-6 h-6 text-amber-500" />
+                                  <span className="text-[9px] font-black text-amber-600 mt-1 uppercase tracking-widest">Adicionar Foto</span>
+                                </>
+                              )}
+                            </label>
+                          </div>
                         </div>
-                    </div>
-                  )}
 
                   <div className="space-y-2">
                   <Label>Serviços</Label>
@@ -686,21 +744,25 @@ export default function EditOSPage() {
 
         {selectedPhoto && (
           <div 
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4"
             onClick={() => setSelectedPhoto(null)}
           >
             <button
-              className="absolute top-4 right-4 bg-white/20 text-white p-3 rounded-full"
-              onClick={() => setSelectedPhoto(null)}
+              className="absolute top-4 right-4 bg-white/20 text-white p-3 rounded-full z-[101] hover:bg-white/30 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedPhoto(null);
+              }}
             >
               <X className="w-6 h-6" />
             </button>
             <Image
               src={selectedPhoto}
               alt="Foto ampliada"
-              width={800}
-              height={600}
-              className="max-w-full max-h-full object-contain rounded-2xl"
+              width={1200}
+              height={900}
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         )}

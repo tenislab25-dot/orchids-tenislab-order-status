@@ -131,18 +131,28 @@ export default function ClientsPage() {
       return;
     }
 
+    const formattedName = formData.name.toUpperCase();
+    const cleanPhone = formData.phone.replace(/\D/g, "");
+    const finalPhone = cleanPhone.startsWith("55") ? cleanPhone.slice(2) : cleanPhone;
+    
+    const finalData = {
+      ...formData,
+      name: formattedName,
+      phone: finalPhone
+    };
+
     try {
       if (editingClient) {
         const { error } = await supabase
           .from("clients")
-          .update(formData)
+          .update(finalData)
           .eq("id", editingClient.id);
         if (error) throw error;
         toast.success("Cliente atualizado com sucesso");
       } else {
         const { error } = await supabase
           .from("clients")
-          .insert([formData]);
+          .insert([finalData]);
         if (error) throw error;
         toast.success("Cliente cadastrado com sucesso");
       }

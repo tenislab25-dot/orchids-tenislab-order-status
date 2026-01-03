@@ -380,20 +380,29 @@ if (error) {
                     <div className="flex items-center justify-between ml-1">
                           <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Contratados</Label>
                         </div>
-                      <div className="flex flex-col gap-2">
-                        {item.services.map((s: any) => (
+<div className="flex flex-col gap-2">
+                          {item.services.map((s: any) => (
 
-                        <div key={s.id || s.name} className="flex flex-col bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-black text-slate-900">{s.name}</span>
-                            <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
+                          <div key={s.id || s.name} className="flex flex-col bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-black text-slate-900">{s.name}</span>
+                              <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
+                            </div>
+                            {s.description && (
+                              <p className="text-[11px] text-slate-500 mt-1 leading-tight">{s.description}</p>
+                            )}
                           </div>
-                          {s.description && (
-                            <p className="text-[11px] text-slate-500 mt-1 leading-tight">{s.description}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                        {item.customService?.name && (
+                          <div className="flex flex-col bg-purple-50 p-4 rounded-2xl border border-purple-100">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-black text-purple-900">{item.customService.name}</span>
+                              <span className="text-xs font-black text-purple-600">R$ {Number(item.customService.price || 0).toFixed(2)}</span>
+                            </div>
+                            <p className="text-[11px] text-purple-500 mt-1 leading-tight">Serviço personalizado</p>
+                          </div>
+                        )}
+                      </div>
                   </div>
 
                   {item.notes && (

@@ -48,6 +48,8 @@ export default function CalendarioPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "delivered" | "overdue">("all");
 
+  const [overdueOrders, setOverdueOrders] = useState<Order[]>([]);
+
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
     if (!storedRole) {
@@ -78,6 +80,14 @@ export default function CalendarioPage() {
       toast.error("Erro ao buscar pedidos: " + error.message);
     } else {
       setOrders(data as Order[]);
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const overdue = (data as Order[]).filter(order => {
+        const deliveryDate = new Date(order.delivery_date + 'T12:00:00');
+        return deliveryDate < today && order.status !== "Entregue";
+      });
+      setOverdueOrders(overdue);
     }
     setLoading(false);
   };
@@ -94,19 +104,29 @@ export default function CalendarioPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    if (statusFilter === "overdue") {
+      return overdueOrders;
+    }
+    
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
     return orders.filter(order => {
-      if (statusFilter === "all") return true;
-      
       const deliveryDate = new Date(order.delivery_date + 'T12:00:00');
+      const isCorrectMonth = deliveryDate.getFullYear() === year && deliveryDate.getMonth() === month;
+
+      if (statusFilter === "all") return isCorrectMonth;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const isPast = deliveryDate < today;
       
-      if (statusFilter === "delivered") return order.status === "Entregue";
-      if (statusFilter === "pending") return order.status !== "Entregue" && !isPast;
-      if (statusFilter === "overdue") return order.status !== "Entregue" && isPast;
+      if (statusFilter === "delivered") return isCorrectMonth && order.status === "Entregue";
+      if (statusFilter === "pending") return isCorrectMonth && order.status !== "Entregue" && !isPast;
       
-      return true;
+      return isCorrectMonth;
     });
-  }, [orders, statusFilter]);
+  }, [orders, statusFilter, overdueOrders, currentDate]);
 
   const calendarData = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -185,15 +205,9 @@ export default function CalendarioPage() {
     const total = monthOrders.length;
     const delivered = monthOrders.filter(o => o.status === "Entregue").length;
     const pending = monthOrders.filter(o => o.status !== "Entregue").length;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const overdue = monthOrders.filter(o => {
-      const d = new Date(o.delivery_date + 'T12:00:00');
-      return d < today && o.status !== "Entregue";
-    }).length;
 
-    return { total, delivered, pending, overdue };
-  }, [currentDate, orders]);
+    return { total, delivered, pending, overdue: overdueOrders.length };
+  }, [currentDate, orders, overdueOrders]);
 
   const prevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -286,10 +300,10 @@ export default function CalendarioPage() {
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Atrasados</span>
-            </div>
-            <p className={`text-2xl font-black ${monthStats.overdue > 0 ? 'text-red-600' : 'text-slate-900'}`}>{monthStats.overdue}</p>
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Atrasadas</span>
+              </div>
+              <p className={`text-2xl font-black ${monthStats.overdue > 0 ? 'text-red-600' : 'text-slate-900'}`}>{monthStats.overdue}</p>
           </CardContent>
         </Card>
       </div>

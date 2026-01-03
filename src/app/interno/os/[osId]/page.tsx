@@ -54,6 +54,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { canChangeToStatus, getAllowedStatuses, type UserRole } from "@/lib/auth";
+import { compressImage } from "@/lib/image-utils";
 
 type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
@@ -331,13 +332,14 @@ export default function OSViewPage() {
     setUploadingAfterPhoto(itemIdx);
     
     try {
-      const fileExt = file.name.split('.').pop();
+      const compressedFile = await compressImage(file, 1080, 0.7);
+      const fileExt = 'jpg';
       const fileName = `${order.id}_item${itemIdx}_after_${Date.now()}.${fileExt}`;
       const filePath = `service-orders/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
         .from('photos')
-        .upload(filePath, file);
+        .upload(filePath, compressedFile);
       
       if (uploadError) throw uploadError;
       
@@ -352,7 +354,7 @@ export default function OSViewPage() {
       const { error: updateError } = await supabase
         .from("service_orders")
         .update({ items: newItems })
-        .eq("os_number", osNumber);
+        .eq("id", order.id);
       
       if (updateError) throw updateError;
       
@@ -437,7 +439,7 @@ export default function OSViewPage() {
     const { error } = await supabase
       .from("service_orders")
       .update({ items: newItems })
-      .eq("os_number", osNumber);
+      .eq("id", order.id);
 
     if (error) {
       toast.error("Erro ao excluir foto: " + error.message);
@@ -941,12 +943,24 @@ export default function OSViewPage() {
                                     setPhotoToDelete({ itemIdx: idx, photoIdx: pIdx, type: 'after' });
                                     setDeletePhotoModalOpen(true);
                                   }}
-                                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                  className="absolute top-1 right-1 w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg active:scale-90"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             ))}
+                            {(!item.photosAfter || item.photosAfter.length === 0) && (
+                              <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-50 flex items-center justify-center opacity-40 grayscale">
+                                <Image 
+                                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=200&height=200&resize=contain" 
+                                  alt="Sem foto" 
+                                  width={60} 
+                                  height={60} 
+                                  className="object-contain opacity-20"
+                                />
+                                <span className="absolute bottom-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest">Sem Foto Depois</span>
+                              </div>
+                            )}
                             <label className="relative aspect-square rounded-2xl overflow-hidden border-2 border-dashed border-green-300 cursor-pointer flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 transition-colors">
                               <input 
                                 type="file" 
