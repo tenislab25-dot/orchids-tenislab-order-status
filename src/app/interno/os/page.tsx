@@ -174,15 +174,23 @@ export default function OSPage() {
     };
 
   const serviceCatalog = useMemo(() => {
-    return services.reduce((acc, service) => {
-      if (!acc[service.category]) acc[service.category] = [];
-      acc[service.category].push({
-        id: service.id,
-        name: service.name,
-        price: service.default_price
-      });
-      return acc;
-    }, {} as Record<string, { id: string, name: string, price: number }[]>);
+    try {
+      if (!services || !Array.isArray(services)) return {};
+      
+      return services.reduce((acc, service) => {
+        if (!service || !service.category) return acc;
+        if (!acc[service.category]) acc[service.category] = [];
+        acc[service.category].push({
+          id: service.id,
+          name: service.name || "Sem nome",
+          price: Number(service.default_price) || 0
+        });
+        return acc;
+      }, {} as Record<string, { id: string, name: string, price: number }[]>);
+    } catch (err) {
+      console.error("Error in serviceCatalog useMemo:", err);
+      return {};
+    }
   }, [services]);
 
   const generateOSNumber = async () => {
@@ -353,24 +361,28 @@ export default function OSPage() {
     return newDate;
   };
 
-  const handleCreateOS = async () => {
-    if (!clientName || !clientPhone) {
-      toast.error("Preencha os dados do cliente");
-      return;
-    }
+    const [isCreating, setIsCreating] = useState(false);
 
-    if (items.length === 0) {
-      toast.error("Adicione pelo menos um item");
-      return;
-    }
+    const handleCreateOS = async () => {
+      if (!clientName || !clientPhone) {
+        toast.error("Preencha os dados do cliente");
+        return;
+      }
 
-    const itemsWithoutService = items.filter(item => item.services.length === 0 && !item.customService?.name);
-    if (itemsWithoutService.length > 0) {
-      toast.error("Todos os itens devem ter pelo menos um serviço selecionado");
-      return;
-    }
+      if (items.length === 0) {
+        toast.error("Adicione pelo menos um item");
+        return;
+      }
 
-    try {
+      const itemsWithoutService = items.filter(item => item.services.length === 0 && !item.customService?.name);
+      if (itemsWithoutService.length > 0) {
+        toast.error("Todos os itens devem ter pelo menos um serviço selecionado");
+        return;
+      }
+
+      setIsCreating(true);
+      try {
+
       let clientId = selectedClientId;
 
       const formattedName = clientName.toUpperCase().trim();
@@ -418,10 +430,12 @@ export default function OSPage() {
 
         if (osError) throw osError;
 
+        setIsCreating(false);
         setCreatedOS(newOS);
         setShowSuccessDialog(true);
         toast.success("Ordem de Serviço criada com sucesso!");
       } catch (error: any) {
+        setIsCreating(false);
         toast.error("Erro ao criar OS: " + error.message);
       }
     };
@@ -914,12 +928,18 @@ export default function OSPage() {
       </section>
 
       <section className="flex flex-col gap-3 mt-4">
-        <Button 
-          className="w-full h-16 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-xl shadow-blue-100 transition-all active:scale-[0.98] gap-3"
-          onClick={handleCreateOS}
-        >
-          Gerar link para aceite
-        </Button>
+          <Button 
+            className="w-full h-16 rounded-[2rem] bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-xl shadow-blue-100 transition-all active:scale-[0.98] gap-3"
+            onClick={handleCreateOS}
+            disabled={isCreating}
+          >
+            {isCreating ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              "Gerar link para aceite"
+            )}
+          </Button>
+
         <Button 
           variant="ghost" 
           className="w-full h-14 rounded-2xl text-slate-500 font-bold"

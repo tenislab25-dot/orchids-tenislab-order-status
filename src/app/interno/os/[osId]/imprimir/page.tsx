@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { Printer, ArrowLeft, Smartphone, Monitor } from "lucide-react";
+import { Printer, ArrowLeft, Smartphone, Monitor, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PrintOSPage() {
@@ -13,7 +13,7 @@ export default function PrintOSPage() {
   const osNumber = osIdRaw.replace("-", "/");
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [printMode, setPrintMode] = useState<'thermal' | 'a4'>('thermal');
+  const [printMode, setPrintMode] = useState<'thermal' | 'a4' | 'tag'>('thermal');
 
   useEffect(() => {
     async function fetchOrder() {
@@ -58,7 +58,7 @@ export default function PrintOSPage() {
             className={`gap-2 ${printMode === 'thermal' ? 'bg-blue-600' : 'bg-transparent text-white border-white/30'}`}
             onClick={() => setPrintMode('thermal')}
           >
-            <Smartphone className="w-4 h-4" /> Térmica 80mm
+            <Smartphone className="w-4 h-4" /> Térmica
           </Button>
           <Button 
             variant={printMode === 'a4' ? 'default' : 'outline'}
@@ -67,13 +67,52 @@ export default function PrintOSPage() {
           >
             <Monitor className="w-4 h-4" /> A4
           </Button>
+          <Button 
+            variant={printMode === 'tag' ? 'default' : 'outline'}
+            className={`gap-2 ${printMode === 'tag' ? 'bg-blue-600' : 'bg-transparent text-white border-white/30'}`}
+            onClick={() => setPrintMode('tag')}
+          >
+            <Tag className="w-4 h-4" /> Etiqueta
+          </Button>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2" onClick={handlePrint}>
           <Printer className="w-4 h-4" /> Imprimir
         </Button>
       </div>
 
-      {printMode === 'thermal' ? (
+      {printMode === 'tag' ? (
+        <div className="tag-print-container flex flex-col gap-8 print:gap-0">
+          {order.items.map((item: any, idx: number) => (
+            <div key={idx} className="tag-print bg-white border border-slate-200 shadow-sm overflow-hidden" style={{ width: '90mm', height: '50mm', padding: '5mm', boxSizing: 'border-box' }}>
+              <div className="flex justify-between items-start h-full gap-4">
+                <div className="flex-1 flex flex-col justify-between h-full">
+                  <div>
+                    <h1 className="text-sm font-black tracking-tighter leading-none mb-1">TENISLAB</h1>
+                    <p className="text-[14px] font-bold text-slate-800 leading-tight mb-2 truncate uppercase">{order.clients?.name}</p>
+                    <div className="space-y-1">
+                      <p className="text-[12px] font-black text-blue-600">OS: #{order.os_number}</p>
+                      <p className="text-[10px] font-bold text-slate-700">Item: {item.itemNumber || `Par #${idx + 1}`}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase leading-none">Serviços:</p>
+                    <p className="text-[10px] font-medium text-slate-600 leading-tight line-clamp-2">
+                      {item.services.map((s: any) => s.name).join(', ')}
+                      {item.customService?.name && `, ${item.customService.name}`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center justify-center gap-1 shrink-0">
+                  <img src={qrCodeUrl} alt="QR Code" className="w-20 h-20" />
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">Rastrear</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : printMode === 'thermal' ? (
         <div className="thermal-print bg-white p-4 shadow-lg" style={{ width: '80mm', minHeight: '200mm' }}>
           <div className="text-center border-b border-dashed border-slate-300 pb-3 mb-3">
             <h1 className="text-lg font-black tracking-tighter">TENISLAB</h1>
@@ -107,23 +146,30 @@ export default function PrintOSPage() {
             </p>
           </div>
 
-          <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
-            <p className="text-[8px] text-slate-500 uppercase mb-2">ITENS E SERVIÇOS</p>
-            {order.items.map((item: any, idx: number) => (
-              <div key={idx} className="mb-2 pl-2 border-l-2 border-slate-200">
-                <p className="text-xs font-bold">{item.itemNumber || `Par #${idx + 1}`}</p>
-                {item.services.map((s: any, sIdx: number) => (
-                  <p key={sIdx} className="text-[9px] text-slate-600">• {s.name}</p>
-                ))}
-                {item.customService?.name && (
-                  <p className="text-[9px] text-blue-600">• {item.customService.name} (Extra)</p>
-                )}
-                {item.notes && (
-                  <p className="text-[8px] italic text-slate-500 mt-1">Obs: {item.notes}</p>
-                )}
-              </div>
-            ))}
-          </div>
+            <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
+              <p className="text-[8px] text-slate-500 uppercase mb-2">ITENS E SERVIÇOS</p>
+              {order.items.map((item: any, idx: number) => (
+                <div key={idx} className="mb-2 pl-2 border-l-2 border-slate-200">
+                  <p className="text-xs font-bold">{item.itemNumber || `Par #${idx + 1}`}</p>
+                  {item.services.map((s: any, sIdx: number) => (
+                    <div key={sIdx} className="flex justify-between text-[9px] text-slate-600">
+                      <span>• {s.name}</span>
+                      <span>R$ {Number(s.price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                  {item.customService?.name && (
+                    <div className="flex justify-between text-[9px] text-blue-600">
+                      <span>• {item.customService.name} (Extra)</span>
+                      <span>R$ {Number(item.customService.price).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {item.notes && (
+                    <p className="text-[8px] italic text-slate-500 mt-1">Obs: {item.notes}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
 
           <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
             <div className="flex justify-between text-xs mb-1">
@@ -165,7 +211,7 @@ export default function PrintOSPage() {
           </div>
 
           <p className="text-center text-[7px] text-slate-400 uppercase tracking-widest mt-4">
-            www.tenislab.com.br
+            WWW.TENISLAB.APP.BR
           </p>
         </div>
       ) : (
@@ -219,20 +265,27 @@ export default function PrintOSPage() {
                         <p className="font-bold text-slate-800">{item.itemNumber || `Par #${idx + 1}`}</p>
                         {item.price && <p className="font-bold text-slate-700">R$ {Number(item.price).toFixed(2)}</p>}
                       </div>
-                      <ul className="space-y-1">
-                        {item.services.map((s: any, sIdx: number) => (
-                          <li key={sIdx} className="text-sm text-slate-600 flex items-center gap-2">
-                            <span className="w-1 h-1 rounded-full bg-slate-300" />
-                            {s.name}
-                          </li>
-                        ))}
-                        {item.customService?.name && (
-                          <li className="text-sm text-blue-600 font-medium flex items-center gap-2">
-                            <span className="w-1 h-1 rounded-full bg-blue-300" />
-                            {item.customService.name} (Extra)
-                          </li>
-                        )}
-                      </ul>
+                        <ul className="space-y-1">
+                          {item.services.map((s: any, sIdx: number) => (
+                            <li key={sIdx} className="text-sm text-slate-600 flex justify-between items-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                {s.name}
+                              </div>
+                              <span className="font-medium">R$ {Number(s.price).toFixed(2)}</span>
+                            </li>
+                          ))}
+                          {item.customService?.name && (
+                            <li className="text-sm text-blue-600 font-medium flex justify-between items-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1 h-1 rounded-full bg-blue-300" />
+                                {item.customService.name} (Extra)
+                              </div>
+                              <span>R$ {Number(item.customService.price).toFixed(2)}</span>
+                            </li>
+                          )}
+                        </ul>
+
                       {item.notes && (
                         <p className="text-xs text-slate-500 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
                           Obs: {item.notes}
@@ -283,7 +336,7 @@ export default function PrintOSPage() {
                   <span className="font-bold uppercase tracking-widest">Assinatura do Cliente</span>
                 </div>
               </div>
-              <p className="text-center font-bold tracking-widest pt-4">WWW.TENISLAB.COM.BR</p>
+              <p className="text-center font-bold tracking-widest pt-4">WWW.TENISLAB.APP.BR</p>
             </div>
           </div>
         </div>
@@ -305,9 +358,21 @@ export default function PrintOSPage() {
             box-shadow: none !important;
             border-radius: 0 !important;
           }
+          .tag-print-container {
+            display: block !important;
+          }
+          .tag-print {
+            width: 90mm !important;
+            height: 50mm !important;
+            margin: 0 !important;
+            padding: 5mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            page-break-after: always;
+          }
           @page {
-            size: ${printMode === 'thermal' ? '80mm auto' : 'A4'};
-            margin: ${printMode === 'thermal' ? '0' : '10mm'};
+            size: ${printMode === 'thermal' ? '80mm auto' : printMode === 'tag' ? '90mm 50mm' : 'A4'};
+            margin: ${printMode === 'thermal' ? '0' : printMode === 'tag' ? '0' : '10mm'};
           }
         }
       `}</style>

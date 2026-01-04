@@ -50,10 +50,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     }
 
+    const { data: currentOrder } = await supabaseAdmin
+      .from("service_orders")
+      .select("status")
+      .eq("id", orderId)
+      .single();
+
     const userRole = profile.role as UserRole;
-    if (!canChangeToStatus(userRole, status as Status)) {
+    if (!canChangeToStatus(userRole, status as Status, currentOrder?.status)) {
       return NextResponse.json(
-        { error: "Você não tem permissão para alterar para este status" },
+        { error: "Você não tem permissão para alterar para este status ou o pedido já foi entregue" },
         { status: 403 }
       );
     }

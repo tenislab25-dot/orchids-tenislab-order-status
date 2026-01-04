@@ -345,23 +345,34 @@ function OrderContent() {
                       <div key={idx} className="flex flex-col gap-2">
                           <span className="text-xs font-bold text-slate-600">Item {idx + 1}</span>
                           
-                          <div className="flex flex-col gap-1 my-1">
-                            {item.services?.map((s: any, sIdx: number) => (
-                                  <div key={sIdx} className="flex flex-col items-start bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                    <div className="flex items-center justify-between w-full">
-                                      <div className="flex items-center gap-1.5">
-                                        <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                        <span className="text-xs font-bold text-slate-900">{s.name}</span>
+                            <div className="flex flex-col gap-1 my-1">
+                              {item.services?.map((s: any, sIdx: number) => (
+                                    <div key={sIdx} className="flex flex-col items-start bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                      <div className="flex items-center justify-between w-full">
+                                        <div className="flex items-center gap-1.5">
+                                          <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                          <span className="text-xs font-bold text-slate-900">{s.name}</span>
+                                        </div>
+                                        <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
                                       </div>
-                                      <span className="text-xs font-black text-blue-600">R$ {Number(s.price || 0).toFixed(2)}</span>
+                                      {s.description && (
+                                        <span className="text-[10px] text-slate-500 text-left mt-1 ml-2.5 leading-tight">{s.description}</span>
+                                      )}
                                     </div>
-                                    {s.description && (
-                                      <span className="text-[10px] text-slate-500 text-left mt-1 ml-2.5 leading-tight">{s.description}</span>
-                                    )}
+                              ))}
+                              {item.customService?.name && (
+                                <div className="flex flex-col items-start bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+                                  <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-blue-600" />
+                                      <span className="text-xs font-bold text-slate-900">{item.customService.name} (Extra)</span>
+                                    </div>
+                                    <span className="text-xs font-black text-blue-700">R$ {Number(item.customService.price || 0).toFixed(2)}</span>
                                   </div>
+                                </div>
+                              )}
+                            </div>
 
-                            ))}
-                          </div>
 
 {(() => {
                               const beforePhotos = item.photosBefore || item.photos || [];

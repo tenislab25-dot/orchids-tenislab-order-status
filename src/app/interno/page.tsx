@@ -10,6 +10,7 @@ import {
   ChevronRight,
   ClipboardList,
   LayoutGrid,
+  ShoppingBag,
   Loader2
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -113,14 +114,24 @@ export default function InternoPage() {
               />
             )}
 
-            {role === 'ADMIN' && (
-              <MenuButton 
-                href="/interno/servicos"
-                title="Serviços"
-                icon={LayoutGrid}
-                description="Catálogo de Preços"
-              />
-            )}
+              {role === 'ADMIN' && (
+                <MenuButton 
+                  href="/interno/servicos"
+                  title="Serviços"
+                  icon={LayoutGrid}
+                  description="Catálogo de Preços"
+                />
+              )}
+
+              {role === 'ADMIN' && (
+                <MenuButton 
+                  href="/interno/produtos"
+                  title="Produtos"
+                  icon={ShoppingBag}
+                  description="Itens para Venda"
+                />
+              )}
+
 
         </main>
 

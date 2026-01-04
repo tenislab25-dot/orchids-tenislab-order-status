@@ -2,9 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { OfflineIndicator } from "@/components/OfflineIndicator";
-import { InstallPrompt } from "@/components/InstallPrompt";
-import Script from "next/script";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -15,7 +12,6 @@ export const metadata: Metadata = {
   title: "TENISLAB | O Laboratório do seu Tênis",
   description: "Higienização, restauração e cuidado especializado para seus tênis. Acompanhe seu pedido online.",
   metadataBase: new URL("https://www.tenislab.app.br"),
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -71,24 +67,7 @@ export default function RootLayout({
         <main className="min-h-screen">
           {children}
         </main>
-        <OfflineIndicator />
-        <InstallPrompt />
         <Toaster />
-        <Script id="sw-register" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                  .then((registration) => {
-                    console.log('SW registered:', registration);
-                  })
-                  .catch((error) => {
-                    console.log('SW registration failed:', error);
-                  });
-              });
-            }
-          `}
-        </Script>
       </body>
     </html>
   );

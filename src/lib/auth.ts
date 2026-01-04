@@ -14,7 +14,8 @@ const ROLE_PAGES: Record<UserRole, string[]> = {
   ADMIN: ['/app', '/app/dashboard', '/app/os', '/app/todos', '/app/clientes', '/app/servicos', '/app/financeiro', '/app/banco-de-dados'],
 };
 
-export function canChangeToStatus(role: UserRole, status: Status): boolean {
+export function canChangeToStatus(role: UserRole, status: Status, currentStatus?: Status): boolean {
+  if (currentStatus === "Entregue" && role === "OPERACIONAL") return false;
   return ROLE_STATUS_PERMISSIONS[role]?.includes(status) ?? false;
 }
 

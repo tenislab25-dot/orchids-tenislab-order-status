@@ -792,12 +792,10 @@ const confirmDeletePhoto = async () => {
             >
               <X className="w-6 h-6" />
             </button>
-            <Image
+            <img
               src={selectedPhoto}
               alt="Foto ampliada"
-              width={1200}
-              height={900}
-              className="max-w-full max-h-[90vh] object-contain rounded-2xl"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl shadow-white/5"
               onClick={(e) => e.stopPropagation()}
             />
           </div>

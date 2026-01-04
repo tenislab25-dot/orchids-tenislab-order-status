@@ -273,41 +273,55 @@ export default function OSViewPage() {
       window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
     };
 
+    const [statusUpdating, setStatusUpdating] = useState<Status | null>(null);
+
     const handleStatusUpdate = async (newStatus: Status) => {
-      if (!role || !canChangeToStatus(role as UserRole, newStatus)) {
-        toast.error("Você não tem permissão para alterar para este status");
+      if (!order) return;
+      if (!role || !canChangeToStatus(role as UserRole, newStatus, order.status)) {
+        toast.error("Você não tem permissão para alterar este status ou o pedido já foi entregue.");
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Sessão expirada. Faça login novamente.");
-        router.push("/login");
-        return;
-      }
+      setStatusUpdating(newStatus);
 
-      const response = await fetch("/api/orders/update-status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ orderId: order?.id, status: newStatus }),
-      });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast.error("Sessão expirada. Faça login novamente.");
+          router.push("/login");
+          return;
+        }
 
-      if (!response.ok) {
-        const data = await response.json();
-        toast.error(data.error || "Erro ao atualizar status");
-        return;
-      }
+        const response = await fetch("/api/orders/update-status", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ orderId: order?.id, status: newStatus }),
+        });
 
-      setOrder(prev => prev ? { ...prev, status: newStatus } : null);
-      toast.success("Status atualizado!");
+        if (!response.ok) {
+          const data = await response.json();
+          toast.error(data.error || "Erro ao atualizar status");
+          return;
+        }
 
-      if (newStatus === "Pronto para entrega ou retirada") {
-        toast.info("Certifique-se de enviar notificação ao cliente que o pedido esta pronto.", { duration: 6000 });
-      } else if (newStatus === "Entregue") {
-        toast.info("Certifique-se de enviar o link p/pagamento.", { duration: 6000 });
+        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+        toast.success("Status atualizado!");
+
+        if (newStatus === "Pronto para entrega ou retirada") {
+          toast.info("Certifique-se de enviar notificação ao cliente que o pedido esta pronto.", { duration: 6000 });
+        }
+        
+        if (newStatus === "Entregue") {
+          toast.info("Certifique-se de enviar le link p/pagamento.", { duration: 6000 });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Erro ao atualizar status");
+      } finally {
+        setStatusUpdating(null);
       }
     };
 
@@ -534,7 +548,125 @@ export default function OSViewPage() {
     }
   };
 
-    const handlePrintLabel = (itemsToPrint: any[]) => {
+      const handlePrintSneakerLabel = (itemsToPrint: any[]) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+    
+        const labelsHtml = itemsToPrint.map((item, idx) => {
+          const servicesText = item.services.map((s: any) => s.name).join(', ') + 
+            (item.customService?.name ? `, ${item.customService.name}` : '');
+          
+          const trackingLink = `${window.location.origin}/consulta?os=${order?.os_number}`;
+          const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(trackingLink)}`;
+
+          return `
+            <div class="label-container ${idx < itemsToPrint.length - 1 ? 'page-break' : ''}">
+              <div class="os-header">
+                <span class="os-number">#${order?.os_number}</span>
+              </div>
+              <div class="client-name">${order?.clients?.name}</div>
+              <div class="qr-section">
+                <img src="${qrCodeUrl}" alt="QR" />
+              </div>
+              <div class="services-box">
+                <div class="services-label">SERVIÇO:</div>
+                <div class="services-text">${servicesText}</div>
+              </div>
+              <div class="footer">TENISLAB</div>
+            </div>
+          `;
+        }).join('');
+    
+        const html = `
+          <html>
+            <head>
+              <title>Etiquetas Tênis OS ${order?.os_number}</title>
+              <style>
+                @page {
+                  size: 50mm 90mm;
+                  margin: 0;
+                }
+                body {
+                  font-family: 'Inter', system-ui, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                  width: 50mm;
+                  background: white;
+                }
+                .label-container {
+                  width: 50mm;
+                  height: 90mm;
+                  padding: 4mm;
+                  box-sizing: border-box;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: space-between;
+                  text-align: center;
+                }
+                .page-break {
+                  page-break-after: always;
+                }
+                .os-header {
+                  width: 100%;
+                  border-bottom: 2px solid black;
+                  padding-bottom: 1mm;
+                }
+                .os-number { font-size: 16pt; font-weight: 900; }
+                .client-name {
+                  font-size: 10pt;
+                  font-weight: 800;
+                  text-transform: uppercase;
+                  margin: 2mm 0;
+                  line-height: 1.1;
+                  width: 100%;
+                  word-wrap: break-word;
+                }
+                .qr-section img {
+                  width: 25mm;
+                  height: 25mm;
+                }
+                .services-box {
+                  width: 100%;
+                  text-align: left;
+                  flex: 1;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: flex-start;
+                  margin-top: 2mm;
+                  overflow: hidden;
+                }
+                .services-label { font-size: 7pt; font-weight: 900; border-bottom: 1px solid black; margin-bottom: 1mm; }
+                .services-text { font-size: 8pt; font-weight: 700; line-height: 1.1; text-transform: uppercase; }
+                .footer {
+                  font-size: 8pt;
+                  font-weight: 900;
+                  letter-spacing: 3px;
+                  margin-top: 2mm;
+                  border-top: 1px solid black;
+                  width: 100%;
+                  padding-top: 1mm;
+                }
+              </style>
+            </head>
+            <body>
+              ${labelsHtml}
+              <script>
+                window.onload = function() {
+                  window.print();
+                  setTimeout(() => window.close(), 500);
+                };
+              </script>
+            </body>
+          </html>
+        `;
+    
+        printWindow.document.write(html);
+        printWindow.document.close();
+      };
+
+      const handlePrintLabel = (itemsToPrint: any[]) => {
+
       const printWindow = window.open('', '_blank');
       if (!printWindow) return;
   
@@ -658,22 +790,7 @@ export default function OSViewPage() {
       printWindow.document.close();
     };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
-    </div>
-  );
-
-  if (!order) return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
-      <h1 className="text-xl font-bold">OS não encontrada</h1>
-      <Button asChild>
-        <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
-      </Button>
-    </div>
-  );
-
-      const getDeadlineStatus = (dateStr?: string) => {
+    const getDeadlineStatus = (dateStr?: string) => {
       if (!dateStr) return { color: "text-slate-700", label: "Normal" };
       const deadline = new Date(dateStr);
       const today = new Date();
@@ -685,28 +802,43 @@ export default function OSViewPage() {
     };
 
     const getStatusBadge = (status: Status) => {
-        const styles = {
-          Recebido: "bg-blue-100 text-blue-700",
-          "Em espera": "bg-orange-100 text-orange-700",
-          "Em serviço": "bg-amber-100 text-amber-700",
-          "Em finalização": "bg-indigo-100 text-indigo-700",
-          "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
-          Entregue: "bg-slate-100 text-slate-700",
-          Cancelado: "bg-red-100 text-red-700",
-        };
-    return (
-      <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight whitespace-normal h-auto min-h-7`}>
-        {status === "Pronto para entrega ou retirada" ? (
-          <div className="flex flex-col">
-            <span>Pronto para</span>
-            <span>entrega/retirada</span>
-          </div>
-        ) : status}
-      </Badge>
-    );
-  };
+      const styles = {
+        Recebido: "bg-blue-100 text-blue-700",
+        "Em espera": "bg-orange-100 text-orange-700",
+        "Em serviço": "bg-amber-100 text-amber-700",
+        "Em finalização": "bg-indigo-100 text-indigo-700",
+        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+        Entregue: "bg-slate-100 text-slate-700",
+        Cancelado: "bg-red-100 text-red-700",
+      };
+      return (
+        <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight whitespace-normal h-auto min-h-7`}>
+          {status === "Pronto para entrega ou retirada" ? (
+            <div className="flex flex-col">
+              <span>Pronto para</span>
+              <span>entrega/retirada</span>
+            </div>
+          ) : status}
+        </Badge>
+      );
+    };
 
-  return (
+    if (loading) return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    );
+
+    if (!order) return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
+        <h1 className="text-xl font-bold">OS não encontrada</h1>
+        <Button asChild>
+          <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
+        </Button>
+      </div>
+    );
+
+    return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
         <div className="grid grid-cols-3 items-center max-w-6xl mx-auto">
@@ -854,14 +986,27 @@ export default function OSViewPage() {
                       </CardTitle>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePrintLabel([item])}
-                        className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
-                      >
-                        <Printer className="w-3 h-3" />
-                      </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrintLabel([item])}
+                          className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
+                          title="Etiqueta 80x40"
+                        >
+                          <Printer className="w-3 h-3" />
+                          80x40
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePrintSneakerLabel([item])}
+                          className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
+                          title="Etiqueta Tênis 50x90"
+                        >
+                          <Printer className="w-3 h-3" />
+                          50x90
+                        </Button>
+
                       <Button
                         variant={item.status === 'Pronto' ? 'default' : 'outline'}
                         size="sm"
@@ -1083,26 +1228,30 @@ export default function OSViewPage() {
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-2">
                 {getAllowedStatuses(role as UserRole).map((status) => (
-                  <Button
-                    key={status}
-                    variant={order.status === status ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      if (status === "Entregue") {
-                        handleEntregueClick();
-                      } else {
-                        handleStatusUpdate(status);
-                      }
-                    }}
-                    disabled={order.status === status}
-                    className={`h-auto py-2 px-3 text-[10px] font-bold uppercase tracking-wider rounded-xl whitespace-normal leading-tight ${
-                      order.status === status 
-                        ? "bg-blue-600 text-white border-blue-600" 
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    {status === "Pronto para entrega ou retirada" ? "Pronto p/ entrega" : status}
-                  </Button>
+                    <Button
+                      key={status}
+                      variant={order.status === status ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (status === "Entregue") {
+                          handleEntregueClick();
+                        } else {
+                          handleStatusUpdate(status);
+                        }
+                      }}
+                      disabled={order.status === status || (statusUpdating !== null)}
+                      className={`h-auto py-2 px-3 text-[10px] font-bold uppercase tracking-wider rounded-xl whitespace-normal leading-tight ${
+                        order.status === status 
+                          ? "bg-blue-600 text-white border-blue-600" 
+                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {statusUpdating === status ? (
+                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                      ) : null}
+                      {status === "Pronto para entrega ou retirada" ? "Pronto p/ entrega" : status}
+                    </Button>
+
                 ))}
               </div>
 
