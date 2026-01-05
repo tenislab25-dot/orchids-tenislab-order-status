@@ -171,26 +171,32 @@ export default function PrintOSPage() {
             </div>
 
 
-          <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-500">Subtotal</span>
-              <span className="font-bold">R$ {Number(order.total - (order.delivery_fee || 0)).toFixed(2)}</span>
-            </div>
-            {order.delivery_fee > 0 && (
+            <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-500">Taxa Entrega</span>
-                <span className="font-bold">R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                <span className="text-slate-500">Subtotal</span>
+                <span className="font-bold">R$ {Number(order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0)).toFixed(2)}</span>
               </div>
-            )}
-            <div className="flex justify-between text-sm font-black mt-2 pt-2 border-t border-slate-200">
-              <span>TOTAL</span>
-              <span>R$ {Number(order.total).toFixed(2)}</span>
+              {order.discount_percent > 0 && (
+                <div className="flex justify-between text-xs mb-1 text-red-600">
+                  <span>Desconto ({order.discount_percent}%)</span>
+                  <span className="font-bold">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                </div>
+              )}
+              {order.delivery_fee > 0 && (
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500">Taxa Entrega</span>
+                  <span className="font-bold">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-black mt-2 pt-2 border-t border-slate-200">
+                <span>TOTAL</span>
+                <span>R$ {Number(order.total).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-[8px] text-slate-500 mt-1">
+                <span>Pagamento</span>
+                <span>{order.payment_method} ({order.pay_on_entry ? 'Pago' : 'A pagar'})</span>
+              </div>
             </div>
-            <div className="flex justify-between text-[8px] text-slate-500 mt-1">
-              <span>Pagamento</span>
-              <span>{order.payment_method} ({order.pay_on_entry ? 'Pago' : 'A pagar'})</span>
-            </div>
-          </div>
 
           <div className="text-center mt-4">
             <img src={qrCodeUrl} alt="QR Code" className="w-20 h-20 mx-auto mb-2" />

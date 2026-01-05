@@ -425,24 +425,24 @@ if (error) {
             <FileText className="w-4 h-4 text-blue-400" />
           </div>
 
-          <div className="space-y-3 pb-6 border-b border-white/10">
-            <div className="flex justify-between text-xs font-bold text-white/60">
-              <span>Subtotal</span>
-              <span>R$ {(Number(order.total) + Number(order.discount_percent || 0) - Number(order.delivery_fee || 0)).toFixed(2)}</span>
-            </div>
-            {order.delivery_fee > 0 && (
+            <div className="space-y-3 pb-6 border-b border-white/10">
               <div className="flex justify-between text-xs font-bold text-white/60">
-                <span>Taxa de Entrega</span>
-                <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                <span>Subtotal</span>
+                <span>R$ {order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0).toFixed(2)}</span>
               </div>
-            )}
-            {order.discount_percent > 0 && (
-              <div className="flex justify-between text-xs font-bold text-green-400">
-                <span>Desconto</span>
-                <span>- R$ {Number(order.discount_percent).toFixed(2)}</span>
-              </div>
-            )}
-          </div>
+              {order.discount_percent > 0 && (
+                <div className="flex justify-between text-xs font-bold text-red-400">
+                  <span>Desconto ({order.discount_percent}%)</span>
+                  <span>- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                </div>
+              )}
+              {order.delivery_fee > 0 && (
+                <div className="flex justify-between text-xs font-bold text-white/60">
+                  <span>Taxa de Entrega</span>
+                  <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
 
           <div className="flex items-baseline justify-between">
             <span className="text-xs text-white/40 font-black uppercase tracking-widest">Total Final</span>
@@ -507,6 +507,9 @@ if (error) {
 
         <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
           <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Visualização da Imagem</DialogTitle>
+            </DialogHeader>
             {selectedImage && (
               <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
                 <div className="absolute top-4 right-4 z-50">

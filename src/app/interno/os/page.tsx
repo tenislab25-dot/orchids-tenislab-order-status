@@ -82,16 +82,17 @@ interface OSItem {
   photos?: string[];
 }
 
-export default function OSPage() {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
-  const [services, setServices] = useState<any[]>([]);
-  const [loadingServices, setLoadingServices] = useState(true);
-  const [osNumber, setOsNumber] = useState("");
-  const [entryDate, setEntryDate] = useState("");
-  
-  const [clients, setClients] = useState<any[]>([]);
+  export default function OSPage() {
+    const router = useRouter();
+    const [mounted, setMounted] = useState(false);
+    const [role, setRole] = useState<string | null>(null);
+    const [services, setServices] = useState<any[]>([]);
+    const [loadingServices, setLoadingServices] = useState(true);
+    const [osNumber, setOsNumber] = useState("");
+    const [entryDate, setEntryDate] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
+    
+    const [clients, setClients] = useState<any[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [clientName, setClientName] = useState("");
     const [clientPhone, setClientPhone] = useState("");
@@ -349,19 +350,17 @@ export default function OSPage() {
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
   const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
 
-  const addBusinessDays = (date: Date, days: number) => {
-    let count = 0;
-    const newDate = new Date(date);
-    while (count < days) {
-      newDate.setDate(newDate.getDate() + 1);
-      if (newDate.getDay() !== 0 && newDate.getDay() !== 6) {
-        count++;
+    const addBusinessDays = (date: Date, days: number) => {
+      let count = 0;
+      const newDate = new Date(date);
+      while (count < days) {
+        newDate.setDate(newDate.getDate() + 1);
+        if (newDate.getDay() !== 0 && newDate.getDay() !== 6) {
+          count++;
+        }
       }
-    }
-    return newDate;
-  };
-
-    const [isCreating, setIsCreating] = useState(false);
+      return newDate;
+    };
 
     const handleCreateOS = async () => {
       if (!clientName || !clientPhone) {
@@ -955,12 +954,12 @@ export default function OSPage() {
             <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
               <CheckCircle2 className="w-10 h-10 text-green-500" />
             </div>
-            <div className="space-y-1">
-              <DialogTitle className="text-2xl font-black">OS Criada!</DialogTitle>
-              <DialogTitle className="font-medium">
-                A Ordem de Serviço <strong>{osNumber}</strong> foi registrada com sucesso.
-              </DialogTitle>
-            </div>
+              <div className="space-y-1">
+                <DialogTitle className="text-2xl font-black">OS Criada!</DialogTitle>
+                <DialogDescription className="font-medium text-slate-600 text-center">
+                  A Ordem de Serviço <strong>{osNumber}</strong> foi registrada com sucesso.
+                </DialogDescription>
+              </div>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 pt-4">
             <Button 

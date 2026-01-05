@@ -28,20 +28,84 @@ import { toast } from "sonner";
 
 import { Service } from "@/lib/services-data";
 
-    export default function ServicesManagement() {
-      const [services, setServices] = useState<any[]>([]);
-      const [loading, setLoading] = useState(true);
-      const [searchTerm, setSearchTerm] = useState("");
-      const [editingService, setEditingService] = useState<any | null>(null);
-      const [isAdding, setIsAdding] = useState(false);
-        const [newService, setNewService] = useState({ name: "", category: "Higienização", default_price: 0, description: "" });
+      export default function ServicesManagement() {
+        const [services, setServices] = useState<any[]>([]);
+        const [categories, setCategories] = useState<any[]>([]);
+        const [loading, setLoading] = useState(true);
+        const [searchTerm, setSearchTerm] = useState("");
+        const [editingService, setEditingService] = useState<any | null>(null);
+        const [isAdding, setIsAdding] = useState(false);
+        const [isManagingCategories, setIsAddingCategory] = useState(false);
+        const [newCategoryName, setNewCategoryName] = useState("");
+        const [newService, setNewService] = useState({ name: "", category: "", default_price: 0, description: "" });
         const [role, setRole] = useState<string | null>(null);
-      
-      useEffect(() => {
-      const storedRole = localStorage.getItem("tenislab_role");
-      setRole(storedRole);
-      fetchServices();
-    }, []);
+        
+        useEffect(() => {
+        const storedRole = localStorage.getItem("tenislab_role");
+        setRole(storedRole);
+        fetchServices();
+        fetchCategories();
+      }, []);
+
+      const fetchCategories = async () => {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("*")
+          .eq("type", "Service")
+          .order("name");
+        
+        if (!error && data) {
+          setCategories(data);
+          if (data.length > 0 && !newService.category) {
+            setNewService(prev => ({ ...prev, category: data[0].name }));
+          }
+        }
+      };
+
+      const handleAddCategory = async () => {
+        if (!newCategoryName.trim()) return;
+        const { data, error } = await supabase
+          .from("categories")
+          .insert([{ name: newCategoryName.trim(), type: "Service" }])
+          .select();
+        
+        if (error) {
+          toast.error("Erro ao adicionar categoria");
+        } else {
+          setCategories([...categories, data[0]]);
+          setNewCategoryName("");
+          toast.success("Categoria adicionada");
+        }
+      };
+
+      const handleDeleteCategory = async (id: string) => {
+        const { error } = await supabase
+          .from("categories")
+          .delete()
+          .eq("id", id);
+        
+        if (error) {
+          toast.error("Erro ao excluir categoria (pode haver serviços nela)");
+        } else {
+          setCategories(categories.filter(c => c.id !== id));
+          toast.success("Categoria excluída");
+        }
+      };
+
+      const handleDeleteService = async (id: string) => {
+        if (!isAdmin) return;
+        const { error } = await supabase
+          .from("services")
+          .delete()
+          .eq("id", id);
+        
+        if (error) {
+          toast.error("Erro ao excluir serviço");
+        } else {
+          setServices(services.filter(s => s.id !== id));
+          toast.success("Serviço excluído permanentemente");
+        }
+      };
 
     const isAdmin = role === "ADMIN";
 
@@ -158,67 +222,105 @@ import { Service } from "@/lib/services-data";
                 <p className="text-slate-500 font-medium mt-1">Administração do catálogo de preços da TENISLAB</p>
               </div>
               
-              <div className="flex items-center gap-4">
-                {isAdmin && (
-                  <Dialog open={isAdding} onOpenChange={setIsAdding}>
-                    <DialogTrigger asChild>
-                      <Button className="h-12 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-2">
-                        <Plus className="w-5 h-5" />
-                        Novo Serviço
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Adicionar Novo Serviço</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <label className="text-sm font-bold">Nome do Serviço</label>
-                          <Input 
-                            placeholder="Ex: Pintura Personalizada"
-                            value={newService.name} 
-                            onChange={(e) => setNewService({...newService, name: e.target.value})}
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <label className="text-sm font-bold">Categoria</label>
-                          <select 
-                            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            value={newService.category}
-                            onChange={(e) => setNewService({...newService, category: e.target.value})}
-                          >
-                            <option value="Higienização">Higienização</option>
-                            <option value="Pintura">Pintura</option>
-                            <option value="Costura">Costura</option>
-                            <option value="Restauração">Restauração</option>
-                            <option value="Extra / Avulso">Extra / Avulso</option>
-                          </select>
-                        </div>
-                          <div className="grid gap-2">
-                            <label className="text-sm font-bold">Preço Padrão (R$)</label>
-                            <Input 
-                              type="number" 
-                              placeholder="0.00"
-                              value={newService.default_price} 
-                              onChange={(e) => setNewService({...newService, default_price: Number(e.target.value)})}
-                            />
+                <div className="flex items-center gap-4">
+                  {isAdmin && (
+                    <div className="flex items-center gap-2">
+                      <Dialog open={isManagingCategories} onOpenChange={setIsAddingCategory}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-200 text-slate-600 font-bold flex items-center gap-2">
+                            Categorias
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Gerenciar Categorias de Serviço</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="flex gap-2">
+                              <Input 
+                                placeholder="Nova categoria..." 
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                              />
+                              <Button onClick={handleAddCategory} className="bg-slate-900 text-white">Adicionar</Button>
+                            </div>
+                            <div className="max-h-[300px] overflow-y-auto space-y-2">
+                              {categories.map((cat) => (
+                                <div key={cat.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                  <span className="font-medium">{cat.name}</span>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() => handleDeleteCategory(cat.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="grid gap-2">
-                            <label className="text-sm font-bold">Descrição</label>
-                            <Input 
-                              placeholder="Ex: Limpeza profunda e detalhada..."
-                              value={newService.description} 
-                              onChange={(e) => setNewService({...newService, description: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAdding(false)}>Cancelar</Button>
-                        <Button onClick={handleAddService} className="bg-slate-900 text-white hover:bg-slate-800">Criar Serviço</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                )}
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog open={isAdding} onOpenChange={setIsAdding}>
+                        <DialogTrigger asChild>
+                          <Button className="h-12 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-2">
+                            <Plus className="w-5 h-5" />
+                            Novo Serviço
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Adicionar Novo Serviço</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                              <label className="text-sm font-bold">Nome do Serviço</label>
+                              <Input 
+                                placeholder="Ex: Pintura Personalizada"
+                                value={newService.name} 
+                                onChange={(e) => setNewService({...newService, name: e.target.value})}
+                              />
+                            </div>
+                            <div className="grid gap-2">
+                              <label className="text-sm font-bold">Categoria</label>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={newService.category}
+                                onChange={(e) => setNewService({...newService, category: e.target.value})}
+                              >
+                                {categories.map(cat => (
+                                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                              <div className="grid gap-2">
+                                <label className="text-sm font-bold">Preço Padrão (R$)</label>
+                                <Input 
+                                  type="number" 
+                                  placeholder="0.00"
+                                  value={newService.default_price} 
+                                  onChange={(e) => setNewService({...newService, default_price: Number(e.target.value)})}
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <label className="text-sm font-bold">Descrição</label>
+                                <Input 
+                                  placeholder="Ex: Limpeza profunda e detalhada..."
+                                  value={newService.description} 
+                                  onChange={(e) => setNewService({...newService, description: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsAdding(false)}>Cancelar</Button>
+                            <Button onClick={handleAddService} className="bg-slate-900 text-white hover:bg-slate-800">Criar Serviço</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
                 <div className="relative w-72">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input 
@@ -275,52 +377,63 @@ import { Service } from "@/lib/services-data";
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setEditingService(service)}>
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      {editingService && (
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Editar Serviço</DialogTitle>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                              <label className="text-sm font-bold">Nome do Serviço</label>
-                              <Input 
-                                value={editingService.name} 
-                                onChange={(e) => setEditingService({...editingService, name: e.target.value})}
-                              />
-                            </div>
-                            <div className="grid gap-2">
-                              <label className="text-sm font-bold">Preço Padrão (R$)</label>
-                              <Input 
-                                type="number" 
-                                disabled={!isAdmin}
-                                  value={editingService.default_price} 
-                                  onChange={(e) => setEditingService({...editingService, default_price: Number(e.target.value)})}
+                    <TableCell className="text-right flex items-center justify-end gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => setEditingService(service)}>
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        {editingService && (
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Editar Serviço</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid gap-2">
+                                <label className="text-sm font-bold">Nome do Serviço</label>
+                                <Input 
+                                  value={editingService.name} 
+                                  onChange={(e) => setEditingService({...editingService, name: e.target.value})}
                                 />
-                                {!isAdmin && <p className="text-xs text-amber-600">Apenas administradores podem alterar preços.</p>}
                               </div>
                               <div className="grid gap-2">
-                                <label className="text-sm font-bold">Descrição</label>
+                                <label className="text-sm font-bold">Preço Padrão (R$)</label>
                                 <Input 
-                                  value={editingService.description || ""} 
-                                  onChange={(e) => setEditingService({...editingService, description: e.target.value})}
-                                />
+                                  type="number" 
+                                  disabled={!isAdmin}
+                                    value={editingService.default_price} 
+                                    onChange={(e) => setEditingService({...editingService, default_price: Number(e.target.value)})}
+                                  />
+                                  {!isAdmin && <p className="text-xs text-amber-600">Apenas administradores podem alterar preços.</p>}
+                                </div>
+                                <div className="grid gap-2">
+                                  <label className="text-sm font-bold">Descrição</label>
+                                  <Input 
+                                    value={editingService.description || ""} 
+                                    onChange={(e) => setEditingService({...editingService, description: e.target.value})}
+                                  />
+                                </div>
                               </div>
-                            </div>
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setEditingService(null)}>Cancelar</Button>
-                            <Button onClick={handleEditSave}>Salvar Alterações</Button>
-                          </DialogFooter>
-                        </DialogContent>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setEditingService(null)}>Cancelar</Button>
+                              <Button onClick={handleEditSave}>Salvar Alterações</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        )}
+                      </Dialog>
+
+                      {isAdmin && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => handleDeleteService(service.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       )}
-                    </Dialog>
-                  </TableCell>
+                    </TableCell>
                 </TableRow>
               ))}
             </TableBody>

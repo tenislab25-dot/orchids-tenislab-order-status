@@ -548,7 +548,7 @@ export default function OSViewPage() {
     }
   };
 
-      const handlePrintSneakerLabel = (itemsToPrint: any[]) => {
+      const handlePrintLabel = (itemsToPrint: any[]) => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
     
@@ -580,7 +580,7 @@ export default function OSViewPage() {
         const html = `
           <html>
             <head>
-              <title>Etiquetas Tênis OS ${order?.os_number}</title>
+              <title>Etiquetas OS ${order?.os_number}</title>
               <style>
                 @page {
                   size: 50mm 90mm;
@@ -665,132 +665,7 @@ export default function OSViewPage() {
         printWindow.document.close();
       };
 
-      const handlePrintLabel = (itemsToPrint: any[]) => {
-
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) return;
-  
-      const labelsHtml = itemsToPrint.map((item, idx) => {
-        const servicesText = item.services.map((s: any) => s.name).join(', ') + 
-          (item.customService?.name ? `, ${item.customService.name}` : '');
-        
-        return `
-          <div class="label-container ${idx < itemsToPrint.length - 1 ? 'page-break' : ''}">
-            <div class="header">
-              <span class="os-value">${order?.os_number}</span>
-            </div>
-            <div class="item-info">ITEM: ${item.itemNumber || (idx + 1)}</div>
-            <div class="services">SRV: ${servicesText}</div>
-            <div class="dates">
-              <div class="date-box">
-                <span class="date-label">ENTRADA</span>
-                <span class="date-value">${new Date(order?.entry_date || '').toLocaleDateString('pt-BR')}</span>
-              </div>
-              <div class="date-box">
-                <span class="date-label">ENTREGA</span>
-                <span class="date-value">${order?.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : '--/--'}</span>
-              </div>
-            </div>
-            <div class="footer">Tenislab</div>
-          </div>
-        `;
-      }).join('');
-  
-      const html = `
-        <html>
-          <head>
-            <title>Etiquetas OS ${order?.os_number}</title>
-            <style>
-              @page {
-                size: 80mm 40mm;
-                margin: 0;
-              }
-              body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                margin: 0;
-                padding: 0;
-                width: 80mm;
-                background: white;
-                text-align: center;
-              }
-              .label-container {
-                padding: 3mm 4mm;
-                height: 40mm;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-              }
-              .page-break {
-                page-break-after: always;
-              }
-              .header {
-                display: flex;
-                justify-content: center;
-                border-bottom: 1.5px solid black;
-                padding-bottom: 1mm;
-                margin-bottom: 1mm;
-              }
-              .os-value { font-size: 18pt; font-weight: 900; line-height: 1; }
-              .item-info {
-                font-size: 10pt;
-                font-weight: 800;
-                margin-bottom: 1mm;
-              }
-              .services {
-                font-size: 8pt;
-                font-weight: 600;
-                line-height: 1;
-                max-height: 8mm;
-                overflow: hidden;
-                text-transform: uppercase;
-                margin-bottom: 1mm;
-              }
-                .dates {
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  gap: 1mm;
-                  margin-top: 1mm;
-                  padding-top: 1mm;
-                  border-top: 1px solid black;
-                }
-              .date-box {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-              }
-              .date-label { font-size: 6pt; font-weight: 800; color: #333; }
-              .date-value { font-size: 9pt; font-weight: 800; }
-              .footer {
-                font-size: 7pt;
-                text-align: center;
-                margin-top: 1mm;
-                font-weight: 900;
-                letter-spacing: 2px;
-              }
-              @media print {
-                .label-container { border-bottom: none; }
-              }
-            </style>
-          </head>
-          <body>
-            ${labelsHtml}
-            <script>
-              window.onload = function() {
-                window.print();
-                setTimeout(() => window.close(), 500);
-              };
-            </script>
-          </body>
-        </html>
-      `;
-  
-      printWindow.document.write(html);
-      printWindow.document.close();
-    };
-
-    const getDeadlineStatus = (dateStr?: string) => {
+      const getDeadlineStatus = (dateStr?: string) => {
       if (!dateStr) return { color: "text-slate-700", label: "Normal" };
       const deadline = new Date(dateStr);
       const today = new Date();
@@ -985,29 +860,19 @@ export default function OSViewPage() {
                         ITEM {idx + 1} - {item.itemNumber}
                       </CardTitle>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePrintLabel([item])}
-                          className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
-                          title="Etiqueta 80x40"
-                        >
-                          <Printer className="w-3 h-3" />
-                          80x40
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handlePrintSneakerLabel([item])}
-                          className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
-                          title="Etiqueta Tênis 50x90"
-                        >
-                          <Printer className="w-3 h-3" />
-                          50x90
-                        </Button>
+                      <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePrintLabel([item])}
+                            className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
+                            title="Imprimir Etiqueta"
+                          >
+                            <Printer className="w-3 h-3" />
+                            Imprimir
+                          </Button>
 
-                      <Button
+                        <Button
                         variant={item.status === 'Pronto' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => toggleItemStatus(idx)}
@@ -1359,17 +1224,17 @@ export default function OSViewPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Taxa da Maquininha (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={machineFee}
-                onChange={(e) => setMachineFee(e.target.value)}
-                placeholder="0.00"
-                className="h-12 rounded-xl"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>Desconto do Cartão (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={machineFee}
+                  onChange={(e) => setMachineFee(e.target.value)}
+                  placeholder="0.00"
+                  className="h-12 rounded-xl"
+                />
+              </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => { setPaymentModalOpen(false); setIsConfirmingPayment(false); }} className="rounded-xl">
@@ -1409,9 +1274,12 @@ export default function OSViewPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-3xl p-0 rounded-3xl overflow-hidden bg-black/90">
-          <div className="relative aspect-square w-full">
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-3xl p-0 rounded-3xl overflow-hidden bg-black/90">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Visualização da Imagem</DialogTitle>
+            </DialogHeader>
+            <div className="relative aspect-square w-full">
             {selectedImage && (
               <Image src={selectedImage} alt="Foto ampliada" fill className="object-contain" />
             )}

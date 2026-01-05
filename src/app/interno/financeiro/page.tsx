@@ -79,15 +79,16 @@ export default function FinanceiroPage() {
       doc.setFont("helvetica", "bold");
       doc.text("Resumo", 14, 40);
 
-      const summaryData = [
-        ["Este Mês", `R$ ${stats.thisMonthTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ["Esta Semana", `R$ ${stats.thisWeekTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ["Total Recebido", `R$ ${stats.totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ["A Receber", `R$ ${stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ["Projeção Total", `R$ ${stats.totalProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ["Cancelados", `R$ ${stats.lostRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ["Ticket Médio", `R$ ${stats.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-      ];
+        const summaryData = [
+          ["Este Mês", `R$ ${stats.thisMonthTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["Esta Semana", `R$ ${stats.thisWeekTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["Total Recebido (Líquido)", `R$ ${stats.totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["Total de Descontos", `R$ ${stats.totalDiscounts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["A Receber", `R$ ${stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["Projeção Total", `R$ ${stats.totalProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["Cancelados", `R$ ${stats.lostRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+          ["Ticket Médio", `R$ ${stats.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ];
 
       autoTable(doc, {
         startY: 45,
@@ -151,26 +152,27 @@ export default function FinanceiroPage() {
     }
   }, []);
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        id,
-        os_number,
-        status,
-        entry_date,
-        total,
-        payment_method,
-        pay_on_entry,
-        payment_confirmed,
-        machine_fee,
-        items,
-        clients (
-          name
-        )
-      `)
-      .order("entry_date", { ascending: false });
+    const fetchOrders = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          id,
+          os_number,
+          status,
+          entry_date,
+          total,
+          payment_method,
+          pay_on_entry,
+          payment_confirmed,
+          machine_fee,
+          discount_percent,
+          items,
+          clients (
+            name
+          )
+        `)
+        .order("entry_date", { ascending: false });
 
     if (error) {
       toast.error("Erro ao buscar dados financeiros: " + error.message);
@@ -180,80 +182,88 @@ export default function FinanceiroPage() {
     setLoading(false);
   };
 
-  const stats = useMemo(() => {
-    const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
-    const totalReceived = confirmedOrders.reduce((acc, o) => acc + Number(o.total || 0), 0);
-    
-    // Este Mês (confirmados)
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const thisMonthTotal = confirmedOrders
-      .filter(o => {
-        const d = new Date(o.entry_date);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-      })
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+    const stats = useMemo(() => {
+      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+      const totalReceived = confirmedOrders.reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
+      
+      const totalDiscounts = orders.reduce((acc, o) => {
+        if (o.status === "Cancelado") return acc;
+        const itemsSubtotal = o.items?.reduce((iAcc: number, i: any) => iAcc + Number(i.subtotal || 0), 0) || 0;
+        const percentDiscount = (itemsSubtotal * (Number(o.discount_percent) || 0)) / 100;
+        const cardDiscount = Number(o.machine_fee || 0);
+        return acc + percentDiscount + cardDiscount;
+      }, 0);
 
-    // Esta Semana (confirmados)
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-    const thisWeekTotal = confirmedOrders
-      .filter(o => {
-        const d = new Date(o.entry_date);
-        return d >= startOfWeek && d <= endOfWeek;
-      })
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+      // Este Mês (confirmados - líquido)
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const thisMonthTotal = confirmedOrders
+        .filter(o => {
+          const d = new Date(o.entry_date);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        })
+        .reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
 
-    // A Receber: apenas ordens entregues e não pagas
-    const projectedRevenue = orders
-      .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+      // Esta Semana (confirmados - líquido)
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      const thisWeekTotal = confirmedOrders
+        .filter(o => {
+          const d = new Date(o.entry_date);
+          return d >= startOfWeek && d <= endOfWeek;
+        })
+        .reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
 
-    // Projeção Total: Tudo que não foi cancelado (recebido + em serviço + pronto + entregue pendente)
-    const totalProjected = orders
-      .filter(o => o.status !== "Cancelado")
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+      // A Receber: apenas ordens entregues e não pagas
+      const projectedRevenue = orders
+        .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
+        .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
-    const lostRevenue = orders
-      .filter(o => o.status === "Cancelado")
-      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+      // Projeção Total: Tudo que não foi cancelado (recebido + em serviço + pronto + entregue pendente)
+      const totalProjected = orders
+        .filter(o => o.status !== "Cancelado")
+        .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
-    const activeOrders = orders.filter(o => o.status !== "Cancelado");
-    const averageTicket = activeOrders.length > 0 
-      ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
-      : 0;
+      const lostRevenue = orders
+        .filter(o => o.status === "Cancelado")
+        .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
-    // Payment method breakdown
-    const paymentBreakdown: Record<string, number> = {};
-    confirmedOrders.forEach(o => {
-      const method = o.payment_method || "Não informado";
-      paymentBreakdown[method] = (paymentBreakdown[method] || 0) + Number(o.total || 0);
-    });
+      const activeOrders = orders.filter(o => o.status !== "Cancelado");
+      const averageTicket = activeOrders.length > 0 
+        ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
+        : 0;
 
-    // Status distribution
-    const statusDistribution: Record<string, number> = {
-      Recebido: 0,
-      "Em serviço": 0,
-      "Pronto": 0,
-      Entregue: 0,
-      Cancelado: 0
-    };
-    orders.forEach(o => {
-      // Normalize status names if needed
-      let s = o.status as string;
-      if (s.includes("Pronto")) s = "Pronto";
-      if (statusDistribution[s] !== undefined) {
-        statusDistribution[s]++;
-      }
-    });
+      // Payment method breakdown (líquido)
+      const paymentBreakdown: Record<string, number> = {};
+      confirmedOrders.forEach(o => {
+        const method = o.payment_method || "Não informado";
+        paymentBreakdown[method] = (paymentBreakdown[method] || 0) + (Number(o.total || 0) - Number(o.machine_fee || 0));
+      });
 
-    return { totalReceived, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution, thisMonthTotal, thisWeekTotal };
-  }, [orders]);
+      // Status distribution
+      const statusDistribution: Record<string, number> = {
+        Recebido: 0,
+        "Em serviço": 0,
+        "Pronto": 0,
+        Entregue: 0,
+        Cancelado: 0
+      };
+      orders.forEach(o => {
+        // Normalize status names if needed
+        let s = o.status as string;
+        if (s.includes("Pronto")) s = "Pronto";
+        if (statusDistribution[s] !== undefined) {
+          statusDistribution[s]++;
+        }
+      });
+
+      return { totalReceived, projectedRevenue, totalProjected, lostRevenue, paymentBreakdown, averageTicket, statusDistribution, thisMonthTotal, thisWeekTotal, totalDiscounts };
+    }, [orders]);
 
   const projectionBreakdown = useMemo(() => {
     const months: Record<string, number> = {};
@@ -430,7 +440,7 @@ export default function FinanceiroPage() {
             <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-slate-900 text-white overflow-hidden">
               <CardContent className="p-8">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Total Recebido</span>
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Recebido (Líquido)</span>
                   <span className="text-3xl font-black tracking-tighter">R$ {stats.totalReceived.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="mt-6 flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full w-fit">
@@ -442,8 +452,21 @@ export default function FinanceiroPage() {
 
             <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
               <div className="flex flex-col gap-2 h-full justify-between">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                  <TrendingDown className="w-5 h-5 text-red-600" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Descontos</span>
+                  <span className="text-2xl font-black text-red-600">R$ {stats.totalDiscounts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Desconto + Taxa Cartão</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+              <div className="flex flex-col gap-2 h-full justify-between">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <TrendingDown className="w-5 h-5 text-blue-600" />
+                  <Package className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">A Receber</span>
@@ -462,19 +485,6 @@ export default function FinanceiroPage() {
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projeção Total</span>
                   <span className="text-2xl font-black text-slate-900">R$ {stats.totalProjected.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Potencial Total</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-              <div className="flex flex-col gap-2 h-full justify-between">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                  <XCircle className="w-5 h-5 text-red-500" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cancelado</span>
-                  <span className="text-2xl font-black text-red-600">R$ {stats.lostRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                  <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Total perdido</p>
                 </div>
               </div>
             </Card>

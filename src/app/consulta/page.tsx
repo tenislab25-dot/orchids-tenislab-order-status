@@ -337,7 +337,34 @@ function OrderContent() {
                 )}
 
 
-              {order.items && order.items.length > 0 && (
+                {order.items && order.items.length > 0 && (
+                  <div className="w-full pt-4 border-t border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resumo Financeiro</span>
+                    <div className="flex flex-col gap-2 mt-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500">Subtotal</span>
+                        <span className="font-bold text-slate-700">R$ {order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0).toFixed(2)}</span>
+                      </div>
+                      {(order as any).discount_percent > 0 && (
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-red-500 font-medium">Desconto ({(order as any).discount_percent}%)</span>
+                          <span className="font-bold text-red-500">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0) * (order as any).discount_percent) / 100).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {(order as any).delivery_fee > 0 && (
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-500">Taxa de Entrega</span>
+                          <span className="font-bold text-slate-700">+ R$ {Number((order as any).delivery_fee).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pt-2 mt-1 border-t border-slate-200">
+                        <span className="text-sm font-black text-slate-900 uppercase">Total</span>
+                        <span className="text-lg font-black text-blue-600">R$ {Number((order as any).total || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="w-full pt-4 border-t border-slate-100">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Seus Itens</span>
                   <div className="flex flex-col gap-4 mt-3">
@@ -498,6 +525,9 @@ function OrderContent() {
 
             <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
               <DialogContent className="max-w-[95vw] lg:max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+                <DialogHeader className="sr-only">
+                  <DialogTitle>Visualização da Imagem</DialogTitle>
+                </DialogHeader>
                 {selectedImage && (
                   <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in duration-300">
                     <div className="absolute top-4 right-4 z-50">
