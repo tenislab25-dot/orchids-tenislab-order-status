@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 const TERMS_TEXT = `
@@ -425,24 +427,30 @@ if (error) {
             <FileText className="w-4 h-4 text-blue-400" />
           </div>
 
-            <div className="space-y-3 pb-6 border-b border-white/10">
-              <div className="flex justify-between text-xs font-bold text-white/60">
-                <span>Subtotal</span>
-                <span>R$ {order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0).toFixed(2)}</span>
-              </div>
-              {order.discount_percent > 0 && (
-                <div className="flex justify-between text-xs font-bold text-red-400">
-                  <span>Desconto ({order.discount_percent}%)</span>
-                  <span>- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
-                </div>
-              )}
-              {order.delivery_fee > 0 && (
+              <div className="space-y-3 pb-6 border-b border-white/10">
                 <div className="flex justify-between text-xs font-bold text-white/60">
-                  <span>Taxa de Entrega</span>
-                  <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                  <span>Subtotal</span>
+                  <span>R$ {order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0).toFixed(2)}</span>
                 </div>
-              )}
-            </div>
+                {order.discount_percent > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-red-400">
+                    <span>Desconto ({order.discount_percent}%)</span>
+                    <span>- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                  </div>
+                )}
+                {order.machine_fee > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-red-400">
+                    <span>Desconto do Cartão</span>
+                    <span>- R$ {Number(order.machine_fee).toFixed(2)}</span>
+                  </div>
+                )}
+                {order.delivery_fee > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-white/60">
+                    <span>Taxa de Entrega</span>
+                    <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
 
           <div className="flex items-baseline justify-between">
             <span className="text-xs text-white/40 font-black uppercase tracking-widest">Total Final</span>
