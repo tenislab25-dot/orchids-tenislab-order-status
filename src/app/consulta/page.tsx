@@ -381,10 +381,11 @@ function OrderContent() {
                   </div>
                 )}
 
-                <div className="w-full pt-4 border-t border-slate-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Seus Itens</span>
-                  <div className="flex flex-col gap-4 mt-3">
-                    {order.items.map((item: any, idx: number) => (
+                {order.items && order.items.length > 0 && (
+                  <div className="w-full pt-4 border-t border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Seus Itens</span>
+                    <div className="flex flex-col gap-4 mt-3">
+                      {order.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex flex-col gap-2">
                           <span className="text-xs font-bold text-slate-600">Item {idx + 1}</span>
                           
