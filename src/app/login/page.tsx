@@ -78,13 +78,18 @@ export default function LoginPage() {
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-12 bg-slate-50 animate-in fade-in duration-500">
       <div className="w-full max-sm flex flex-col gap-10">
             {/* SECTION 1 — BRAND */}
-                  <header className="flex flex-col items-center gap-6">
-                    <img 
-                      src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-                      alt="TENISLAB Logo" 
-                      className="h-40 w-auto object-contain"
-                    />
-          <div className="h-px w-12 bg-slate-200" />
+          <header className="flex flex-col items-center gap-6">
+            <div className="relative h-40 w-64">
+              <Image 
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+                alt="TENISLAB Logo" 
+                fill
+                priority
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 400px"
+              />
+            </div>
+            <div className="h-px w-12 bg-slate-200" />
           <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">
             Acesso interno ao sistema
           </p>

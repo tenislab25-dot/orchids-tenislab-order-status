@@ -93,9 +93,11 @@ interface OSItem {
     const [isCreating, setIsCreating] = useState(false);
     
     const [clients, setClients] = useState<any[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
-  const [clientName, setClientName] = useState("");
+    const [selectedClientId, setSelectedClientId] = useState<string>("");
+    const [clientName, setClientName] = useState("");
     const [clientPhone, setClientPhone] = useState("");
+    const [clientEmail, setClientEmail] = useState("");
+    const [clientAddress, setClientAddress] = useState("");
     const [isSearchingClient, setIsSearchingClient] = useState(false);
 
     useEffect(() => {
@@ -114,6 +116,8 @@ interface OSItem {
             setSelectedClientId(data.id);
             setClientName(data.name);
             setClientPhone(data.phone);
+            setClientEmail(data.email || "");
+            setClientAddress(data.address || "");
             toast.success("Cliente recorrente encontrado!");
           }
           setIsSearchingClient(false);
@@ -221,21 +225,25 @@ interface OSItem {
     if (data) setClients(data);
   };
 
-  const handleClientSelect = (clientId: string) => {
-    if (clientId === "new") {
-      setSelectedClientId("new");
-      setClientName("");
-      setClientPhone("");
-      return;
-    }
-    
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-      setSelectedClientId(clientId);
-      setClientName(client.name);
-      setClientPhone(client.phone);
-    }
-  };
+    const handleClientSelect = (clientId: string) => {
+      if (clientId === "new") {
+        setSelectedClientId("new");
+        setClientName("");
+        setClientPhone("");
+        setClientEmail("");
+        setClientAddress("");
+        return;
+      }
+      
+      const client = clients.find(c => c.id === clientId);
+      if (client) {
+        setSelectedClientId(clientId);
+        setClientName(client.name);
+        setClientPhone(client.phone);
+        setClientEmail(client.email || "");
+        setClientAddress(client.address || "");
+      }
+    };
 
   if (!mounted) return null;
 
@@ -387,21 +395,31 @@ interface OSItem {
       const formattedName = clientName.toUpperCase().trim();
       const formattedPhone = clientPhone.replace(/\D/g, "").replace(/^55/, "");
 
-      if (selectedClientId === "new") {
-        const { data: newClient, error: clientError } = await supabase
-          .from("clients")
-          .insert([{ name: formattedName, phone: formattedPhone }])
-          .select()
-          .single();
-        
-        if (clientError) throw clientError;
-        clientId = newClient.id;
-      } else {
-        await supabase
-          .from("clients")
-          .update({ name: formattedName, phone: formattedPhone })
-          .eq("id", selectedClientId);
-      }
+        if (selectedClientId === "new") {
+          const { data: newClient, error: clientError } = await supabase
+            .from("clients")
+            .insert([{ 
+              name: formattedName, 
+              phone: formattedPhone,
+              email: clientEmail.trim() || null,
+              address: clientAddress.trim() || null
+            }])
+            .select()
+            .single();
+          
+          if (clientError) throw clientError;
+          clientId = newClient.id;
+        } else {
+          await supabase
+            .from("clients")
+            .update({ 
+              name: formattedName, 
+              phone: formattedPhone,
+              email: clientEmail.trim() || null,
+              address: clientAddress.trim() || null
+            })
+            .eq("id", selectedClientId);
+        }
 
       const itemsWithPhotosBefore = items.map(item => ({
         ...item,
@@ -519,23 +537,46 @@ interface OSItem {
                       readOnly={selectedClientId !== "new"}
                     />
                   </div>
-                    <div className="space-y-2 relative">
-                      <Label htmlFor="telefone">Telefone</Label>
-                      <Input 
-                        id="telefone" 
-                        type="tel"
-                        placeholder="(00) 00000-0000" 
-                        value={clientPhone}
-                        onChange={(e) => setClientPhone(e.target.value)}
-                        className="h-12 bg-slate-50 border-slate-200 rounded-xl"
-                        readOnly={selectedClientId !== "new"}
-                      />
-                      {isSearchingClient && (
-                        <div className="absolute right-3 top-[38px]">
-                          <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
-                        </div>
-                      )}
-                    </div>
+                      <div className="space-y-2 relative">
+                        <Label htmlFor="telefone">Telefone</Label>
+                        <Input 
+                          id="telefone" 
+                          type="tel"
+                          placeholder="(00) 00000-0000" 
+                          value={clientPhone}
+                          onChange={(e) => setClientPhone(e.target.value)}
+                          className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                          readOnly={selectedClientId !== "new"}
+                        />
+                        {isSearchingClient && (
+                          <div className="absolute right-3 top-[38px]">
+                            <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-mail (Opcional)</Label>
+                        <Input 
+                          id="email" 
+                          type="email"
+                          placeholder="exemplo@email.com" 
+                          value={clientEmail}
+                          onChange={(e) => setClientEmail(e.target.value)}
+                          className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="endereco">Endereço (Opcional)</Label>
+                        <Input 
+                          id="endereco" 
+                          placeholder="Rua, número, bairro..." 
+                          value={clientAddress}
+                          onChange={(e) => setClientAddress(e.target.value)}
+                          className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                        />
+                      </div>
                 </div>
               )}
             </CardContent>

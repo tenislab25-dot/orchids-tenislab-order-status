@@ -199,78 +199,93 @@ if (error) {
     </div>
   );
 
-  if (order.status === "Cancelado") {
+    if (order.status === "Cancelado") {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="relative h-40 w-64 mb-8">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+              alt="TENISLAB Logo" 
+              fill
+              priority
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 400px"
+            />
+          </div>
+          <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
+            <ShieldCheck className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
+          <p className="text-slate-500 mb-8 max-w-[280px]">
+            Esta ordem de serviço ({order.os_number}) foi cancelada e não pode mais ser aceita.
+          </p>
+          <Button 
+            variant="outline"
+            onClick={() => router.push("/")}
+            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
+          >
+            Voltar para Home
+          </Button>
+        </div>
+      );
+    }
+
+    if (isConfirmed) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
+          <div className="relative h-40 w-64 mb-8">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+              alt="TENISLAB Logo" 
+              fill
+              priority
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 400px"
+            />
+          </div>
+          <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
+            <CheckCircle2 className="w-12 h-12 text-green-500" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">Serviço Aceito!</h1>
+          <p className="text-slate-500 mb-8 max-w-[280px]">
+            Obrigado, {order.clients?.name.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
+          </p>
+          <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
+              <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
+                {order.status}
+              </Badge>
+          </div>
+
+          <Button 
+            variant="outline"
+            onClick={handleTrackOrder}
+            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
+            <Search className="w-5 h-5" />
+            Acompanhar status do pedido
+          </Button>
+        </div>
+      );
+    }
+
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-          alt="TENISLAB Logo" 
-          className="h-40 w-auto object-contain mb-8"
-        />
-        <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
-          <ShieldCheck className="w-12 h-12 text-red-500" />
-        </div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
-        <p className="text-slate-500 mb-8 max-w-[280px]">
-          Esta ordem de serviço ({order.os_number}) foi cancelada e não pode mais ser aceita.
-        </p>
-        <Button 
-          variant="outline"
-          onClick={() => router.push("/")}
-          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"
-        >
-          Voltar para Home
-        </Button>
-      </div>
-    );
-  }
-
-  if (isConfirmed) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
-        <img 
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
-          alt="TENISLAB Logo" 
-          className="h-40 w-auto object-contain mb-8"
-        />
-        <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
-          <CheckCircle2 className="w-12 h-12 text-green-500" />
-        </div>
-        <h1 className="text-3xl font-black text-slate-900 mb-2">Serviço Aceito!</h1>
-        <p className="text-slate-500 mb-8 max-w-[280px]">
-          Obrigado, {order.clients?.name.split(' ')[0]}! Sua ordem de serviço foi confirmada e já estamos trabalhando nela.
-        </p>
-        <div className="bg-slate-50 rounded-3xl p-6 w-full max-w-xs border border-slate-100 flex flex-col gap-2 shadow-sm mb-8">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Atual</span>
-            <Badge className="w-fit mx-auto bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 text-xs font-bold">
-              {order.status}
-            </Badge>
-        </div>
-
-        <Button 
-          variant="outline"
-          onClick={handleTrackOrder}
-          className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
-        >
-          <Search className="w-5 h-5" />
-          Acompanhar status do pedido
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
-          <img 
-            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766845000340.PNG?width=8000&height=8000&resize=contain" 
-            alt="TENISLAB Logo" 
-            className="h-28 w-auto object-contain"
-          />
-        <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">
-          Confira os detalhes do seu serviço antes de confirmar
-        </p>
-      </header>
+      <div className="min-h-screen bg-slate-50 pb-20">
+        <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
+            <div className="relative h-28 w-64">
+              <Image 
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766845000340.PNG" 
+                alt="TENISLAB Logo" 
+                fill
+                priority
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 400px"
+              />
+            </div>
+          <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">
+            Confira os detalhes do seu serviço antes de confirmar
+          </p>
+        </header>
 
       <main className="max-w-md mx-auto p-4 flex flex-col gap-6 mt-2">
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-5">

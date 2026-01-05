@@ -197,41 +197,42 @@ import { Service } from "@/lib/services-data";
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="flex flex-col gap-8 mb-8">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
+        <div className="flex flex-col gap-6 md:gap-8 mb-8">
           <div className="flex justify-between items-start">
             <Link href="/interno" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
               <ArrowLeft className="w-4 h-4" />
-                Voltar ao Painel
+                <span className="hidden sm:inline">Voltar ao Painel</span>
+                <span className="sm:hidden">Voltar</span>
               </Link>
               <img 
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=8000&height=8000&resize=contain" 
+                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=400&height=400&resize=contain" 
                 alt="TENISLAB Logo" 
-                className="h-10 w-auto object-contain"
+                className="h-8 md:h-10 w-auto object-contain"
               />
             </div>
 
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div>
-                <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
-                  <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                    <LayoutGrid className="w-6 h-6" />
+                <h1 className="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                    <LayoutGrid className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   Gestão de Serviços
                 </h1>
-                <p className="text-slate-500 font-medium mt-1">Administração do catálogo de preços da TENISLAB</p>
+                <p className="text-slate-500 text-sm font-medium mt-1">Administração do catálogo de preços da TENISLAB</p>
               </div>
               
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
                   {isAdmin && (
                     <div className="flex items-center gap-2">
                       <Dialog open={isManagingCategories} onOpenChange={setIsAddingCategory}>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="h-12 px-6 rounded-xl border-slate-200 text-slate-600 font-bold flex items-center gap-2">
+                          <Button variant="outline" className="flex-1 sm:flex-none h-12 px-6 rounded-xl border-slate-200 text-slate-600 font-bold flex items-center gap-2">
                             Categorias
                           </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-[95vw] sm:max-w-lg rounded-[2rem]">
                           <DialogHeader>
                             <DialogTitle>Gerenciar Categorias de Serviço</DialogTitle>
                           </DialogHeader>
@@ -241,8 +242,9 @@ import { Service } from "@/lib/services-data";
                                 placeholder="Nova categoria..." 
                                 value={newCategoryName}
                                 onChange={(e) => setNewCategoryName(e.target.value)}
+                                className="h-12 rounded-xl"
                               />
-                              <Button onClick={handleAddCategory} className="bg-slate-900 text-white">Adicionar</Button>
+                              <Button onClick={handleAddCategory} className="h-12 px-6 rounded-xl bg-slate-900 text-white">Adicionar</Button>
                             </div>
                             <div className="max-h-[300px] overflow-y-auto space-y-2">
                               {categories.map((cat) => (
@@ -265,12 +267,13 @@ import { Service } from "@/lib/services-data";
 
                       <Dialog open={isAdding} onOpenChange={setIsAdding}>
                         <DialogTrigger asChild>
-                          <Button className="h-12 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-2">
+                          <Button className="flex-1 sm:flex-none h-12 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-2">
                             <Plus className="w-5 h-5" />
-                            Novo Serviço
+                            <span className="hidden sm:inline">Novo Serviço</span>
+                            <span className="sm:hidden">Novo</span>
                           </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-[95vw] sm:max-w-lg rounded-[2rem]">
                           <DialogHeader>
                             <DialogTitle>Adicionar Novo Serviço</DialogTitle>
                           </DialogHeader>
@@ -281,12 +284,13 @@ import { Service } from "@/lib/services-data";
                                 placeholder="Ex: Pintura Personalizada"
                                 value={newService.name} 
                                 onChange={(e) => setNewService({...newService, name: e.target.value})}
+                                className="h-12 rounded-xl"
                               />
                             </div>
                             <div className="grid gap-2">
                               <label className="text-sm font-bold">Categoria</label>
                               <select 
-                                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={newService.category}
                                 onChange={(e) => setNewService({...newService, category: e.target.value})}
                               >
@@ -302,6 +306,7 @@ import { Service } from "@/lib/services-data";
                                   placeholder="0.00"
                                   value={newService.default_price} 
                                   onChange={(e) => setNewService({...newService, default_price: Number(e.target.value)})}
+                                  className="h-12 rounded-xl"
                                 />
                               </div>
                               <div className="grid gap-2">
@@ -310,22 +315,23 @@ import { Service } from "@/lib/services-data";
                                   placeholder="Ex: Limpeza profunda e detalhada..."
                                   value={newService.description} 
                                   onChange={(e) => setNewService({...newService, description: e.target.value})}
+                                  className="h-12 rounded-xl"
                                 />
                               </div>
                             </div>
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsAdding(false)}>Cancelar</Button>
-                            <Button onClick={handleAddService} className="bg-slate-900 text-white hover:bg-slate-800">Criar Serviço</Button>
+                          <DialogFooter className="gap-2 sm:gap-0">
+                            <Button variant="outline" onClick={() => setIsAdding(false)} className="h-12 rounded-xl">Cancelar</Button>
+                            <Button onClick={handleAddService} className="h-12 rounded-xl bg-slate-900 text-white hover:bg-slate-800">Criar Serviço</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
                     </div>
                   )}
-                <div className="relative w-72">
+                <div className="relative w-full md:w-72">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input 
                     placeholder="Buscar serviço..." 
-                    className="pl-10 h-12 bg-slate-50 border-slate-200 rounded-xl"
+                    className="pl-10 h-12 bg-slate-50 border-slate-200 rounded-xl w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -334,110 +340,117 @@ import { Service } from "@/lib/services-data";
             </div>
         </div>
 
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
-          <Table>
-            <TableHeader className="bg-slate-50/50">
-            <TableRow>
-              <TableHead className="font-bold text-slate-900">Serviço</TableHead>
-              <TableHead className="font-bold text-slate-900">Categoria</TableHead>
-              <TableHead className="font-bold text-slate-900">Preço Padrão</TableHead>
-              <TableHead className="font-bold text-slate-900">Status</TableHead>
-              <TableHead className="text-right font-bold text-slate-900">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-200" />
-                  </TableCell>
-                </TableRow>
-              ) : filteredServices.map((service) => (
-                <TableRow key={service.id} className={service.status === "Inactive" ? "opacity-60" : ""}>
-                  <TableCell className="font-medium">{service.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-normal">
-                      {service.category}
-                    </Badge>
-                  </TableCell>
+        <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50/50">
+              <TableRow>
+                <TableHead className="font-bold text-slate-900 min-w-[150px]">Serviço</TableHead>
+                <TableHead className="font-bold text-slate-900">Categoria</TableHead>
+                <TableHead className="font-bold text-slate-900 min-w-[120px]">Preço Padrão</TableHead>
+                <TableHead className="font-bold text-slate-900">Status</TableHead>
+                <TableHead className="text-right font-bold text-slate-900">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-20">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-200" />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredServices.map((service) => (
+                  <TableRow key={service.id} className={service.status === "Inactive" ? "opacity-60" : ""}>
+                    <TableCell className="font-medium">{service.name}</TableCell>
                     <TableCell>
-                      {service.is_editable 
-                        ? <span className="text-slate-400 italic">Editável na OS</span>
-                        : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(service.default_price)
-                      }
+                      <Badge variant="outline" className="font-normal whitespace-nowrap">
+                        {service.category}
+                      </Badge>
                     </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch 
-                        checked={service.status === "Active"} 
-                        onCheckedChange={() => toggleStatus(service.id, service.status)}
-                      />
-                      <span className={`text-xs font-bold uppercase ${service.status === "Active" ? "text-green-600" : "text-slate-400"}`}>
-                        {service.status === "Active" ? "Ativo" : "Inativo"}
-                      </span>
-                    </div>
-                  </TableCell>
-                    <TableCell className="text-right flex items-center justify-end gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditingService(service)}>
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
-                        {editingService && (
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Editar Serviço</DialogTitle>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid gap-2">
-                                <label className="text-sm font-bold">Nome do Serviço</label>
-                                <Input 
-                                  value={editingService.name} 
-                                  onChange={(e) => setEditingService({...editingService, name: e.target.value})}
-                                />
-                              </div>
-                              <div className="grid gap-2">
-                                <label className="text-sm font-bold">Preço Padrão (R$)</label>
-                                <Input 
-                                  type="number" 
-                                  disabled={!isAdmin}
-                                    value={editingService.default_price} 
-                                    onChange={(e) => setEditingService({...editingService, default_price: Number(e.target.value)})}
-                                  />
-                                  {!isAdmin && <p className="text-xs text-amber-600">Apenas administradores podem alterar preços.</p>}
-                                </div>
-                                <div className="grid gap-2">
-                                  <label className="text-sm font-bold">Descrição</label>
-                                  <Input 
-                                    value={editingService.description || ""} 
-                                    onChange={(e) => setEditingService({...editingService, description: e.target.value})}
-                                  />
-                                </div>
-                              </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setEditingService(null)}>Cancelar</Button>
-                              <Button onClick={handleEditSave}>Salvar Alterações</Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        )}
-                      </Dialog>
+                      <TableCell>
+                        {service.is_editable 
+                          ? <span className="text-slate-400 italic text-xs">Editável</span>
+                          : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(service.default_price)
+                        }
+                      </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={service.status === "Active"} 
+                          onCheckedChange={() => toggleStatus(service.id, service.status)}
+                        />
+                        <span className={`text-[10px] font-bold uppercase ${service.status === "Active" ? "text-green-600" : "text-slate-400"} hidden sm:inline`}>
+                          {service.status === "Active" ? "Ativo" : "Inativo"}
+                        </span>
+                      </div>
+                    </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={() => setEditingService(service)} className="h-8 w-8">
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            {editingService && (
+                              <DialogContent className="max-w-[95vw] sm:max-w-lg rounded-[2rem]">
+                                <DialogHeader>
+                                  <DialogTitle>Editar Serviço</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                  <div className="grid gap-2">
+                                    <label className="text-sm font-bold">Nome do Serviço</label>
+                                    <Input 
+                                      value={editingService.name} 
+                                      onChange={(e) => setEditingService({...editingService, name: e.target.value})}
+                                      className="h-12 rounded-xl"
+                                    />
+                                  </div>
+                                  <div className="grid gap-2">
+                                    <label className="text-sm font-bold">Preço Padrão (R$)</label>
+                                    <Input 
+                                      type="number" 
+                                      disabled={!isAdmin}
+                                        value={editingService.default_price} 
+                                        onChange={(e) => setEditingService({...editingService, default_price: Number(e.target.value)})}
+                                        className="h-12 rounded-xl"
+                                      />
+                                      {!isAdmin && <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Apenas administradores podem alterar preços.</p>}
+                                    </div>
+                                    <div className="grid gap-2">
+                                      <label className="text-sm font-bold">Descrição</label>
+                                      <Input 
+                                        value={editingService.description || ""} 
+                                        onChange={(e) => setEditingService({...editingService, description: e.target.value})}
+                                        className="h-12 rounded-xl"
+                                      />
+                                    </div>
+                                  </div>
+                                <DialogFooter className="gap-2 sm:gap-0">
+                                  <Button variant="outline" onClick={() => setEditingService(null)} className="h-12 rounded-xl">Cancelar</Button>
+                                  <Button onClick={handleEditSave} className="h-12 rounded-xl bg-slate-900 text-white">Salvar</Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            )}
+                          </Dialog>
 
-                      {isAdmin && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => handleDeleteService(service.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-        </Table>
+                          {isAdmin && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => handleDeleteService(service.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+          </Table>
+        </div>
       </div>
 
       <div className="mt-8 bg-blue-50 p-4 rounded-lg border border-blue-100">
