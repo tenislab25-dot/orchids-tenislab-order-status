@@ -12,7 +12,8 @@ import {
   Phone,
   Search,
   X,
-  ZoomIn
+  ZoomIn,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { jsPDF } from "jspdf";
 
 const TERMS_TEXT = `
 TERMOS DE SERVIÇO E GARANTIA - tenislab.
@@ -184,6 +186,149 @@ if (error) {
     router.push(`/consulta?os=${order.os_number}&phone=${order.clients?.phone}`);
   };
 
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("TENISLAB", pageWidth / 2, y, { align: "center" });
+    y += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("O Laboratorio do Seu Tenis", pageWidth / 2, y, { align: "center" });
+    y += 15;
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("COMPROVANTE DE ACEITE", pageWidth / 2, y, { align: "center" });
+    y += 15;
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("DADOS DA ORDEM DE SERVICO", 20, y);
+    y += 8;
+    doc.setFont("helvetica", "normal");
+    doc.text(`Numero da OS: ${order.os_number}`, 20, y);
+    y += 6;
+    doc.text(`Cliente: ${order.clients?.name}`, 20, y);
+    y += 6;
+    doc.text(`Telefone: ${order.clients?.phone}`, 20, y);
+    y += 6;
+    doc.text(`Data de Entrada: ${new Date(order.entry_date).toLocaleDateString('pt-BR')}`, 20, y);
+    y += 6;
+    doc.text(`Data de Aceite: ${order.accepted_at ? new Date(order.accepted_at).toLocaleDateString('pt-BR') + ' as ' + new Date(order.accepted_at).toLocaleTimeString('pt-BR') : new Date().toLocaleDateString('pt-BR')}`, 20, y);
+    y += 6;
+    doc.text(`Previsao de Entrega: ${order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'A definir'}`, 20, y);
+    y += 12;
+
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("ITENS E SERVICOS CONTRATADOS", 20, y);
+    y += 8;
+    doc.setFont("helvetica", "normal");
+
+    order.items.forEach((item: any, index: number) => {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text(`Item ${index + 1}`, 20, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      
+      item.services.forEach((s: any) => {
+        doc.text(`  - ${s.name}: R$ ${Number(s.price || 0).toFixed(2)}`, 25, y);
+        y += 5;
+      });
+      
+      if (item.customService?.name) {
+        doc.text(`  - ${item.customService.name} (Personalizado): R$ ${Number(item.customService.price || 0).toFixed(2)}`, 25, y);
+        y += 5;
+      }
+      
+      if (item.notes) {
+        doc.setFontSize(9);
+        doc.text(`  Obs: ${item.notes}`, 25, y);
+        doc.setFontSize(10);
+        y += 5;
+      }
+      y += 5;
+    });
+
+    y += 5;
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("RESUMO FINANCEIRO", 20, y);
+    y += 8;
+    doc.setFont("helvetica", "normal");
+
+    const subtotal = order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0);
+    doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y);
+    y += 6;
+
+    if (order.discount_percent > 0) {
+      const discountValue = (subtotal * order.discount_percent) / 100;
+      doc.text(`Desconto (${order.discount_percent}%): - R$ ${discountValue.toFixed(2)}`, 20, y);
+      y += 6;
+    }
+
+    if (order.machine_fee > 0) {
+      doc.text(`Taxa de Maquina: - R$ ${Number(order.machine_fee).toFixed(2)}`, 20, y);
+      y += 6;
+    }
+
+    if (order.delivery_fee > 0) {
+      doc.text(`Taxa de Entrega: R$ ${Number(order.delivery_fee).toFixed(2)}`, 20, y);
+      y += 6;
+    }
+
+    y += 4;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`TOTAL: R$ ${Number(order.total).toFixed(2)}`, 20, y);
+    y += 15;
+
+    doc.setFontSize(10);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("DECLARACAO DE ACEITE", 20, y);
+    y += 8;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+
+    const termsShort = "Declaro que li e concordo com os termos de servico e garantia da TENISLAB, conforme apresentados no momento do aceite digital. Estou ciente das condicoes de execucao dos servicos, prazos de entrega e politica de garantia.";
+    const splitTerms = doc.splitTextToSize(termsShort, pageWidth - 40);
+    doc.text(splitTerms, 20, y);
+    y += splitTerms.length * 5 + 10;
+
+    doc.setFontSize(10);
+    doc.text(`Aceito digitalmente em: ${order.accepted_at ? new Date(order.accepted_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR')}`, 20, y);
+    y += 6;
+    doc.text(`IP/Dispositivo: Aceite via navegador web`, 20, y);
+    y += 15;
+
+    doc.setFontSize(8);
+    doc.setTextColor(128, 128, 128);
+    doc.text("Este documento e um comprovante digital gerado automaticamente pelo sistema TENISLAB.", pageWidth / 2, 280, { align: "center" });
+    doc.text("www.tenislab.app.br | @tenislabr", pageWidth / 2, 285, { align: "center" });
+
+    doc.save(`Comprovante_Aceite_OS_${order.os_number}.pdf`);
+    toast.success("Comprovante baixado com sucesso!");
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
@@ -257,14 +402,24 @@ if (error) {
               </Badge>
           </div>
 
-          <Button 
-            variant="outline"
-            onClick={handleTrackOrder}
-            className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center hover:bg-slate-50 transition-all active:scale-[0.98]"
-          >
-            <Search className="w-5 h-5" />
-            Acompanhar status do pedido
-          </Button>
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <Button 
+              onClick={generatePDF}
+              className="h-14 w-full rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold flex gap-2 items-center justify-center transition-all active:scale-[0.98]"
+            >
+              <Download className="w-5 h-5" />
+              Baixar Comprovante PDF
+            </Button>
+
+            <Button 
+              variant="outline"
+              onClick={handleTrackOrder}
+              className="h-14 w-full rounded-2xl border-slate-200 text-slate-600 font-bold flex gap-2 items-center justify-center hover:bg-slate-50 transition-all active:scale-[0.98]"
+            >
+              <Search className="w-5 h-5" />
+              Acompanhar status do pedido
+            </Button>
+          </div>
         </div>
       );
     }
