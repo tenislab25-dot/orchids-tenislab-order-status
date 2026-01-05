@@ -10,9 +10,10 @@ import {
   ChevronRight,
   ClipboardList,
   LayoutGrid,
-  ShoppingBag,
-  Loader2
-} from "lucide-react";
+    ShoppingBag,
+    Loader2,
+    Truck
+  } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel, type UserRole } from "@/lib/auth";
 
@@ -129,6 +130,15 @@ export default function InternoPage() {
                   title="Produtos"
                   icon={ShoppingBag}
                   description="Itens para Venda"
+                />
+              )}
+
+              {(role === 'ADMIN' || role === 'OPERACIONAL' || role === 'ATENDENTE') && (
+                <MenuButton 
+                  href="/interno/rotas"
+                  title="Rotas e Entregas"
+                  icon={Truck}
+                  description="Logística de Delivery"
                 />
               )}
 

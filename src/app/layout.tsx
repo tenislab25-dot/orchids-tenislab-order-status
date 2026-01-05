@@ -11,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "TENISLAB | O Laboratório do seu Tênis",
   description: "Higienização, restauração e cuidado especializado para seus tênis. Acompanhe seu pedido online.",
-  metadataBase: new URL("https://www.tenislab.app.br"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     openGraph: {
       title: "TENISLAB | O Laboratório do seu Tênis",
       description: "Higienização, restauração e cuidado especializado para seus tênis.",
-      url: "https://www.tenislab.app.br",
+      url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
       siteName: "TENISLAB",
       locale: "pt_BR",
       type: "website",
