@@ -23,6 +23,10 @@ interface OrderData {
   status: Status;
   items: any[];
   delivery_date?: string;
+  total?: number;
+  discount_percent?: number;
+  machine_fee?: number;
+  delivery_fee?: number;
   clients: {
     phone: string;
   } | null;
@@ -216,7 +220,7 @@ function OrderContent() {
             if (!prev) return prev;
             return {
               ...prev,
-              ...payload.new as any
+              ...(payload.new as OrderData)
             };
           });
         }
@@ -250,6 +254,10 @@ function OrderContent() {
         status,
         items,
         delivery_date,
+        total,
+        discount_percent,
+        machine_fee,
+        delivery_fee,
         clients!inner (
           phone
         )
@@ -347,28 +355,28 @@ function OrderContent() {
                         <span className="text-slate-500">Subtotal</span>
                         <span className="font-bold text-slate-700">R$ {order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0).toFixed(2)}</span>
                       </div>
-                      {(order as any).discount_percent > 0 && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-red-500 font-medium">Desconto ({(order as any).discount_percent}%)</span>
-                          <span className="font-bold text-red-500">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0) * (order as any).discount_percent) / 100).toFixed(2)}</span>
+                        {order.discount_percent && order.discount_percent > 0 && (
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-red-500 font-medium">Desconto ({order.discount_percent}%)</span>
+                            <span className="font-bold text-red-500">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                          </div>
+                        )}
+                        {order.machine_fee && order.machine_fee > 0 && (
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-red-500 font-medium">Desconto do Cartão</span>
+                            <span className="font-bold text-red-500">- R$ {Number(order.machine_fee).toFixed(2)}</span>
+                          </div>
+                        )}
+                        {order.delivery_fee && order.delivery_fee > 0 && (
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-slate-500">Taxa de Entrega</span>
+                            <span className="font-bold text-slate-700">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center pt-2 mt-1 border-t border-slate-200">
+                          <span className="text-sm font-black text-slate-900 uppercase">Total</span>
+                          <span className="text-lg font-black text-blue-600">R$ {Number(order.total || 0).toFixed(2)}</span>
                         </div>
-                      )}
-                      {(order as any).machine_fee > 0 && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-red-500 font-medium">Desconto do Cartão</span>
-                          <span className="font-bold text-red-500">- R$ {Number((order as any).machine_fee).toFixed(2)}</span>
-                        </div>
-                      )}
-                      {(order as any).delivery_fee > 0 && (
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-500">Taxa de Entrega</span>
-                          <span className="font-bold text-slate-700">+ R$ {Number((order as any).delivery_fee).toFixed(2)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center pt-2 mt-1 border-t border-slate-200">
-                        <span className="text-sm font-black text-slate-900 uppercase">Total</span>
-                        <span className="text-lg font-black text-blue-600">R$ {Number((order as any).total || 0).toFixed(2)}</span>
-                      </div>
                     </div>
                   </div>
                 )}
