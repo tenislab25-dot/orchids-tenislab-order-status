@@ -127,9 +127,11 @@ export default function OSViewPage() {
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
     useEffect(() => {
-  if (authLoading || !role) return;
+  if (authLoading) return;
+  if (!role) return;
+  if (!osNumber) return;
 
-  fetchOrder();
+  initPage();
 
   const channel = supabase
     .channel(os-${osIdRaw})
@@ -155,24 +157,37 @@ export default function OSViewPage() {
 }, [authLoading, role, osNumber]);
 
   const fetchOrder = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        *,
-        clients (
-          name,
-          phone
-        )
-      `)
-      .eq("os_number", osNumber)
-      .single();
+  const { data, error } = await supabase
+    .from("service_orders")
+    .select(`
+      *,
+      clients (
+        name,
+        phone
+      )
+    `)
+    .eq("os_number", osNumber)
+    .single();
 
-    if (error) {
-      toast.error("Erro ao carregar OS: " + error.message);
-    } else {
-      setOrder(data as OrderData);
-    }
+  if (error) {
+    toast.error("Erro ao carregar OS: " + error.message);
+  } else {
+    setOrder(data as OrderData);
+  }
+};
+const initPage = async () => {
+  setLoading(true);
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    router.push("/login");
+    return;
+  }
+
+  await fetchOrder();
+  setLoading(false);
+};
     setLoading(false);
   };
 
