@@ -127,21 +127,32 @@ export default function OSViewPage() {
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
     useEffect(() => {
-  if (authLoading) return;
-  if (!role) return;
-  if (!osNumber) return;
+  if (authLoading || !role || !osNumber) return;
 
-  initPage();
+  const init = async () => {
+    setLoading(true);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    await fetchOrder();
+    setLoading(false);
+  };
+
+  init();
 
   const channel = supabase
-    .channel(os-${osIdRaw})
+    .channel(`os-${osIdRaw}`)
     .on(
       "postgres_changes",
       {
         event: "UPDATE",
         schema: "public",
         table: "service_orders",
-        filter: os_number=eq.${osNumber},
+        filter: `os_number=eq.${osNumber}`,
       },
       (payload) => {
         setOrder((prev) =>
@@ -188,9 +199,6 @@ const initPage = async () => {
   await fetchOrder();
   setLoading(false);
 };
-    setLoading(false);
-  };
-
   const confirmPayment = async () => {
     if (!isConfirmingPayment) {
       setIsConfirmingPayment(true);
