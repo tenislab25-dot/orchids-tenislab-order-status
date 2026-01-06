@@ -127,41 +127,32 @@ export default function OSViewPage() {
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
     useEffect(() => {
-          if (authLoading) return;
-          if (!role) return;
-          
-          fetchOrder();
+  if (authLoading || !role) return;
 
-          const channel = supabase
-            .channel(`os-${osIdRaw}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "service_orders",
-                filter: `os_number=eq.${osNumber}`
-              },
-              (payload) => {
-                setOrder(prev => {
-                  if (!prev) return prev;
-                  return {
-                    ...prev,
-                    ...payload.new as OrderData
-                  };
-                });
-                
-                if ((payload.new as any).accepted_at && !(payload.old as any).accepted_at) {
-                  toast.success("O cliente acabou de aceitar a OS!", { duration: 5000 });
-                }
-              }
-            )
-            .subscribe();
+  fetchOrder();
 
-          return () => {
-            supabase.removeChannel(channel);
-          };
-        }, [osNumber, osIdRaw, authLoading]);
+  const channel = supabase
+    .channel(os-${osIdRaw})
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "service_orders",
+        filter: os_number=eq.${osNumber},
+      },
+      (payload) => {
+        setOrder((prev) =>
+          prev ? { ...prev, ...(payload.new as Partial<OrderData>) } : prev
+        );
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [authLoading, role, osNumber]);
 
   const fetchOrder = async () => {
     setLoading(true);
@@ -204,12 +195,7 @@ export default function OSViewPage() {
       toast.error("Erro ao confirmar pagamento: " + error.message);
       setIsConfirmingPayment(false);
     } else {
-      setOrder(prev => prev ? { 
-        ...prev, 
-        payment_confirmed: true,
-        payment_method: newPaymentMethod || prev.payment_method,
-        machine_fee: Number(machineFee) || 0
-      } : null);
+      toast.success("Pagamento Confirmado!");
       setPaymentModalOpen(false);
       setIsConfirmingPayment(false);
       toast.success("Pagamento Confirmado!");
@@ -225,7 +211,6 @@ export default function OSViewPage() {
     if (error) {
       toast.error("Erro ao reverter pagamento: " + error.message);
     } else {
-      setOrder(prev => prev ? { ...prev, payment_confirmed: false } : null);
       toast.success("Pagamento marcado como pendente");
     }
   };
@@ -240,7 +225,6 @@ export default function OSViewPage() {
     if (error) {
       toast.error("Erro ao atualizar notificação: " + error.message);
     } else {
-      setOrder(prev => prev ? { ...prev, ready_for_pickup: newVal } : null);
       
         if (newVal && order) {
           const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
@@ -458,7 +442,6 @@ export default function OSViewPage() {
     if (error) {
       toast.error("Erro ao excluir foto: " + error.message);
     } else {
-      setOrder({ ...order, items: newItems });
       toast.success("Foto excluída com sucesso!");
     }
     setDeletePhotoModalOpen(false);
@@ -480,7 +463,6 @@ export default function OSViewPage() {
       if (error) {
         toast.error("Erro ao atualizar item: " + error.message);
       } else {
-        setOrder({ ...order, items: newItems });
         toast.success(`Item marcado como ${newItems[itemIdx].status}`);
       }
     };
@@ -502,7 +484,6 @@ export default function OSViewPage() {
         if (error) {
           toast.error("Erro ao atualizar prioridade: " + error.message);
         } else {
-          setOrder(prev => prev ? { ...prev, priority: newPriority } : null);
           toast.success(newPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
         }
       };
@@ -542,7 +523,6 @@ export default function OSViewPage() {
     if (error) {
       toast.error("Erro ao cancelar: " + error.message);
     } else {
-      setOrder(prev => prev ? { ...prev, status: "Cancelado" } : null);
       setCancelModalOpen(false);
       toast.success("OS Cancelada");
     }
@@ -1104,7 +1084,7 @@ export default function OSViewPage() {
                           handleStatusUpdate(status);
                         }
                       }}
-                      disabled={order.status === status || (statusUpdating !== null)}
+                      disabled={order.status === status || (statusUpdating === status)}
                       className={`h-auto py-2 px-3 text-[10px] font-bold uppercase tracking-wider rounded-xl whitespace-normal leading-tight ${
                         order.status === status 
                           ? "bg-blue-600 text-white border-blue-600" 
