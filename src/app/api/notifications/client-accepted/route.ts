@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendPushToAll } from "@/lib/push-notifications";
+// import { sendPushToAll } from "@/lib/push-notifications";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -58,13 +58,8 @@ export async function POST(request: Request) {
       ? new Date(deliveryDate + "T12:00:00").toLocaleDateString("pt-BR")
       : "";
 
-    const result = await sendPushToAll({
-      title: "Cliente aceitou o serviço!",
-      body: `${clientName} aceitou a OS ${osNumber}${formattedDate ? `. Entrega: ${formattedDate}` : ""}`,
-      url: `/interno/os/${osNumber.replace("/", "-")}`,
-    });
+    return NextResponse.json({ success: true });
 
-    return NextResponse.json(result);
   } catch (error) {
     console.error("Client acceptance notification error:", error);
     return NextResponse.json({ error: "Failed to send notification" }, { status: 500 });
