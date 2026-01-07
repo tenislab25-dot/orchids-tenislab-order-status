@@ -7,34 +7,38 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-
 export async function POST(request: Request) {
   const auth = await verifyAuth(request);
+
   if (!auth || !canManageOrders(auth.role)) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Não autorizado" },
+      { status: 401 }
+    );
   }
 
-  return NextResponse.json({ success: true });
-}
   try {
-    const { title, body, url, subscriptionId } = await request.json();
+    const body = await request.json();
 
-    if (!title || !body) {
-      return NextResponse.json({ error: "Título e corpo são obrigatórios" }, { status: 400 });
+    if (!body?.title || !body?.body) {
+      return NextResponse.json(
+        { error: "Título e corpo são obrigatórios" },
+        { status: 400 }
+      );
     }
 
-    let query = supabase.from("push_subscriptions").select("*");
-    
-    if (subscriptionId) {
-      query = query.eq("id", subscriptionId);
-    }
+    // ⚠️ PUSH DESABILITADO TEMPORARIAMENTE
+    // Endpoint existe apenas para não quebrar o build
 
-    const { data: subscriptions, error } = await query;
-    if (error) throw error;
-
-    
+    return NextResponse.json({
+      success: true,
+      message: "Notificação ignorada (push desativado)",
+    });
   } catch (error) {
     console.error("Send notification error:", error);
-    return NextResponse.json({ error: "Failed to send notification" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send notification" },
+      { status: 500 }
+    );
   }
 }
