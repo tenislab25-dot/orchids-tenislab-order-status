@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendPushToAll, getStatusMessage } from "@/lib/push-notifications";
+// import { sendPushToAll, getStatusMessage } from "@/lib/push-notifications"; // Comentado devido a erros de VAPID/PWA
 import { verifyAuth, canManageOrders } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
@@ -15,13 +15,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
     }
 
-    const message = getStatusMessage(status, clientName, osNumber);
-    
-    if (!message) {
-      return NextResponse.json({ sent: 0, message: "Status não requer notificação" });
-    }
+    // Lógica de push notification comentada devido a erros de VAPID/PWA
+    // const message = getStatusMessage(status, clientName, osNumber);
+    // 
+    // if (!message) {
+    //   return NextResponse.json({ sent: 0, message: "Status não requer notificação" });
+    // }
 
-    const result = await sendPushToAll(message);
+    // const result = await sendPushToAll(message);
+    const result = { success: true, message: "Notificação de mudança de status desativada." };
 
     return NextResponse.json(result);
   } catch (error) {
