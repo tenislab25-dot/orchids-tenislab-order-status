@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
-  Truck, Loader2, Package, XCircle
+  Truck, Loader2, Package, XCircle, Phone, MessageCircle
 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,25 +19,33 @@ export default function EntregasSimplesPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
-  const fetchPedidos = useCallback(async () => {
+   const fetchPedidos = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // BUSCA PELO STATUS QUE ESTAVA NA PÁGINA DE ROTAS: "Pronto p/ Retirada"
       const { data, error } = await supabase
         .from("service_orders")
         .select("*")
-        .or("status.eq.Pronto p/ Retirada,status.eq.Em Rota")
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setPedidos(data || []);
+
+      // FILTRO BLINDADO: Aceita "Pronto para entrega", "Pronto p/ entrega" e "Em Rota"
+      const filtrados = data?.filter(pedido => {
+        const s = pedido.status?.toLowerCase() || "";
+        return (
+          s.includes("pronto") && (s.includes("entrega") || s.includes("retirada")) ||
+          s === "em rota"
+        );
+      });
+
+      setPedidos(filtrados || []);
     } catch (error: any) {
       toast.error("Erro ao carregar pedidos");
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchPedidos();
@@ -96,19 +106,53 @@ export default function EntregasSimplesPage() {
                       <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" /> 
                       {pedido.address || "Endereço não informado"}
                     </p>
+                    {pedido.phone && (
+                      <p className="text-slate-500 text-sm flex items-start gap-1.5 mt-1">
+                        <a href={`tel:${pedido.phone}`} className="flex items-center gap-1.5 text-blue-600 hover:underline">
+                          <Phone className="w-4 h-4 shrink-0 mt-0.5" /> 
+                          {pedido.phone}
+                        </a>
+                      </p>
+                    )}
+                    {pedido.description && (
+                      <p className="text-slate-500 text-sm mt-2">
+                        <span className="font-semibold">Serviço:</span> {pedido.description}
+                      </p>
+                    )}
+                    {pedido.created_at && (
+                      <p className="text-slate-500 text-xs mt-2">
+                        <span className="font-semibold">Criado em:</span> {format(new Date(pedido.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </p>
+                    )}
+                    {pedido.order_value && (
+                      <p className="text-slate-500 text-xs mt-1">
+                        <span className="font-semibold">Valor:</span> R$ {pedido.order_value.toFixed(2).replace(".", ",")}
+                      </p>
+                    )}
                   </div>
                   <span className="bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded uppercase shrink-0">
                     #{pedido.os_number}
                   </span>
                 </div>
 
-                <Button 
-                  variant="outline" 
-                  className="w-full h-12 rounded-xl border-2 gap-2 font-bold text-slate-700"
-                  onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pedido.address )}`, "_blank")}
-                >
-                  <Navigation className="w-4 h-4 text-blue-500" /> Abrir no Google Maps
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-xl border-2 gap-2 font-bold text-slate-700"
+                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pedido.address   )}`, "_blank")}
+                  >
+                    <Navigation className="w-4 h-4 text-blue-500" /> Abrir no Google Maps
+                  </Button>
+                  {pedido.phone && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-12 rounded-xl border-2 gap-2 font-bold text-slate-700"
+                      onClick={() => window.open(`https://wa.me/${pedido.phone.replace(/\D/g, "" )}`, "_blank")}
+                    >
+                      <MessageCircle className="w-4 h-4 text-green-500" /> Enviar WhatsApp
+                    </Button>
+                  )}
+                </div>
 
                 <div className="flex gap-2">
                   {pedido.status === "Pronto p/ Retirada" && (
@@ -151,4 +195,3 @@ export default function EntregasSimplesPage() {
     </div>
   );
 }
-
