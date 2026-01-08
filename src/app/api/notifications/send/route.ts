@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import webpush from "web-push";
+// import webpush from "web-push"; // Comentado devido a erros de VAPID/PWA
 import { verifyAuth, canManageOrders } from "@/lib/api-auth";
 
 const supabase = createClient(
@@ -8,11 +8,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-webpush.setVapidDetails(
-  "mailto:contato@tenislab.app.br",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+// webpush.setVapidDetails(
+//   "mailto:contato@tenislab.app.br",
+//   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+//   process.env.VAPID_PRIVATE_KEY!
+// ); // Comentado devido a erros de VAPID/PWA
 
 export async function POST(request: Request) {
   const auth = await verifyAuth(request);
@@ -47,14 +47,14 @@ export async function POST(request: Request) {
     const results = await Promise.allSettled(
       subscriptions.map(async (sub: any) => {
         try {
-          await webpush.sendNotification(
-            {
-              endpoint: sub.endpoint,
-              keys: sub.keys,
-            },
-            payload
-          );
-          return { success: true, endpoint: sub.endpoint };
+          // await webpush.sendNotification(
+          //   {
+          //     endpoint: sub.endpoint,
+          //     keys: sub.keys,
+          //   },
+          //   payload
+          // ); // Comentado devido a erros de VAPID/PWA
+          return { success: true, endpoint: sub.endpoint, message: "Notificação push desativada." };
         } catch (err: any) {
           if (err.statusCode === 410 || err.statusCode === 404) {
             await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
@@ -64,10 +64,10 @@ export async function POST(request: Request) {
       })
     );
 
-    const successful = results.filter((r) => r.status === "fulfilled" && (r.value as any).success).length;
-    const failed = results.length - successful;
+    // const successful = results.filter((r) => r.status === "fulfilled" && (r.value as any).success).length;
+    // const failed = results.length - successful;
 
-    return NextResponse.json({ sent: successful, failed });
+    return NextResponse.json({ success: true, message: "Funcionalidade de envio de notificações push desativada." });
   } catch (error) {
     console.error("Send notification error:", error);
     return NextResponse.json({ error: "Failed to send notification" }, { status: 500 });
