@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendPushToAll } from "@/lib/push-notifications";
+// import { sendPushToAll } from "@/lib/push-notifications"; // Comentado devido a erros de VAPID/PWA
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -58,11 +58,13 @@ export async function POST(request: Request) {
       ? new Date(deliveryDate + "T12:00:00").toLocaleDateString("pt-BR")
       : "";
 
-    const result = await sendPushToAll({
-      title: "Cliente aceitou o serviço!",
-      body: `${clientName} aceitou a OS ${osNumber}${formattedDate ? `. Entrega: ${formattedDate}` : ""}`,
-      url: `/interno/os/${osNumber.replace("/", "-")}`,
-    });
+    // Lógica de push notification comentada devido a erros de VAPID/PWA
+    // const result = await sendPushToAll({
+    //   title: "Cliente aceitou o serviço!",
+    //   body: `${clientName} aceitou a OS ${osNumber}${formattedDate ? `. Entrega: ${formattedDate}` : ""}`,
+    //   url: `/interno/os/${osNumber.replace("/", "-")}`,
+    // });
+    const result = { success: true, message: "Notificação de aceitação de cliente desativada." };
 
     return NextResponse.json(result);
   } catch (error) {
