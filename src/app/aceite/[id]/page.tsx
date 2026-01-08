@@ -99,6 +99,7 @@ export default function CustomerAcceptancePage() {
   const id = params.id as string;
 
   const [order, setOrder] = useState<any>(null);
+  const [orderFound, setOrderFound] = useState(false); // Adicionado
   const [loading, setLoading] = useState(true);
   const [accepted, setAccepted] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -122,15 +123,17 @@ export default function CustomerAcceptancePage() {
         .single();
 
       if (error) {
-        toast.error("Ordem de serviço não encontrada");
+        toast.error("Ordem de serviço não encontrada ou sem permissão de acesso.");
+        setOrderFound(false); // Adicionado
       } else {
         setOrder(data);
+        setOrderFound(true); // Adicionado
         if (data.status !== "Recebido" && data.status !== "Cancelado") {
           setIsConfirmed(true);
         }
       }
     } catch (err) {
-      console.error("Erro ao buscar OS:", err);
+      console.error("Erro ao buscar OS (verifique RLS no Supabase):", err);
     } finally {
       setLoading(false);
     }
@@ -173,7 +176,7 @@ export default function CustomerAcceptancePage() {
       .eq("status", "Recebido");
 
 if (error) {
-        toast.error("Erro ao confirmar serviço");
+        toast.error("Erro ao confirmar serviço. Verifique permissões ou tente novamente.");
       } else {
         setOrder({ ...order, status: "Em espera", accepted_at: acceptedAt, delivery_date: deliveryDateStr });
         setIsConfirmed(true);
