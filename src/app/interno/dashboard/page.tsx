@@ -55,7 +55,7 @@ import {
   type Alert 
 } from "@/lib/notifications";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto p/ entrega" | "Em Rota" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -81,10 +81,12 @@ const statusWeight: Record<Status, number> = {
   "Em serviço": 1,
   "Em finalização": 2,
   "Recebido": 3,
-  "Pronto para entrega ou retirada": 4,
-  "Entregue": 5,
-  "Cancelado": 6,
+  "Pronto p/ entrega": 4, // Ajustado para o nome real do banco
+  "Em Rota": 5,           // Adicionado para fluidez da logística
+  "Entregue": 6,
+  "Cancelado": 7,
 };
+
 
 const OrderCardSkeleton = () => (
   <Card className="border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white">
@@ -451,8 +453,8 @@ export default function DashboardPage() {
       <Badge className={`${styles[status]} border-none px-3 py-1 h-auto whitespace-normal text-center transition-all duration-300`}>
         {status === "Pronto para entrega ou retirada" ? (
           <span className="flex flex-col leading-none py-0.5">
-            <span>PRONTO P/</span>
-            <span>ENTREGA</span>
+            <span>Pronto p/</span>
+            <span>entrega</span>
           </span>
         ) : status}
       </Badge>

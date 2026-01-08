@@ -46,14 +46,13 @@ function MenuButton({ href, title, icon: Icon, description }: MenuButtonProps) {
 
 export default function InternoPage() {
   const { role, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+    </div>
+  );
 
   if (!role) return null;
 
@@ -135,11 +134,12 @@ export default function InternoPage() {
 
               {(role === 'ADMIN' || role === 'OPERACIONAL' || role === 'ATENDENTE') && (
                 <MenuButton 
-                  href="/interno/rotas"
-                  title="Rotas e Entregas"
-                  icon={Truck}
-                  description="Logística de Delivery"
-                />
+  href="/interno/entregas" 
+  title="Entregas" 
+  icon={Truck} 
+  description="Ver pedidos prontos para entrega" 
+/>
+
               )}
 
 

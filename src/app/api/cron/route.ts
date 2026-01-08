@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
-// import { sendPushToAll } from "@/lib/push-notifications";
+import { sendPushToAll } from "@/lib/push-notifications";
+
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");
   
@@ -94,7 +95,14 @@ export async function POST(request: Request) {
       if (overdueError) throw overdueError;
 
       if (overdueOrders && overdueOrders.length > 0) {
-        results.overdue = { count: overdueOrders.length, push: "disabled" };
+        await sendPushToAll({
+          title: `${overdueOrders.length} OS ATRASADA(S)!`,
+          body: overdueOrders.length <= 3 
+            ? overdueOrders.map((o: any) => `${o.os_number} - ${o.clients?.name}`).join(", ")
+            : `${overdueOrders.slice(0, 3).map((o: any) => o.os_number).join(", ")} e mais ${overdueOrders.length - 3}`,
+          url: "/interno/calendario",
+        });
+        results.overdue = { count: overdueOrders.length };
       } else {
         results.overdue = { count: 0 };
       }
@@ -113,8 +121,14 @@ export async function POST(request: Request) {
       if (deliveryError) throw deliveryError;
 
       if (todayOrders && todayOrders.length > 0) {
-        results.delivery = { count: todayOrders.length, push: "disabled" };
-
+        await sendPushToAll({
+          title: `${todayOrders.length} entrega(s) para HOJE!`,
+          body: todayOrders.length === 1 
+            ? `OS ${todayOrders[0].os_number} de ${(todayOrders[0] as any).clients?.name}`
+            : `${todayOrders.map((o: any) => o.os_number).join(", ")}`,
+          url: "/interno/calendario",
+        });
+        results.delivery = { count: todayOrders.length };
       } else {
         results.delivery = { count: 0 };
       }

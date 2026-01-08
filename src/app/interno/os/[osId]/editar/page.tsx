@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -128,30 +128,16 @@ export default function EditOSPage() {
     }
   };
 
-  useEffect(() => {
-    const storedRole = localStorage.getItem("tenislab_role");
-    if (!storedRole) {
-      router.push("/interno/login");
-      return;
-    }
-    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/interno/dashboard");
-      return;
-    }
-    setRole(storedRole);
-    fetchOrder();
-    fetchServices();
-  }, []);
-
-  const fetchServices = async () => {
+    // 1. Primeiro, definimos as funções de busca para que possam ser usadas depois
+  const fetchServices = useCallback(async () => {
     const { data } = await supabase
       .from("services")
       .select("*")
       .eq("status", "Active");
     if (data) setServices(data);
-  };
+  }, []);
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("service_orders")
@@ -173,7 +159,37 @@ export default function EditOSPage() {
       setItems(data.items || []);
     }
     setLoading(false);
-  };
+  }, [osNumber, router]);
+
+  // 2. Agora, usamos as funções no useEffect, que verifica a segurança
+  useEffect(() => {
+    const checkAuthAndFetch = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        router.push("/interno/login");
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profileError || !profile || (profile.role !== "ADMIN" && profile.role !== "ATENDENTE")) {
+        toast.error("Você não tem permissão para acessar esta página.");
+        router.push("/interno/dashboard");
+        return;
+      }
+      
+      setRole(profile.role);
+      fetchOrder();
+      fetchServices();
+    };
+
+    checkAuthAndFetch();
+  }, [fetchOrder, fetchServices, router]);
 
   const serviceCatalog = useMemo(() => {
     return services.reduce((acc, service) => {
@@ -254,24 +270,62 @@ export default function EditOSPage() {
   const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
   const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
 
-const confirmDeletePhoto = async () => {
-      if (!photoToDelete) return;
-      
-      setItems(items.map(it => {
-        if (it.id === photoToDelete.itemId) {
-          if (photoToDelete.type === 'photos') {
-            return { ...it, photos: it.photos?.filter((_: string, i: number) => i !== photoToDelete.index) };
-          } else if (photoToDelete.type === 'photosBefore') {
-            return { ...it, photosBefore: it.photosBefore?.filter((_: string, i: number) => i !== photoToDelete.index) };
-          } else if (photoToDelete.type === 'photosAfter') {
-            return { ...it, photosAfter: it.photosAfter?.filter((_: string, i: number) => i !== photoToDelete.index) };
-          }
+  const confirmDeletePhoto = async () => {
+    if (!photoToDelete || !order) return;
+
+    const { itemId, type, index } = photoToDelete;
+    const item = items.find(it => it.id === itemId);
+    if (!item) return;
+
+    // 1. Identifica a URL correta baseada no tipo (antes ou depois)
+    let photoUrlToDelete: string | undefined;
+    if (type === 'photosBefore') {
+      photoUrlToDelete = item.photosBefore?.[index];
+    } else if (type === 'photosAfter') {
+      photoUrlToDelete = item.photosAfter?.[index];
+    } else if (type === 'photos') {
+      photoUrlToDelete = item.photos?.[index];
+    }
+
+    if (photoUrlToDelete) {
+      try {
+        // 2. Tenta excluir do servidor (Supabase Storage)
+        // Extraímos o caminho após o nome do bucket 'photos'
+        const pathParts = photoUrlToDelete.split('/storage/v1/object/public/photos/');
+        const filePath = pathParts.length > 1 ? pathParts[1] : null;
+
+        if (filePath) {
+          const { error: storageError } = await supabase.storage
+            .from('photos')
+            .remove([filePath]);
+          
+          if (storageError) console.warn("Aviso: Foto não encontrada no servidor, mas será removida da tela.");
         }
-        return it;
-      }));
-      setPhotoToDelete(null);
-      toast.success("Foto removida da lista. Salve para confirmar.");
-    };
+
+        // 3. Remove da tela (estado local) independente do resultado do servidor
+        setItems(items.map(it => {
+          if (it.id === itemId) {
+            if (type === 'photosBefore') {
+              return { ...it, photosBefore: it.photosBefore?.filter((_, i) => i !== index) };
+            } else if (type === 'photosAfter') {
+              return { ...it, photosAfter: it.photosAfter?.filter((_, i) => i !== index) };
+            } else if (type === 'photos') {
+              return { ...it, photos: it.photos?.filter((_, i) => i !== index) };
+            }
+          }
+          return it;
+        }));
+
+        toast.success("Foto removida com sucesso!");
+      } catch (error: any) {
+        console.error("Erro ao processar exclusão:", error);
+        toast.error("Erro ao remover foto.");
+      }
+    }
+
+    setPhotoToDelete(null);
+  };
+
 
   const handleSave = async () => {
     if (items.length === 0) {

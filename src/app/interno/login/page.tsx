@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,28 +25,27 @@ export default function LoginPage() {
   const [sending2FA, setSending2FA] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
+    useEffect(() => {
     const checkSession = async () => {
-      const timeout = setTimeout(() => {
-        setIsChecking(false);
-      }, 3000);
-      
+      // Define um timeout para garantir que isChecking não fique preso em true
+      const timeoutId = setTimeout(() => setIsChecking(false), 3000);
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        clearTimeout(timeout);
+        clearTimeout(timeoutId); // Limpa o timeout se a sessão for verificada antes
         if (session) {
-          router.push("/interno");
+          router.push("/interno"); // Navegação mais fluida no Next.js
           return;
         }
       } catch (err) {
-        console.error("Session check error:", err);
-        clearTimeout(timeout);
+        console.error("Erro ao verificar sessão:", err);
       } finally {
-        setIsChecking(false);
+        setIsChecking(false); // Garante que o estado de checagem seja finalizado
       }
     };
     checkSession();
-  }, [router]);
+  }, [router]); // Dependência do router para garantir que o efeito reaja a mudanças de rota
+
 
   const send2FACode = useCallback(async (userId: string, userEmail: string) => {
     setSending2FA(true);
@@ -110,8 +110,8 @@ export default function LoginPage() {
           return;
         }
 
-        localStorage.setItem("tenislab_role", profileData.role);
-        window.location.href = "/interno";
+              localStorage.setItem("tenislab_role", profileData.role);
+        router.push("/interno"); // Usar router.push para navegação interna
       }
     } catch {
       setError("Erro ao realizar login");

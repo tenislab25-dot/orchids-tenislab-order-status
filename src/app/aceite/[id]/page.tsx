@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image"; // Adicione esta linha para importar o componente Image
 import { 
   CheckCircle2, 
   Package, 
@@ -13,7 +14,9 @@ import {
   Search,
   X,
   ZoomIn,
-  Download
+  Download,
+  Loader2,      // Adicionado
+  AlertCircle   // Adicionado
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -102,35 +105,42 @@ export default function CustomerAcceptancePage() {
   const [confirming, setConfirming] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOrder();
+    // Função memoizada para melhor performance
+  const fetchOrder = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          *,
+          clients (
+            name,
+            phone
+          )
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        toast.error("Ordem de serviço não encontrada");
+      } else {
+        setOrder(data);
+        if (data.status !== "Recebido" && data.status !== "Cancelado") {
+          setIsConfirmed(true);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao buscar OS:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  const fetchOrder = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        *,
-        clients (
-          name,
-          phone
-        )
-      `)
-      .eq("id", id)
-      .single();
+  // useEffect movido para DEPOIS da função
+  useEffect(() => {
+    if (id) fetchOrder();
+  }, [id, fetchOrder]);
 
-    if (error) {
-      toast.error("Ordem de serviço não encontrada");
-    } else {
-      setOrder(data);
-      // If already accepted or in progress, show confirmed screen
-      if (data.status !== "Recebido" && data.status !== "Cancelado") {
-        setIsConfirmed(true);
-      }
-    }
-    setLoading(false);
-  };
 
   const handleConfirm = async () => {
     setConfirming(true);
@@ -335,36 +345,36 @@ if (error) {
     </div>
   );
 
-  if (!order) return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-      <h1 className="text-xl font-bold">Ordem não encontrada</h1>
-      <Button asChild className="mt-4">
-        <button onClick={() => router.push("/")}>Voltar ao Início</button>
-      </Button>
-    </div>
-  );
+   if (loading || !order) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
+        <p className="text-slate-600 text-lg font-medium">Carregando detalhes da ordem...</p>
+      </div>
+    );
+  }
+
 
     if (order.status === "Cancelado") {
       return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-          <div className="relative h-40 w-64 mb-8">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-              alt="TENISLAB Logo" 
-              fill
-              priority
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 400px"
-            />
-          </div>
-          <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center mb-6">
-            <ShieldCheck className="w-12 h-12 text-red-500" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Ordem Cancelada</h1>
-          <p className="text-slate-500 mb-8 max-w-[280px]">
-            Esta ordem de serviço ({order.os_number}) foi cancelada e não pode mais ser aceita.
-          </p>
-          <Button 
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
+        <div className="relative h-28 w-64">
+          <Image 
+            src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+            alt="TENISLAB Logo" 
+            fill
+            priority
+            className="object-contain"
+            sizes="(max-width: 768px ) 100vw, 400px"
+          />
+        </div>
+        <div className="h-px w-12 bg-slate-200" />
+        <p className="text-slate-500 text-[10px] font-black tracking-[0.4em] uppercase text-center">
+          Ordem de Serviço
+        </p>
+      </header>
+      <Button 
             variant="outline"
             onClick={() => router.push("/")}
             className="h-14 w-full max-w-xs rounded-2xl border-slate-200 text-slate-600 font-bold"

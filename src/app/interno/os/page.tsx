@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { 
@@ -16,9 +15,10 @@ import {
   CreditCard,
   Banknote,
   QrCode,
-  Users,
-  Loader2
+  Loader2,
+  Users
 } from "lucide-react";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,66 +139,28 @@ interface OSItem {
     const [createdOS, setCreatedOS] = useState<any>(null);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-      useEffect(() => {
-      setMounted(true);
-      const storedRole = localStorage.getItem("tenislab_role");
-      setRole(storedRole);
-
-      if (!storedRole) {
-        router.push("/interno/login");
-        return;
-      }
-
-        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/interno/dashboard");
-          return;
-        }
-
-      generateOSNumber();
-      
-      const today = new Date();
-      setEntryDate(today.toISOString().split('T')[0]);
-
-      fetchClients();
-      fetchServices();
-    }, []);
-
-    const fetchServices = async () => {
-      setLoadingServices(true);
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .eq("status", "Active");
-      
-      if (error) {
-        toast.error("Erro ao carregar serviços");
-      } else {
-        setServices(data || []);
-      }
-      setLoadingServices(false);
-    };
-
-  const serviceCatalog = useMemo(() => {
-    try {
-      if (!services || !Array.isArray(services)) return {};
-      
-      return services.reduce((acc, service) => {
-        if (!service || !service.category) return acc;
-        if (!acc[service.category]) acc[service.category] = [];
-        acc[service.category].push({
-          id: service.id,
-          name: service.name || "Sem nome",
-          price: Number(service.default_price) || 0
-        });
-        return acc;
-      }, {} as Record<string, { id: string, name: string, price: number }[]>);
-    } catch (err) {
-      console.error("Error in serviceCatalog useMemo:", err);
-      return {};
+     // 1. Primeiro definimos as funções
+  const fetchServices = useCallback(async () => {
+    setLoadingServices(true);
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .eq("status", "Active");
+    
+    if (error) {
+      toast.error("Erro ao carregar serviços");
+    } else {
+      setServices(data || []);
     }
-  }, [services]);
+    setLoadingServices(false);
+  }, []);
 
-  const generateOSNumber = async () => {
+  const fetchClients = useCallback(async () => {
+    const { data } = await supabase.from("clients").select("*").order("name");
+    if (data) setClients(data);
+  }, []);
+
+  const generateOSNumber = useCallback(async () => {
     const year = new Date().getFullYear();
     const { data, error } = await supabase
       .from("service_orders")
@@ -218,13 +180,46 @@ interface OSItem {
     } else {
       setOsNumber(`001/${year}`);
     }
-  };
+  }, []);
 
-  const fetchClients = async () => {
-    const { data } = await supabase.from("clients").select("*").order("name");
-    if (data) setClients(data);
-  };
+  // 2. Depois usamos elas no useEffect
+  useEffect(() => {
+    setMounted(true);
+    const storedRole = localStorage.getItem("tenislab_role");
+    setRole(storedRole);
 
+    if (!storedRole) {
+      router.push("/interno/login");
+      return;
+    }
+
+    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+      router.push("/interno/dashboard");
+      return;
+    }
+
+    generateOSNumber();
+    
+    const today = new Date();
+    setEntryDate(today.toISOString().split('T')[0]);
+
+    fetchClients();
+    fetchServices();
+  }, [router, generateOSNumber, fetchClients, fetchServices]);
+
+  const serviceCatalog = useMemo(() => {
+    if (!services || !Array.isArray(services)) return {};
+    return services.reduce((acc, service) => {
+      if (!service || !service.category) return acc;
+      if (!acc[service.category]) acc[service.category] = [];
+      acc[service.category].push({
+        id: service.id,
+        name: service.name || "Sem nome",
+        price: Number(service.default_price) || 0
+      });
+      return acc;
+    }, {} as Record<string, { id: string, name: string, price: number }[]>);
+  }, [services]);
     const handleClientSelect = (clientId: string) => {
       if (clientId === "new") {
         setSelectedClientId("new");
@@ -1021,9 +1016,9 @@ interface OSItem {
         </DialogContent>
       </Dialog>
 
-    </main>
+        </main>
 
-    <div className="h-10" />
-  </div>
-);
+      <div className="h-10" />
+    </div>
+  );
 }

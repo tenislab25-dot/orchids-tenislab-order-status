@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,8 +8,7 @@ import {
   Database,
   Eye,
   ArrowLeft,
-  Calendar,
-  History
+  Loader2
 } from "lucide-react";
 
 import {
@@ -21,10 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -50,44 +48,46 @@ export default function BancoDadosPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-      useEffect(() => {
-        const storedRole = localStorage.getItem("tenislab_role");
-        if (!storedRole) {
-          router.push("/interno/login");
-          return;
-        }
-        if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/interno/dashboard");
-          return;
-        }
-        fetchOrders();
-      }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Fetch orders that ARE completed > 30 days
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        *,
-        clients (
-          name
-        )
-      `)
-      .or(`status.eq.Entregue,status.eq.Cancelado`)
-      .lt('updated_at', thirtyDaysAgo.toISOString())
-      .order("updated_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          *,
+          clients (
+            name
+          )
+        `)
+        .or(`status.eq.Entregue,status.eq.Cancelado`)
+        .lt('updated_at', thirtyDaysAgo.toISOString())
+        .order("updated_at", { ascending: false });
 
-    if (error) {
-      toast.error("Erro ao buscar banco de dados: " + error.message);
-    } else {
+      if (error) throw error;
       setOrders(data as Order[]);
+    } catch (error: any) {
+      console.error("Erro ao buscar banco de dados:", error);
+      toast.error("Erro ao buscar banco de dados");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("tenislab_role");
+    if (!storedRole) {
+      router.push("/interno/login");
+      return;
+    }
+    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+      router.push("/interno/dashboard");
+      return;
+    }
+    fetchOrders();
+  }, [fetchOrders, router]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(
@@ -114,8 +114,8 @@ export default function BancoDadosPage() {
             <p className="text-sm text-slate-500 font-medium italic">Histórico de pedidos concluídos há mais de 30 dias</p>
           </div>
         </div>
-          <h1 className="font-black text-xl">TENISLAB</h1>
-        </header>
+        <h1 className="font-black text-xl">TENISLAB</h1>
+      </header>
 
       <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white grayscale-[0.5]">
         <CardHeader className="bg-white border-b border-slate-50 p-8">
@@ -143,9 +143,20 @@ export default function BancoDadosPage() {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-20">Carregando arquivo...</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+                        <p className="text-slate-400 font-medium">Carregando arquivo...</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ) : filteredOrders.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400 font-medium uppercase tracking-widest text-xs">Arquivo vazio</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-20 text-slate-400 font-medium uppercase tracking-widest text-xs">
+                      Arquivo vazio
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   filteredOrders.map((order) => (
                     <TableRow key={order.id} className="hover:bg-slate-50/50 border-b border-slate-50">
@@ -154,7 +165,9 @@ export default function BancoDadosPage() {
                       <TableCell className="text-slate-500 text-xs font-bold">
                         {new Date(order.updated_at || order.entry_date).toLocaleDateString("pt-BR")}
                       </TableCell>
-                      <TableCell className="font-black text-slate-400 text-sm">R$ {order.total?.toFixed(2)}</TableCell>
+                      <TableCell className="font-black text-slate-400 text-sm">
+                        {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.total || 0)}
+                      </TableCell>
                       <TableCell className="pr-8">
                         <Link href={`/interno/os/${order.os_number.replace("/", "-")}`}>
                           <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100">

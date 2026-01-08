@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   ArrowLeft, 
   LayoutDashboard,
@@ -126,79 +126,67 @@ export default function OSViewPage() {
     const [machineFee, setMachineFee] = useState("0");
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
     
-    useEffect(() => {
-  if (authLoading || !role || !osNumber) return;
-
-  const init = async () => {
+    // 1. Primeiro definimos a função fetchOrder
+  const fetchOrder = useCallback(async () => {
     setLoading(true);
+    const { data, error } = await supabase
+      .from("service_orders")
+      .select(`
+        *,
+        clients (
+          name,
+          phone
+        )
+      `)
+      .eq("os_number", osNumber)
+      .single();
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      router.push("/login");
-      return;
+    if (error) {
+      toast.error("Erro ao carregar OS: " + error.message);
+    } else {
+      setOrder(data as OrderData);
     }
-
-    await fetchOrder();
     setLoading(false);
-  };
+  }, [osNumber]);
 
-  init();
+  // 2. Depois usamos ela dentro do useEffect
+  useEffect(() => {
+    if (authLoading) return;
+    if (!role) return;
+    
+    fetchOrder();
 
-  const channel = supabase
-    .channel(`os-${osIdRaw}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "service_orders",
-        filter: `os_number=eq.${osNumber}`,
-      },
-      (payload) => {
-        setOrder((prev) =>
-          prev ? { ...prev, ...(payload.new as Partial<OrderData>) } : prev
-        );
-      }
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [authLoading, role, osNumber]);
-
-  const fetchOrder = async () => {
-  const { data, error } = await supabase
-    .from("service_orders")
-    .select(`
-      *,
-      clients (
-        name,
-        phone
+    const channel = supabase
+      .channel(`os-${osIdRaw}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "service_orders",
+          filter: `os_number=eq.${osNumber}`
+        },
+        (payload) => {
+          setOrder(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              ...payload.new as OrderData
+            };
+          });
+          
+          if ((payload.new as any).accepted_at && !(payload.old as any).accepted_at) {
+            toast.success("O cliente acabou de aceitar a OS!", { duration: 5000 });
+          }
+        }
       )
-    `)
-    .eq("os_number", osNumber)
-    .single();
+      .subscribe();
 
-  if (error) {
-    toast.error("Erro ao carregar OS: " + error.message);
-  } else {
-    setOrder(data as OrderData);
-  }
-};
-const initPage = async () => {
-  setLoading(true);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [osNumber, osIdRaw, authLoading, role, fetchOrder]);
 
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    router.push("/login");
-    return;
-  }
-
-  await fetchOrder();
-  setLoading(false);
-};
   const confirmPayment = async () => {
     if (!isConfirmingPayment) {
       setIsConfirmingPayment(true);
@@ -218,7 +206,12 @@ const initPage = async () => {
       toast.error("Erro ao confirmar pagamento: " + error.message);
       setIsConfirmingPayment(false);
     } else {
-      toast.success("Pagamento Confirmado!");
+      setOrder(prev => prev ? { 
+        ...prev, 
+        payment_confirmed: true,
+        payment_method: newPaymentMethod || prev.payment_method,
+        machine_fee: Number(machineFee) || 0
+      } : null);
       setPaymentModalOpen(false);
       setIsConfirmingPayment(false);
       toast.success("Pagamento Confirmado!");
@@ -234,6 +227,7 @@ const initPage = async () => {
     if (error) {
       toast.error("Erro ao reverter pagamento: " + error.message);
     } else {
+      setOrder(prev => prev ? { ...prev, payment_confirmed: false } : null);
       toast.success("Pagamento marcado como pendente");
     }
   };
@@ -248,6 +242,7 @@ const initPage = async () => {
     if (error) {
       toast.error("Erro ao atualizar notificação: " + error.message);
     } else {
+      setOrder(prev => prev ? { ...prev, ready_for_pickup: newVal } : null);
       
         if (newVal && order) {
           const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
@@ -284,17 +279,20 @@ const initPage = async () => {
 
     const handleStatusUpdate = async (newStatus: Status) => {
       if (!order) return;
+      
+      // Verifica permissão básica no frontend
       if (!role || !canChangeToStatus(role as UserRole, newStatus, order.status)) {
-        toast.error("Você não tem permissão para alterar este status ou o pedido já foi entregue.");
+        toast.error("Você não tem permissão para alterar este status.");
         return;
       }
 
       setStatusUpdating(newStatus);
 
       try {
+        // VERIFICAÇÃO DE SEGURANÇA: Garante que o usuário está logado
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          toast.error("Sessão expirada. Faça login novamente.");
+          toast.error("Sessão expirada. Por favor, faça login novamente.");
           router.push("/login");
           return;
         }
@@ -309,24 +307,18 @@ const initPage = async () => {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          toast.error(data.error || "Erro ao atualizar status");
-          return;
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Erro ao atualizar no servidor");
         }
 
-        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
-        toast.success("Status atualizado!");
+        toast.success(`Status atualizado para: ${newStatus}`);
+        // O fetchOrder será chamado pelo canal do Supabase automaticamente, 
+        // mas podemos forçar um refresh se necessário:
+        // fetchOrder(); 
 
-        if (newStatus === "Pronto para entrega ou retirada") {
-          toast.info("Certifique-se de enviar notificação ao cliente que o pedido esta pronto.", { duration: 6000 });
-        }
-        
-        if (newStatus === "Entregue") {
-          toast.info("Certifique-se de enviar le link p/pagamento.", { duration: 6000 });
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error("Erro ao atualizar status");
+      } catch (error: any) {
+        console.error("Erro na atualização:", error);
+        toast.error("Falha ao atualizar status: " + error.message);
       } finally {
         setStatusUpdating(null);
       }
@@ -353,6 +345,7 @@ const initPage = async () => {
     setUploadingAfterPhoto(itemIdx);
     
     try {
+      // Comprime a imagem para não ficar pesada no banco de dados
       const compressedFile = await compressImage(file, 1080, 0.7);
       const fileExt = 'jpg';
       const fileName = `${order.id}_item${itemIdx}_after_${Date.now()}.${fileExt}`;
@@ -380,9 +373,10 @@ const initPage = async () => {
       if (updateError) throw updateError;
       
       setOrder({ ...order, items: newItems });
-      toast.success("Foto DEPOIS adicionada!");
+      toast.success("Foto DEPOIS adicionada com sucesso!");
     } catch (error: any) {
-      toast.error("Erro ao adicionar foto: " + error.message);
+      console.error("Erro no upload:", error);
+      toast.error("Erro ao adicionar foto: " + (error.message || "Erro desconhecido"));
     } finally {
       setUploadingAfterPhoto(null);
     }
@@ -465,6 +459,7 @@ const initPage = async () => {
     if (error) {
       toast.error("Erro ao excluir foto: " + error.message);
     } else {
+      setOrder({ ...order, items: newItems });
       toast.success("Foto excluída com sucesso!");
     }
     setDeletePhotoModalOpen(false);
@@ -486,6 +481,7 @@ const initPage = async () => {
       if (error) {
         toast.error("Erro ao atualizar item: " + error.message);
       } else {
+        setOrder({ ...order, items: newItems });
         toast.success(`Item marcado como ${newItems[itemIdx].status}`);
       }
     };
@@ -507,13 +503,21 @@ const initPage = async () => {
         if (error) {
           toast.error("Erro ao atualizar prioridade: " + error.message);
         } else {
+          setOrder(prev => prev ? { ...prev, priority: newPriority } : null);
           toast.success(newPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
         }
       };
 
 
-  const handleDeleteOS = async () => {
+    const handleDeleteOS = async () => {
     try {
+      // 1. Primeiro removemos qualquer vínculo desta OS com rotas de entrega
+      await supabase
+        .from("route_deliveries")
+        .delete()
+        .eq("service_order_id", order?.id);
+
+      // 2. Agora sim, excluímos a OS permanentemente
       const { error } = await supabase
         .from("service_orders")
         .delete()
@@ -529,6 +533,7 @@ const initPage = async () => {
       setDeleteModalOpen(false);
     }
   };
+
 
   const confirmCancel = async () => {
     if (cancellationReason.trim().length < 10) {
@@ -546,6 +551,7 @@ const initPage = async () => {
     if (error) {
       toast.error("Erro ao cancelar: " + error.message);
     } else {
+      setOrder(prev => prev ? { ...prev, status: "Cancelado" } : null);
       setCancelModalOpen(false);
       toast.success("OS Cancelada");
     }
@@ -844,15 +850,7 @@ const initPage = async () => {
         <div className="lg:col-span-8 lg:row-start-1 lg:row-span-10 flex flex-col gap-4">
           <div className="flex items-center justify-between mx-2">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pares de Tênis</h3>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handlePrintLabel(order.items)}
-                  className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1.5 bg-white border-slate-200"
-                >
-                  <Printer className="w-3 h-3" />
-                  Imprimir Todas
-                </Button>
+                
               </div>
               
               {order.items.map((item: any, idx: number) => (
@@ -864,16 +862,7 @@ const initPage = async () => {
                       </CardTitle>
                     </div>
                       <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePrintLabel([item])}
-                            className="h-7 text-[9px] font-bold uppercase tracking-wider gap-1 bg-white border-slate-200 px-2"
-                            title="Imprimir Etiqueta"
-                          >
-                            <Printer className="w-3 h-3" />
-                            Imprimir
-                          </Button>
+                          
 
                         <Button
                         variant={item.status === 'Pronto' ? 'default' : 'outline'}
@@ -1107,7 +1096,7 @@ const initPage = async () => {
                           handleStatusUpdate(status);
                         }
                       }}
-                      disabled={order.status === status || (statusUpdating === status)}
+                      disabled={order.status === status || (statusUpdating !== null)}
                       className={`h-auto py-2 px-3 text-[10px] font-bold uppercase tracking-wider rounded-xl whitespace-normal leading-tight ${
                         order.status === status 
                           ? "bg-blue-600 text-white border-blue-600" 
