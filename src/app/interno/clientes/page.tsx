@@ -125,12 +125,13 @@ export default function ClientsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (!formData.name || !formData.phone) {
       toast.error("Nome e telefone são obrigatórios");
       return;
     }
 
+    setLoading(true); // Inicia o carregamento
     const formattedName = formData.name.toUpperCase();
     const cleanPhone = formData.phone.replace(/\D/g, "");
     const finalPhone = cleanPhone.startsWith("55") ? cleanPhone.slice(2) : cleanPhone;
@@ -159,7 +160,10 @@ export default function ClientsPage() {
       setIsDialogOpen(false);
       fetchClients();
     } catch (error: any) {
+      console.error(error);
       toast.error("Erro ao salvar cliente: " + error.message);
+    } finally {
+      setLoading(false); // Destrava o botão SEMPRE ao final
     }
   };
 
