@@ -110,8 +110,16 @@ export default function LoginPage() {
           return;
         }
 
-              localStorage.setItem("tenislab_role", profileData.role);
-        router.push("/interno"); // Usar router.push para navegação interna
+localStorage.setItem("tenislab_role", profileData.role);
+
+// Injeta o user_role no app_metadata para que apareça no JWT
+const { error: updateError } = await supabase.auth.updateUser({
+  data: { user_role: profileData.role }
+});
+
+if (updateError) console.error("Erro ao atualizar metadados:", updateError);
+
+router.push("/interno");
       }
     } catch {
       setError("Erro ao realizar login");
@@ -147,8 +155,14 @@ export default function LoginPage() {
         .single();
 
       if (profileData) {
-        localStorage.setItem("tenislab_role", profileData.role);
-      }
+localStorage.setItem("tenislab_role", profileData.role);
+
+// Esta linha é CRUCIAL: ela coloca o papel do usuário no JWT
+await supabase.auth.updateUser({
+  data: { user_role: profileData.role }
+});
+
+router.push("/interno");
 
       router.push("/interno");
     } catch {
