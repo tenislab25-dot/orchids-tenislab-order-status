@@ -148,24 +148,23 @@ router.push("/interno");
         return;
       }
 
-      const { data: profileData } = await supabase
+        const { data: profileData } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", pendingUser.id)
         .single();
 
-      if (profileData) {
-localStorage.setItem("tenislab_role", profileData.role);
-      
-// Esta linha é CRUCIAL: ela coloca o papel do usuário no JWT
-await supabase.auth.updateUser({
-  data: { user_role: profileData.role }
-});
-
-router.push("/interno");
+        if (profileData) {
+        localStorage.setItem("tenislab_role", profileData.role);
+        
+        // Injeta o user_role no JWT
+        await supabase.auth.updateUser({
+          data: { user_role: profileData.role }
+        });
+      }
 
       router.push("/interno");
-    } catch {
+    } catch (err) {
       setError("Erro ao verificar código");
       setLoading(false);
     }
