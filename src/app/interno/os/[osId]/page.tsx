@@ -792,14 +792,15 @@ export default function OSViewPage() {
               </Button>
             )}
 
-<Button 
-                onClick={handleShareLink}
-                className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-100 transition-all active:scale-[0.98]"
-              >
-                <Share2 className="w-4 h-4" />
-                Gerar link para aceite
-              </Button>
-
+{(role === "ADMIN" || role === "ATENDENTE") && (
+  <Button
+    onClick={handleShareLink}
+    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-100"
+  >
+    <Share2 className="w-4 h-4" />
+    Gerar link para aceite
+  </Button>
+)}
                 {(role === "ADMIN" || role === "ATENDENTE") && (
                   <div className="grid grid-cols-2 gap-2 w-full">
                     <Link href={`/interno/os/${osIdRaw}/editar`} className="w-full">
@@ -1112,15 +1113,16 @@ export default function OSViewPage() {
                 ))}
               </div>
 
-              {order.status === "Pronto para entrega ou retirada" && (
-                <Button 
-                  onClick={handleSendReadyNotification}
-                  className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
-                >
-                  <Bell className="w-4 h-4" />
-                  Notificar Cliente (Pronto)
-                </Button>
-              )}
+             {order.status === "Pronto para entrega ou retirada" && role !== "OPERACIONAL" && (
+  <Button
+    onClick={handleSendReadyNotification}
+    className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
+  >
+    <Bell className="w-4 h-4" />
+    Notificar Cliente (Pronto)
+  </Button>
+)}
+
             </CardContent>
           </Card>
 
