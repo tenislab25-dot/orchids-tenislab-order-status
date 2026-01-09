@@ -132,7 +132,7 @@ router.push("/interno");
 
     setLoading(true);
     setError(null);
-
+  }
     try {
       const response = await fetch("/api/auth/two-factor", {
         method: "POST",
@@ -156,7 +156,7 @@ router.push("/interno");
 
       if (profileData) {
 localStorage.setItem("tenislab_role", profileData.role);
-
+      
 // Esta linha é CRUCIAL: ela coloca o papel do usuário no JWT
 await supabase.auth.updateUser({
   data: { user_role: profileData.role }
