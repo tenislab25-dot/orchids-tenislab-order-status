@@ -46,7 +46,8 @@ export default function PaymentPage() {
 
   const fetchOrder = async () => {
     try {
-      const { data, error } = await supabase
+      // Tenta buscar primeiro pelo ID (UUID)
+      let query = supabase
         .from("service_orders")
         .select(`
           id,
@@ -57,12 +58,29 @@ export default function PaymentPage() {
           clients (
             name
           )
-        `)
-        .eq("id", id)
+        `);
+
+      // Verifica se o ID parece um UUID ou um número de OS
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      if (isUUID) {
+        const { data, error } = await query.eq("id", id).single();
+        if (!error && data) {
+          setOrder(data as any);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Se não for UUID ou não encontrar, tenta pelo número da OS
+      // Formata o número da OS se necessário (ex: "001-2026" ou "001/2026")
+      const formattedId = id.replace("-", "/");
+      const { data: dataByOS, error: errorByOS } = await query
+        .or(`os_number.eq.${id},os_number.eq.${formattedId}`)
         .single();
 
-      if (error) throw error;
-      setOrder(data as any);
+      if (errorByOS) throw errorByOS;
+      setOrder(dataByOS as any);
     } catch (error: any) {
       console.error("Erro ao carregar OS:", error);
     } finally {
