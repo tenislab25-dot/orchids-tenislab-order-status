@@ -567,12 +567,23 @@ interface OSItem {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="endereco">Endereço (Opcional)</Label>
+                        <Label htmlFor="plusCode">Plus Code / Coordenadas (Opcional)</Label>
                         <Input 
-                          id="endereco" 
-                          placeholder="Rua, número, bairro..." 
-                          value={clientAddress}
-                          onChange={(e) => setClientAddress(e.target.value)}
+                          id="plusCode" 
+                          placeholder="Ex: 58QW+5V, Rio de Janeiro" 
+                          value={clientPlusCode}
+                          onChange={(e) => setClientPlusCode(e.target.value)}
+                          className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="complementoEndereco">Complemento (Edifício, Bloco, Número) (Opcional)</Label>
+                        <Input 
+                          id="complementoEndereco" 
+                          placeholder="Ex: Edifício X, Bloco Y, Apt 123" 
+                          value={clientComplementoEndereco}
+                          onChange={(e) => setClientComplementoEndereco(e.target.value)}
                           className="h-12 bg-slate-50 border-slate-200 rounded-xl"
                         />
                       </div>
