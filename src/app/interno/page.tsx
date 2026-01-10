@@ -54,7 +54,11 @@ export default function InternoPage() {
     </div>
   );
 
-  if (!role) return null;
+  if (!role) {
+    console.log("Role is null or undefined");
+    return null;
+  }
+  console.log("Current user role:", role);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center px-6 py-12 animate-in fade-in duration-700">
