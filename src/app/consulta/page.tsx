@@ -246,6 +246,7 @@ function OrderContent() {
     const searchPhone = phone.replace(/\D/g, "");
 
     // Tenta buscar pelo número exato ou pelo número formatado
+    // Removido o !inner para evitar erros de RLS se a relação estiver protegida
     const { data, error: sbError } = await supabase
       .from("service_orders")
       .select(`
@@ -257,20 +258,33 @@ function OrderContent() {
         discount_percent,
         machine_fee,
         delivery_fee,
-        clients!inner (
-          phone
-        )
+        client_id
       `)
       .or(`os_number.eq.${searchOs},os_number.ilike.%${os.trim()}%`)
       .single();
 
       if (sbError || !data) {
+        console.error("Erro na busca da OS:", sbError);
         setError("Pedido não encontrado. Verifique o número digitado.");
         setLoading(false);
         return;
       }
 
-    const dbPhone = data.clients?.phone?.replace(/\D/g, "") || "";
+    // Busca o cliente separadamente para garantir que o telefone seja verificado
+    const { data: clientData, error: clientError } = await supabase
+      .from("clients")
+      .select("phone")
+      .eq("id", data.client_id)
+      .single();
+
+    if (clientError || !clientData) {
+      console.error("Erro na busca do cliente:", clientError);
+      setError("Erro ao validar dados do cliente.");
+      setLoading(false);
+      return;
+    }
+
+    const dbPhone = clientData.phone?.replace(/\D/g, "") || "";
     const last4Db = dbPhone.slice(-4);
     const last4Search = searchPhone.slice(-4);
     
@@ -280,7 +294,10 @@ function OrderContent() {
       return;
     }
 
-    setOrder(data as any);
+    // Mescla os dados para manter a compatibilidade com o restante do código
+    const fullOrderData = { ...data, clients: clientData };
+
+    setOrder(fullOrderData as any);
     setLoading(false);
   };
 

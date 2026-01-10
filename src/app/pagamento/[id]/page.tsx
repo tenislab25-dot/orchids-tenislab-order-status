@@ -67,12 +67,18 @@ export default function PaymentPage() {
         query = query.eq("id", id);
       } else {
         // Se não for UUID, tenta buscar pelo número da OS formatado (ex: 001-2026 -> 001/2026)
-        query = query.eq("os_number", id.replace("-", "/"));
+        // Também tenta buscar pelo número puro se falhar
+        const formattedOs = id.replace("-", "/");
+        query = query.or(`os_number.eq.${formattedOs},os_number.ilike.%${id}%`);
       }
 
       const { data, error } = await query.single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar OS:", error);
+        throw error;
+      }
+      
       setOrder(data as any);
     } catch (error: any) {
       console.error("Erro ao carregar OS:", error);
