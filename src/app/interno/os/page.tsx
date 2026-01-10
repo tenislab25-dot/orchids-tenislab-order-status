@@ -401,7 +401,8 @@ interface OSItem {
               name: formattedName, 
               phone: formattedPhone,
               email: clientEmail.trim() || null,
-              address: clientAddress.trim() || null
+              plus_code: clientPlusCode.trim() || null,
+              complemento_endereco: clientComplementoEndereco.trim() || null
             }])
             .select()
             .single();
@@ -415,7 +416,8 @@ interface OSItem {
               name: formattedName, 
               phone: formattedPhone,
               email: clientEmail.trim() || null,
-              address: clientAddress.trim() || null
+              plus_code: clientPlusCode.trim() || null,
+              complemento_endereco: clientComplementoEndereco.trim() || null
             })
             .eq("id", selectedClientId);
         }
