@@ -768,17 +768,17 @@ export default function OSViewPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-8 items-start animate-in fade-in duration-500">
+      main className="max-w-6xl mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-8 items-start"">
         
         <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-5 mb-5 lg:mb-0">
           <section className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col gap-6">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cliente</span>
-                <h2 className="text-xl font-black text-slate-900 leading-tight">{order.clients?.name}</h2>
+                <h2 className="text-xl font-black text-slate-900 leading-tight">{order?.clients?.name || 'Cliente não identificado'}</h2>
                   <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
                     <Phone className="w-3 h-3" />
-                    {order.clients?.phone}
+                    {order?.clients?.phone || 'Telefone não disponível'}
                   </div>
                   
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -797,12 +797,12 @@ export default function OSViewPage() {
                     </Button>
                   </div>
 
-                {order.accepted_at && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl animate-in zoom-in duration-500">
+                {order?.accepted_at && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl">
                     <div className="flex items-center gap-2 text-blue-700">
                       <CheckCircle2 className="w-4 h-4" />
                         <span className="text-[10px] font-black uppercase tracking-wider">
-                        OS aceita em: {order.accepted_at ? new Date(order.accepted_at).toLocaleString('pt-BR') : '---'}
+                        OS aceita em: {new Date(order.accepted_at).toLocaleString('pt-BR')}
                       </span>
                     </div>
                   </div>
@@ -882,8 +882,8 @@ export default function OSViewPage() {
                 
               </div>
               
-              {order.items.map((item: any, idx: number) => (
-                <Card key={idx} className={`rounded-3xl border-slate-200 shadow-sm overflow-hidden transition-all ${item.status === 'Pronto' ? 'ring-2 ring-green-400/30' : ''}`}>
+              {order?.items?.map((item: any, idx: number) => (
+                <Card key={idx} className={`rounded-3xl border-slate-200 shadow-sm overflow-hidden transition-all ${item?.status === 'Pronto' ? 'ring-2 ring-green-400/30' : ''}`}>
                   <CardHeader className={`py-3 px-6 border-b border-slate-100 flex flex-row items-center justify-between ${item.status === 'Pronto' ? 'bg-green-50/50' : 'bg-slate-50/50'}`}>
                     <div className="flex flex-col">
                       <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
@@ -1025,12 +1025,12 @@ export default function OSViewPage() {
             <CardContent className="p-6 space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Subtotal</span>
-                <span className="text-sm font-bold text-white/70">R$ {order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0).toFixed(2)}</span>
+                <span className="text-sm font-bold text-white/70">R$ {(order?.items || []).reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0).toFixed(2)}</span>
               </div>
-              {order.discount_percent > 0 && (
+              {(order?.discount_percent || 0) > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Desconto ({order.discount_percent}%)</span>
-                  <span className="text-sm font-bold text-red-400">- R$ {((order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                  <span className="text-sm font-bold text-red-400">- R$ {(((order?.items || []).reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0) * (order?.discount_percent || 0)) / 100).toFixed(2)}</span>
                 </div>
               )}
               {order.delivery_fee > 0 && (
