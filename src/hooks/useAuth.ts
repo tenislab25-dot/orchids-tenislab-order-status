@@ -62,8 +62,7 @@ export function useAuth(): AuthContextValue {
           setRole(userRole);
           localStorage.setItem("tenislab_role", userRole);
 
-          const internalPath = pathname?.replace("/interno", "/app") || "/app";
-          if (pathname?.startsWith("/interno") && !canAccessPage(userRole, internalPath)) {
+          if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
             router.push("/interno");
           }
         } else {

@@ -10,7 +10,7 @@ const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
 };
 
 const ROLE_PAGES: Record<UserRole, string[]> = {
-  OPERACIONAL: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos'],
+  OPERACIONAL: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/os/[osId]'],
   ATENDENTE: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro'],
   ADMIN: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/banco-de-dados'],
   ENTREGADOR: ['/interno', '/interno/todos', '/interno/entregas'],
@@ -29,7 +29,17 @@ export function canAccessPage(role: UserRole, path: string): boolean {
   if (role === 'ADMIN') return true;
   
   const allowedPages = ROLE_PAGES[role] ?? [];
-  return allowedPages.some(allowed => path === allowed || path.startsWith(allowed + '/'));
+  
+  // Verifica se o caminho exato ou o início do caminho é permitido
+  const isAllowed = allowedPages.some(allowed => {
+    if (allowed.includes('[osId]')) {
+      const base = allowed.replace('/[osId]', '');
+      return path.startsWith(base + '/');
+    }
+    return path === allowed || path.startsWith(allowed + '/');
+  });
+
+  return isAllowed;
 }
 
 export function getRoleLabel(role: UserRole): string {
