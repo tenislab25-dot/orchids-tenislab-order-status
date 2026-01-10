@@ -106,7 +106,7 @@ export default function LoginPage() {
 
         localStorage.setItem("tenislab_role", profileData.role);
         
-        // Injeta o user_role no JWT
+        // Injeta o user_role no JWT para o RLS do Supabase funcionar
         await supabase.auth.updateUser({
           data: { user_role: profileData.role }
         });

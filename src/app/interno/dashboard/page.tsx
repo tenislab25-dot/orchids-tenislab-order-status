@@ -321,6 +321,10 @@ export default function DashboardPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: Status) => {
+    if (userRole === 'OPERACIONAL' && !['Recebido', 'Em espera', 'Em serviço', 'Em finalização'].includes(newStatus)) {
+      toast.error("Você não tem permissão para alterar para este status");
+      return;
+    }
     setChangedOrderId(orderId);
     
     const { error, data } = await supabase

@@ -1,4 +1,4 @@
-export type UserRole = 'OPERACIONAL' | 'ATENDENTE' | 'ADMIN';
+export type UserRole = 'OPERACIONAL' | 'ATENDENTE' | 'ADMIN' | 'ENTREGADOR';
 
 export type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
 
@@ -6,12 +6,14 @@ const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
   OPERACIONAL: ["Recebido", "Em espera", "Em serviço", "Em finalização"],
   ATENDENTE: ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto para entrega ou retirada", "Entregue", "Cancelado"],
   ADMIN: ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto para entrega ou retirada", "Entregue", "Cancelado"],
+  ENTREGADOR: ["Entregue"],
 };
 
 const ROLE_PAGES: Record<UserRole, string[]> = {
   OPERACIONAL: ['/app', '/app/dashboard', '/app/os', '/app/todos'],
   ATENDENTE: ['/app', '/app/dashboard', '/app/os', '/app/todos', '/app/clientes', '/app/servicos', '/app/financeiro'],
   ADMIN: ['/app', '/app/dashboard', '/app/os', '/app/todos', '/app/clientes', '/app/servicos', '/app/financeiro', '/app/banco-de-dados'],
+  ENTREGADOR: ['/app', '/app/dashboard', '/app/todos'],
 };
 
 export function canChangeToStatus(role: UserRole, status: Status, currentStatus?: Status): boolean {
@@ -35,6 +37,7 @@ export function getRoleLabel(role: UserRole): string {
     OPERACIONAL: 'Operacional',
     ATENDENTE: 'Atendente',
     ADMIN: 'Administrador',
+    ENTREGADOR: 'Entregador',
   };
   return labels[role] ?? role;
 }

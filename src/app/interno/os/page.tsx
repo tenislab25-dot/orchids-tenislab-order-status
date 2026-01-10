@@ -442,13 +442,13 @@ interface OSItem {
 
         if (osError) throw osError;
 
-        setIsCreating(false);
         setCreatedOS(newOS);
         setShowSuccessDialog(true);
         toast.success("Ordem de Serviço criada com sucesso!");
       } catch (error: any) {
-        setIsCreating(false);
         toast.error("Erro ao criar OS: " + error.message);
+      } finally {
+        setIsCreating(false);
       }
     };
 
