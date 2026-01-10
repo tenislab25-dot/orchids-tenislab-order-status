@@ -136,14 +136,13 @@ export default function InternoPage() {
                 />
               )}
 
-              {(role === 'ADMIN' || role === 'OPERACIONAL' || role === 'ATENDENTE' || role === 'ENTREGADOR') && (
+              {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'ENTREGADOR') && (
                 <MenuButton 
-  href="/interno/entregas" 
-  title="Entregas" 
-  icon={Truck} 
-  description="Ver pedidos prontos para entrega" 
-/>
-
+                  href="/interno/entregas" 
+                  title="Entregas" 
+                  icon={Truck} 
+                  description="Ver pedidos prontos para entrega" 
+                />
               )}
 
 
