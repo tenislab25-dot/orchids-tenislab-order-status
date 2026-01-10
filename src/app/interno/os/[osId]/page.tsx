@@ -728,15 +728,24 @@ export default function OSViewPage() {
     };
 
     if (loading) return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin" />
+          <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando OS...</span>
+        </div>
       </div>
     );
 
     if (!order) return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
-        <h1 className="text-xl font-bold">OS não encontrada</h1>
-        <Button asChild>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-6 bg-white">
+        <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
+          <Package className="w-10 h-10 text-slate-200" />
+        </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">OS não encontrada</h1>
+          <p className="text-slate-400 font-medium mt-2">O pedido #{osNumber} não foi localizado no sistema.</p>
+        </div>
+        <Button asChild className="rounded-2xl h-12 px-8 bg-slate-900 hover:bg-slate-800 font-bold">
           <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
         </Button>
       </div>

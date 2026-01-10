@@ -670,7 +670,7 @@ export default function DashboardPage() {
               </AnimatePresence>
             </div>
 
-            <Link href="/interno/os/lista">
+            <Link href="/interno/todos">
               <Button variant="ghost" className="text-slate-400 hover:text-slate-600 font-black rounded-2xl gap-2 h-10 sm:h-12 px-4 sm:px-6">
                 <List className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Ver Todas OS</span>
