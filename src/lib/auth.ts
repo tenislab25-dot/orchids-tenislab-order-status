@@ -13,7 +13,7 @@ const ROLE_PAGES: Record<UserRole, string[]> = {
   OPERACIONAL: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos'],
   ATENDENTE: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro'],
   ADMIN: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/banco-de-dados'],
-  ENTREGADOR: ['/interno', '/interno/todos'],
+  ENTREGADOR: ['/interno', '/interno/todos', '/interno/entregas'],
 };
 
 export function canChangeToStatus(role: UserRole, status: Status, currentStatus?: Status): boolean {
