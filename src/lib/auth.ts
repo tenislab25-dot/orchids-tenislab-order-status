@@ -10,10 +10,10 @@ const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
 };
 
 const ROLE_PAGES: Record<UserRole, string[]> = {
-  OPERACIONAL: ['/app', '/app/dashboard', '/app/os', '/app/todos'],
-  ATENDENTE: ['/app', '/app/dashboard', '/app/os', '/app/todos', '/app/clientes', '/app/servicos', '/app/financeiro'],
-  ADMIN: ['/app', '/app/dashboard', '/app/os', '/app/todos', '/app/clientes', '/app/servicos', '/app/financeiro', '/app/banco-de-dados'],
-  ENTREGADOR: ['/app', '/app/dashboard', '/app/todos'],
+  OPERACIONAL: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos'],
+  ATENDENTE: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro'],
+  ADMIN: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/banco-de-dados'],
+  ENTREGADOR: ['/interno', '/interno/todos'],
 };
 
 export function canChangeToStatus(role: UserRole, status: Status, currentStatus?: Status): boolean {
