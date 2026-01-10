@@ -237,10 +237,10 @@ function OrderContent() {
       setError(null);
       
       let searchOs = os.trim();
-      // Se o usuário digitar apenas o número (ex: "1"), formatamos para "001/2026" (ou ano atual)
+      // Se o usuário digitar apenas o número (ex: "1"), formatamos para "1/2026" (ou ano atual)
       if (!searchOs.includes("/") && searchOs.length > 0 && searchOs.length <= 3) {
         const year = new Date().getFullYear();
-        searchOs = `${searchOs.padStart(3, "0")}/${year}`;
+        searchOs = `${searchOs}/${year}`;
       }
 
     const searchPhone = phone.replace(/\D/g, "");
