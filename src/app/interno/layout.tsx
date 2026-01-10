@@ -42,14 +42,15 @@ export default function InternoLayout({
                 </div>
               </Link>
               <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              {role !== 'ENTREGADOR' && (
+                         {role !== 'ENTREGADOR' && (
                 <Link href="/interno" className="flex-1 sm:flex-initial">
-                <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
-                  <LayoutGrid className="w-4 h-4" />
-                  <span className="hidden xs:inline">Menu</span>
-                </Button>
-              </Link>
+                  <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+                    <LayoutGrid className="w-4 h-4" />
+                    <span className="hidden xs:inline">Menu</span>
+                  </Button>
+                </Link>
               )}
+
               <Link href="/" className="flex-1 sm:flex-initial">
                 <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
                   <Home className="w-4 h-4" />

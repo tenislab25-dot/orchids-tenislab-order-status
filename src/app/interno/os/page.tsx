@@ -97,8 +97,7 @@ interface OSItem {
     const [clientName, setClientName] = useState("");
     const [clientPhone, setClientPhone] = useState("");
     const [clientEmail, setClientEmail] = useState("");
-    const [clientPlusCode, setClientPlusCode] = useState("");
-    const [clientComplementoEndereco, setClientComplementoEndereco] = useState("");
+    const [clientAddress, setClientAddress] = useState("");
     const [isSearchingClient, setIsSearchingClient] = useState(false);
 
     useEffect(() => {
@@ -118,8 +117,7 @@ interface OSItem {
             setClientName(data.name);
             setClientPhone(data.phone);
             setClientEmail(data.email || "");
-            setClientPlusCode(data.plus_code || "");
-            setClientComplementoEndereco(data.complemento_endereco || "");
+            setClientAddress(data.address || "");
             toast.success("Cliente recorrente encontrado!");
           }
           setIsSearchingClient(false);
@@ -228,8 +226,7 @@ interface OSItem {
         setClientName("");
         setClientPhone("");
         setClientEmail("");
-        setClientPlusCode("");
-        setClientComplementoEndereco("");
+        setClientAddress("");
         return;
       }
       
@@ -239,8 +236,7 @@ interface OSItem {
         setClientName(client.name);
         setClientPhone(client.phone);
         setClientEmail(client.email || "");
-        setClientPlusCode(client.plus_code || "");
-        setClientComplementoEndereco(client.complemento_endereco || "");
+        setClientAddress(client.address || "");
       }
     };
 
@@ -401,8 +397,7 @@ interface OSItem {
               name: formattedName, 
               phone: formattedPhone,
               email: clientEmail.trim() || null,
-              plus_code: clientPlusCode.trim() || null,
-              complemento_endereco: clientComplementoEndereco.trim() || null
+              address: clientAddress.trim() || null
             }])
             .select()
             .single();
@@ -416,8 +411,7 @@ interface OSItem {
               name: formattedName, 
               phone: formattedPhone,
               email: clientEmail.trim() || null,
-              plus_code: clientPlusCode.trim() || null,
-              complemento_endereco: clientComplementoEndereco.trim() || null
+              address: clientAddress.trim() || null
             })
             .eq("id", selectedClientId);
         }
@@ -569,23 +563,12 @@ interface OSItem {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="plusCode">Plus Code / Coordenadas (Opcional)</Label>
+                        <Label htmlFor="endereco">Endereço (Opcional)</Label>
                         <Input 
-                          id="plusCode" 
-                          placeholder="Ex: 58QW+5V, Rio de Janeiro" 
-                          value={clientPlusCode}
-                          onChange={(e) => setClientPlusCode(e.target.value)}
-                          className="h-12 bg-slate-50 border-slate-200 rounded-xl"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="complementoEndereco">Complemento (Edifício, Bloco, Número) (Opcional)</Label>
-                        <Input 
-                          id="complementoEndereco" 
-                          placeholder="Ex: Edifício X, Bloco Y, Apt 123" 
-                          value={clientComplementoEndereco}
-                          onChange={(e) => setClientComplementoEndereco(e.target.value)}
+                          id="endereco" 
+                          placeholder="Rua, número, bairro..." 
+                          value={clientAddress}
+                          onChange={(e) => setClientAddress(e.target.value)}
                           className="h-12 bg-slate-50 border-slate-200 rounded-xl"
                         />
                       </div>
@@ -1021,6 +1004,25 @@ interface OSItem {
             >
               <QrCode className="w-5 h-5" />
               Enviar Link via WhatsApp
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => router.push("/interno/dashboard")}
+              className="w-full h-12 rounded-2xl text-slate-500 font-bold"
+            >
+              Ir para o Dashboard
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+        </main>
+
+      <div className="h-10" />
+    </div>
+  );
+}
+             Enviar Link via WhatsApp
             </Button>
             <Button 
               variant="ghost" 

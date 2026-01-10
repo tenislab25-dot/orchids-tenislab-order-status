@@ -11,8 +11,8 @@ const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
 
 const ROLE_PAGES: Record<UserRole, string[]> = {
   OPERACIONAL: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos'],
-  ATENDENTE: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/entregas'],
-  ADMIN: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/banco-de-dados', '/interno/entregas'],
+  ATENDENTE: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro'],
+  ADMIN: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/banco-de-dados'],
   ENTREGADOR: ['/interno', '/interno/todos', '/interno/entregas'],
 };
 

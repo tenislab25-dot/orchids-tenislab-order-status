@@ -14,9 +14,7 @@ import {
   Pencil,
   Trash2,
   Gift,
-  Star,
-  MapPin,
-  Home
+  Star
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -44,8 +42,7 @@ interface Client {
   name: string;
   phone: string;
   email?: string;
-  plus_code?: string;
-  complemento_endereco?: string;
+  address?: string;
   created_at: string;
 }
 
@@ -73,8 +70,7 @@ export default function ClientsPage() {
     name: "",
     phone: "",
     email: "",
-    plus_code: "",
-    complemento_endereco: ""
+    address: ""
   });
 
   useEffect(() => {
@@ -120,18 +116,11 @@ export default function ClientsPage() {
         name: client.name,
         phone: client.phone,
         email: client.email || "",
-        plus_code: client.plus_code || "",
-        complemento_endereco: client.complemento_endereco || ""
+        address: client.address || ""
       });
     } else {
       setEditingClient(null);
-      setFormData({ 
-        name: "", 
-        phone: "", 
-        email: "", 
-        plus_code: "", 
-        complemento_endereco: "" 
-      });
+      setFormData({ name: "", phone: "", email: "", address: "" });
     }
     setIsDialogOpen(true);
   };
@@ -298,11 +287,6 @@ export default function ClientsPage() {
                           <Mail className="w-3 h-3" /> {client.email}
                         </span>
                       )}
-                      {client.plus_code && (
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {client.plus_code}
-                        </span>
-                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -352,7 +336,7 @@ export default function ClientsPage() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ex: JOÃO SILVA"
+                placeholder="Ex: João Silva"
               />
             </div>
             <div className="grid gap-2">
@@ -375,27 +359,12 @@ export default function ClientsPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="plus_code" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-blue-500" />
-                Plus Code / Coordenadas
-              </Label>
+              <Label htmlFor="address">Endereço (Opcional)</Label>
               <Input
-                id="plus_code"
-                value={formData.plus_code}
-                onChange={(e) => setFormData({ ...formData, plus_code: e.target.value })}
-                placeholder="Ex: 87G8H7V8+QM ou -23.5505,-46.6333"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="complemento_endereco" className="flex items-center gap-2">
-                <Home className="w-4 h-4 text-blue-500" />
-                Complemento (Edifício, Bloco, Número)
-              </Label>
-              <Input
-                id="complemento_endereco"
-                value={formData.complemento_endereco}
-                onChange={(e) => setFormData({ ...formData, complemento_endereco: e.target.value })}
-                placeholder="Ex: Ed. Solar, Bloco B, Apto 101"
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                placeholder="Rua, Número, Bairro"
               />
             </div>
           </div>

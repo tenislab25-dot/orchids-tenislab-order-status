@@ -28,9 +28,7 @@ import {
   Volume2,
   VolumeX,
   Filter,
-  MessageCircle,
-  Loader2,
-  List
+  MessageCircle
 } from "lucide-react";
 
 import {
@@ -56,9 +54,8 @@ import {
   checkOrderAlerts,
   type Alert 
 } from "@/lib/notifications";
-import { useAuth } from "@/hooks/useAuth";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto p/ entrega" | "Em Rota" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -84,9 +81,10 @@ const statusWeight: Record<Status, number> = {
   "Em serviço": 1,
   "Em finalização": 2,
   "Recebido": 3,
-  "Pronto para entrega ou retirada": 4,
-  "Entregue": 5,
-  "Cancelado": 6,
+  "Pronto p/ entrega": 4, // Ajustado para o nome real do banco
+  "Em Rota": 5,           // Adicionado para fluidez da logística
+  "Entregue": 6,
+  "Cancelado": 7,
 };
 
 
@@ -126,11 +124,11 @@ const MetricCardSkeleton = () => (
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { role: userRole, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
-  const [filter, setFilter] = useState<string>("smart");
+  const [filter, setFilter] = useState<Status | "all" | "pendentes">("all");
+  const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -144,23 +142,20 @@ export default function DashboardPage() {
 
   const sortOptions = [
     { label: "INTELIGENTE", value: "smart" },
-    { label: "ENTRADA", value: "Recebido" },
-    { label: "ENTREGA", value: "Pronto para entrega ou retirada" },
+    { label: "ENTRADA", value: "entry_date" },
+    { label: "ENTREGA", value: "delivery_date" },
     { label: "OS", value: "os_number" },
-    { label: "PAGAMENTOS PENDENTES", value: "pendentes" },
   ];
 
-  const handleSort = (value: string) => {
-    setFilter(value);
-    if (value === "os_number") {
-      setSortConfig({ key: 'os_number', direction: 'asc' });
-    } else {
-      setSortConfig({ key: 'smart', direction: 'asc' });
-    }
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
   const togglePriority = async (orderId: string, currentPriority: boolean) => {
-    if (userRole !== "ADMIN" && userRole !== "ATENDENTE") {
+    if (role !== "ADMIN" && role !== "ATENDENTE") {
       toast.error("Apenas administradores e atendentes podem alterar a prioridade.");
       return;
     }
@@ -182,12 +177,14 @@ export default function DashboardPage() {
   soundEnabledRef.current = soundEnabled;
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!userRole) {
+    const storedRole = localStorage.getItem("tenislab_role");
+    
+    if (!storedRole) {
       router.push("/interno/login");
       return;
     }
 
+    setRole(storedRole);
     requestNotificationPermission();
     fetchOrders();
 
@@ -225,7 +222,7 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [authLoading, userRole]);
+  }, []);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -386,24 +383,18 @@ export default function DashboardPage() {
   };
 
   const sortedAndFilteredOrders = useMemo(() => {
-    // Filtra para remover pedidos pagos (exceto na aba de Pagamentos Pendentes onde queremos ver o que falta pagar)
-    let result = orders.filter(o => !o.payment_confirmed);
-
-    if (globalSearch.trim()) {
+    let result = orders.filter((order) => {
       const searchLower = globalSearch.toLowerCase();
-      result = result.filter((order) => {
-        return (
-          order.os_number.toLowerCase().includes(searchLower) ||
-          order.clients?.name.toLowerCase().includes(searchLower) ||
-          order.clients?.phone?.includes(globalSearch)
-        );
-      });
-    }
+      return (
+        order.os_number.toLowerCase().includes(searchLower) ||
+        order.clients?.name.toLowerCase().includes(searchLower) ||
+        order.clients?.phone?.includes(globalSearch)
+      );
+    });
 
     if (filter === "pendentes") {
-      // Na aba de pagamentos pendentes, mostramos apenas os entregues que não foram pagos
-      result = orders.filter(o => o.status === "Entregue" && !o.payment_confirmed);
-    } else if (filter !== "smart" && filter !== "os_number") {
+      result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
+    } else if (filter !== "all") {
       result = result.filter(o => o.status === filter);
     }
 
@@ -415,18 +406,41 @@ export default function DashboardPage() {
         const bOverdue = b.delivery_date && new Date(b.delivery_date) < new Date() && b.status !== "Entregue" && b.status !== "Cancelado";
         if (aOverdue !== bOverdue) return aOverdue ? -1 : 1;
         
-        const weightA = statusWeight[a.status] ?? 99;
-        const weightB = statusWeight[b.status] ?? 99;
+        const weightA = statusWeight[a.status];
+        const weightB = statusWeight[b.status];
         if (weightA !== weightB) return weightA - weightB;
         
         return new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime();
       });
-    } else if (sortConfig.key === 'os_number') {
-      result.sort((a, b) => a.os_number.localeCompare(b.os_number));
+    } else if (sortConfig.key && sortConfig.direction) {
+      result.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortConfig.key) {
+          case 'os_number':
+            aValue = a.os_number;
+            bValue = b.os_number;
+            break;
+          case 'entry_date':
+            aValue = new Date(a.entry_date).getTime();
+            bValue = new Date(b.entry_date).getTime();
+            break;
+          case 'delivery_date':
+            aValue = new Date(a.delivery_date || '9999-12-31').getTime();
+            bValue = new Date(b.delivery_date || '9999-12-31').getTime();
+            break;
+          default:
+            return 0;
+        }
+
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
     }
 
-    // Limite de 30 pedidos para o Dashboard ficar leve
-    return result.slice(0, 30);
+    return result.slice(0, 20);
   }, [orders, globalSearch, sortConfig, filter]);
 
   const getStatusBadge = (status: Status) => {
@@ -440,7 +454,7 @@ export default function DashboardPage() {
       Cancelado: "bg-red-100 text-red-700",
     };
     return (
-      <Badge className={`${styles[status] || "bg-slate-100 text-slate-700"} border-none px-3 py-1 h-auto whitespace-normal text-center transition-all duration-300`}>
+      <Badge className={`${styles[status]} border-none px-3 py-1 h-auto whitespace-normal text-center transition-all duration-300`}>
         {status === "Pronto para entrega ou retirada" ? (
           <span className="flex flex-col leading-none py-0.5">
             <span>Pronto p/</span>
@@ -527,7 +541,7 @@ export default function DashboardPage() {
                     <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
                   </div>
                 </div>
-                {(userRole === "ADMIN" || userRole === "ATENDENTE") && order.clients?.phone && (
+                {(role === "ADMIN" || role === "ATENDENTE") && order.clients?.phone && (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -584,244 +598,390 @@ export default function DashboardPage() {
   };
 
   const metrics = useMemo(() => {
-    const total = orders.length;
-    const active = orders.filter(o => o.status !== "Entregue" && o.status !== "Cancelado").length;
-    const priority = orders.filter(o => o.priority).length;
-    const ready = orders.filter(o => o.status === "Pronto para entrega ou retirada").length;
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const sneakersMonth = orders
+      .filter(o => {
+        if (o.status !== "Entregue") return false;
+        const date = new Date(o.updated_at || o.entry_date);
+        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      })
+      .reduce((acc, o) => acc + (Array.isArray(o.items) ? o.items.length : 0), 0);
+
+    const pendingAcceptance = orders.filter(o => o.status === "Recebido").length;
+    const inProduction = orders.filter(o => ["Em espera", "Em serviço", "Em finalização"].includes(o.status)).length;
     
-    return { total, active, priority, ready };
+    const overdue = orders.filter(o => {
+      if (!o.delivery_date || o.status === "Entregue" || o.status === "Cancelado") return false;
+      const delivery = new Date(o.delivery_date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return delivery < today;
+    }).length;
+
+    const pendingPayments = orders.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry)).length;
+    const pendingAmount = orders
+      .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
+      .reduce((acc, o) => acc + Number(o.total || 0), 0);
+
+    return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount };
   }, [orders]);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-6 sm:gap-8">
-      {/* HEADER & SEARCH */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
-                <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              Dashboard
-            </h1>
-            <p className="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-[0.2em] mt-2">Gestão de Ordens de Serviço</p>
+    <div className="flex flex-col gap-6 sm:gap-8 pb-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+      <header className="flex flex-col gap-4 pt-6 sm:pt-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6">
+          <div className="flex flex-col gap-2 sm:gap-4">
+            <Link href="/interno">
+              <h1 className="font-black text-xl sm:text-2xl hover:text-blue-600 transition-colors cursor-pointer">Tenislab</h1>
+            </Link>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Dashboard Interno
+              </h1>
+              <p className="text-slate-500 font-medium text-sm sm:text-base">
+                Gestão de OS Tenislab
+              </p>
+            </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`rounded-xl ${soundEnabled ? 'text-blue-600 bg-blue-50' : 'text-slate-400 bg-slate-50'}`}
+              className={`rounded-xl h-10 sm:h-11 w-10 sm:w-11 ${soundEnabled ? 'text-blue-600' : 'text-slate-400'}`}
+              title={soundEnabled ? "Som ativado" : "Som desativado"}
             >
-              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              {soundEnabled ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
             
-            <div className="relative">
+            {alerts.length > 0 && (
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
                 onClick={() => setShowAlerts(!showAlerts)}
-                className={`rounded-xl ${alerts.length > 0 ? 'text-red-600 bg-red-50' : 'text-slate-400 bg-slate-50'}`}
+                className={`rounded-xl gap-2 h-10 sm:h-11 px-3 sm:px-4 relative ${showAlerts ? 'border-red-200 text-red-600' : 'border-amber-200 text-amber-600'}`}
               >
-                <Bell className="w-5 h-5" />
-                {alerts.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">
-                    {alerts.length}
-                  </span>
-                )}
+                <Bell className="w-4 h-4" />
+                <span className="hidden sm:inline font-bold text-xs sm:text-sm">Alertas</span>
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {alerts.length}
+                </span>
               </Button>
-              
-              <AnimatePresence>
-                {showAlerts && alerts.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 p-4 z-50"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider">Alertas ({alerts.length})</h3>
-                      <Button variant="ghost" size="icon" onClick={() => setShowAlerts(false)} className="h-6 w-6 rounded-full">
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-col gap-2 max-h-96 overflow-y-auto pr-2">
-                      {alerts.map((alert, i) => (
-                        <div key={i} className="p-3 rounded-2xl bg-red-50 border border-red-100 flex gap-3">
-                          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-red-900">{alert.title}</span>
-                            <span className="text-[10px] text-red-700 font-medium leading-tight mt-1">{alert.message}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            )}
 
-            <Link href="/interno/todos">
-              <Button variant="ghost" className="text-slate-400 hover:text-slate-600 font-black rounded-2xl gap-2 h-10 sm:h-12 px-4 sm:px-6">
-                <List className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Ver Todas OS</span>
-              </Button>
-            </Link>
-
-            <Link href="/interno/os">
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl gap-2 shadow-lg shadow-slate-200 h-10 sm:h-12 px-4 sm:px-6">
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Nova OS</span>
-              </Button>
-            </Link>
+{(role === "ADMIN") && (
+                <Link href="/interno/financeiro">
+                  <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
+                    <DollarSign className="w-4 h-4" />
+                    <span className="hidden sm:inline">Financeiro</span>
+                  </Button>
+                </Link>
+              )}
+              <Link href="/interno/calendario">
+                <Button variant="outline" className="border-purple-200 text-purple-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
+                  <Calendar className="w-4 h-4" />
+                  <span className="hidden sm:inline">Calendário</span>
+                </Button>
+              </Link>
+            {(role === "ADMIN" || role === "ATENDENTE") && (
+              <>
+                <Link href="/interno/clientes">
+                  <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
+                    <UserIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Clientes</span>
+                  </Button>
+                </Link>
+                <Link href="/interno/os">
+                  <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-10 sm:h-11 px-4 sm:px-6 shadow-lg shadow-slate-200 text-xs sm:text-sm">
+                    <Plus className="w-4 h-4" />
+                    Nova OS
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Package className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
-                </div>
-                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Ativas</span>
-              </div>
-              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.active}</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Star className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" />
-                </div>
-                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Prioridades</span>
-              </div>
-              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.priority}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-green-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                </div>
-                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Prontas</span>
-              </div>
-              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.ready}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <History className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
-                </div>
-                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimos 30 dias</span>
-              </div>
-              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.total}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <Input
-              placeholder="Buscar por OS, Cliente ou Telefone..."
-              className="pl-12 h-12 sm:h-14 rounded-2xl sm:rounded-3xl border-none bg-white shadow-lg shadow-slate-100 text-sm sm:text-base font-medium placeholder:text-slate-400 focus-visible:ring-blue-400"
-              value={globalSearch}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
-            {sortOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={filter === option.value ? "default" : "ghost"}
-                onClick={() => handleSort(option.value)}
-                className={`h-12 sm:h-14 px-4 sm:px-6 rounded-2xl sm:rounded-3xl font-black text-[10px] sm:text-xs uppercase tracking-widest whitespace-nowrap transition-all ${filter === option.value ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'bg-white text-slate-400 hover:bg-slate-50'}`}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ORDERS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <AnimatePresence mode="popLayout">
-          {loading ? (
-            Array.from({ length: 6 }).map((_, i) => <OrderCardSkeleton key={i} />)
-          ) : sortedAndFilteredOrders.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="col-span-full py-20 flex flex-col items-center justify-center text-center"
+        <AnimatePresence>
+          {showAlerts && alerts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
             >
-              <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
-                <Package className="w-10 h-10 text-slate-300" />
-              </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">Nenhuma OS encontrada</h3>
-              <p className="text-slate-400 font-medium max-w-xs">Tente ajustar seus filtros ou busca para encontrar o que procura.</p>
+              <Card className="border-red-100 bg-red-50/50 rounded-2xl">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-black text-red-600 uppercase tracking-widest flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" /> Alertas do Sistema
+                    </span>
+                    <Button variant="ghost" size="icon" onClick={() => setShowAlerts(false)} className="h-6 w-6">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {alerts.map((alert) => (
+                      <div key={alert.id} className={`p-3 rounded-xl text-xs ${alert.type === 'danger' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                        <p className="font-bold">{alert.title}</p>
+                        <p className="opacity-80">{alert.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
-          ) : (
-            sortedAndFilteredOrders.map((order, index) => (
-              <OrderCard key={order.id} order={order} index={index} />
-            ))
           )}
         </AnimatePresence>
-      </div>
+      </header>
 
-      {/* EXPORT BUTTONS (ADMIN ONLY) */}
-      {userRole === 'ADMIN' && (
-        <div className="mt-12 pt-8 border-t border-slate-100">
-          <div className="flex items-center gap-3 mb-6">
-            <Database className="w-5 h-5 text-slate-400" />
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Exportação de Dados</h2>
+      <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
+        {loading ? (
+          <>
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+          </>
+        ) : (
+          <>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                      <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </div>
+                    <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Tênis/Mês</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-slate-900">{metrics.sneakersMonth}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                      <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </div>
+                    <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Aceite</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-slate-900">{metrics.pendingAcceptance}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                      <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </div>
+                    <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Produção</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-slate-900">{metrics.inProduction}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+              <Card className={`border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden ${metrics.overdue > 0 ? 'ring-2 ring-red-100' : ''}`}>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center ${metrics.overdue > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'}`}>
+                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </div>
+                    <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Atrasadas</span>
+                  </div>
+                  <p className={`text-xl sm:text-2xl font-black ${metrics.overdue > 0 ? 'text-red-600' : 'text-slate-900'}`}>{metrics.overdue}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {(role === "ADMIN") && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                <Card 
+                  onClick={() => setFilter(filter === "pendentes" ? "all" : "pendentes")}
+                  className={`border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden cursor-pointer transition-all hover:scale-[1.02] active:scale-95 ${filter === "pendentes" ? 'ring-2 ring-blue-500 bg-blue-50/30' : ''}`}
+                >
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </div>
+                      <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Receber</span>
+                    </div>
+                    <p className="text-lg sm:text-2xl font-black text-slate-900">R$ {metrics.pendingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                    <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{metrics.pendingPayments} PEND.</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-4 sm:gap-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <h2 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+              <Package className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+              Gestão de Ordens
+            </h2>
+            <div className="relative w-full sm:w-96">
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Phone className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+              <Input
+                placeholder="Buscar OS, cliente ou telefone..."
+                className="pl-9 sm:pl-11 pr-9 sm:pr-11 h-10 sm:h-12 bg-white border-none rounded-xl sm:rounded-2xl shadow-sm focus-visible:ring-2 ring-blue-500/20 font-medium text-sm"
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
+
+          <div className="flex flex-wrap gap-2">
+            {sortOptions.map((opt) => (
+              <Button
+                key={opt.value}
+                variant={sortConfig.key === opt.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleSort(opt.value)}
+                className={`rounded-full px-3 sm:px-5 h-8 sm:h-9 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${
+                  sortConfig.key === opt.value 
+                    ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100" 
+                    : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600 shadow-sm"
+                }`}
+              >
+                {opt.label}
+                {sortConfig.key === opt.value && (
+                  sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 ml-1 sm:ml-2" /> : <ArrowDown className="w-3 h-3 ml-1 sm:ml-2" />
+                )}
+              </Button>
+            ))}
+            {(role === "ADMIN") && (
+              <Button
+                variant={filter === "pendentes" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilter(filter === "pendentes" ? "all" : "pendentes")}
+                className={`rounded-full px-3 sm:px-5 h-8 sm:h-9 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${
+                  filter === "pendentes" 
+                    ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100" 
+                    : "border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+                }`}
+              >
+                PENDENTES
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+            <OrderCardSkeleton />
+          </div>
+        ) : sortedAndFilteredOrders.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-16 sm:py-20 text-slate-300 gap-4"
+          >
+            <Package className="w-12 h-12 sm:w-16 sm:h-16 opacity-10" />
+            <span className="font-black uppercase tracking-widest text-[10px] sm:text-xs">Nenhuma ordem encontrada</span>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <AnimatePresence mode="popLayout">
+              {sortedAndFilteredOrders.map((order, index) => (
+                <OrderCard key={order.id} order={order} index={index} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 border-t border-slate-100 pt-6 sm:pt-8">
+          <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Mostrando {sortedAndFilteredOrders.length} ordens recentes
+          </p>
+          {(role === "ADMIN" || role === "ATENDENTE") && (
+            <Link href="/interno/todos">
+              <Button variant="outline" className="rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest h-10 sm:h-12 px-6 sm:px-8 gap-2 sm:gap-3 border-slate-200 bg-white hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm w-full sm:w-auto">
+                <History className="w-4 h-4" />
+                Ver Todas as OS
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {(role === "ADMIN") && (
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Database className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+            <h2 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-widest">Backup do Sistema (CSV)</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <Button 
               variant="outline" 
               disabled={exporting}
               onClick={() => handleExportCSV('clients')}
-              className="rounded-2xl border-slate-200 text-slate-600 font-bold gap-2 hover:bg-slate-50"
+              className="h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-white border-slate-200 hover:bg-slate-50 font-bold gap-2 sm:gap-3 shadow-sm text-xs sm:text-sm"
             >
-              <Download className="w-4 h-4" /> Clientes
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                <UserIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              Backup Clientes
+              <Download className="w-4 h-4 ml-auto opacity-30" />
             </Button>
+
             <Button 
               variant="outline" 
               disabled={exporting}
               onClick={() => handleExportCSV('services')}
-              className="rounded-2xl border-slate-200 text-slate-600 font-bold gap-2 hover:bg-slate-50"
+              className="h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-white border-slate-200 hover:bg-slate-50 font-bold gap-2 sm:gap-3 shadow-sm text-xs sm:text-sm"
             >
-              <Download className="w-4 h-4" /> Serviços
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              Backup Serviços
+              <Download className="w-4 h-4 ml-auto opacity-30" />
             </Button>
+
             <Button 
               variant="outline" 
               disabled={exporting}
               onClick={() => handleExportCSV('finance')}
-              className="rounded-2xl border-slate-200 text-slate-600 font-bold gap-2 hover:bg-slate-50"
+              className="h-14 sm:h-16 rounded-xl sm:rounded-2xl bg-white border-slate-200 hover:bg-slate-50 font-bold gap-2 sm:gap-3 shadow-sm text-xs sm:text-sm"
             >
-              <Download className="w-4 h-4" /> Financeiro
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </div>
+              Backup Financeiro
+              <Download className="w-4 h-4 ml-auto opacity-30" />
             </Button>
           </div>
-        </div>
+        </motion.section>
       )}
+
+      <footer className="mt-auto text-center pt-6 sm:pt-8 opacity-30">
+        <p className="text-slate-900 text-[9px] sm:text-[10px] uppercase tracking-[0.3em] font-black">
+          tenislab o laboratorio do seu tenis
+        </p>
+      </footer>
     </div>
   );
 }

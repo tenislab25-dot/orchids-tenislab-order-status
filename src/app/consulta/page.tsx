@@ -237,16 +237,16 @@ function OrderContent() {
       setError(null);
       
       let searchOs = os.trim();
-      // Se o usuário digitar apenas o número (ex: "1"), formatamos para "1/2026" (ou ano atual)
-      if (!searchOs.includes("/") && searchOs.length > 0 && searchOs.length <= 3) {
+      if (searchOs.includes("/")) {
+        const [num, year] = searchOs.split("/");
+        searchOs = `${num.padStart(3, "0")}/${year || new Date().getFullYear()}`;
+      } else if (searchOs.length > 0) {
         const year = new Date().getFullYear();
-        searchOs = `${searchOs}/${year}`;
+        searchOs = `${searchOs.padStart(3, "0")}/${year}`;
       }
 
     const searchPhone = phone.replace(/\D/g, "");
 
-    // Tenta buscar pelo número exato ou pelo número formatado
-    // Removido o !inner para evitar erros de RLS se a relação estiver protegida
     const { data, error: sbError } = await supabase
       .from("service_orders")
       .select(`
@@ -258,33 +258,20 @@ function OrderContent() {
         discount_percent,
         machine_fee,
         delivery_fee,
-        client_id
+        clients!inner (
+          phone
+        )
       `)
-      .or(`os_number.eq.${searchOs},os_number.ilike.%${os.trim()}%`)
+      .eq("os_number", searchOs)
       .single();
 
       if (sbError || !data) {
-        console.error("Erro na busca da OS:", sbError);
         setError("Pedido não encontrado. Verifique o número digitado.");
         setLoading(false);
         return;
       }
 
-    // Busca o cliente separadamente para garantir que o telefone seja verificado
-    const { data: clientData, error: clientError } = await supabase
-      .from("clients")
-      .select("phone")
-      .eq("id", data.client_id)
-      .single();
-
-    if (clientError || !clientData) {
-      console.error("Erro na busca do cliente:", clientError);
-      setError("Erro ao validar dados do cliente.");
-      setLoading(false);
-      return;
-    }
-
-    const dbPhone = clientData.phone?.replace(/\D/g, "") || "";
+    const dbPhone = data.clients?.phone?.replace(/\D/g, "") || "";
     const last4Db = dbPhone.slice(-4);
     const last4Search = searchPhone.slice(-4);
     
@@ -294,10 +281,7 @@ function OrderContent() {
       return;
     }
 
-    // Mescla os dados para manter a compatibilidade com o restante do código
-    const fullOrderData = { ...data, clients: clientData };
-
-    setOrder(fullOrderData as any);
+    setOrder(data as any);
     setLoading(false);
   };
 
@@ -316,22 +300,22 @@ function OrderContent() {
           initialOs={initialOs}
         />
       ) : (
-      <motion.div
-        key="result"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        className="flex flex-col gap-6"
-      >
-        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
-          <div className="flex flex-col gap-2 items-center">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
-            <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
-              <span className="text-2xl font-black">
-                {order.os_number}
-              </span>
-            </div>
-          </div>
+<motion.div
+            key="result"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex flex-col gap-6"
+          >
+                  <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
+                    <div className="flex flex-col gap-2 items-center">
+                      <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
+                        <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
+                          <span className="text-2xl font-black">
+                            {order.os_number}
+                          </span>
+                        </div>
+                    </div>
 
               <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
                 {(() => {

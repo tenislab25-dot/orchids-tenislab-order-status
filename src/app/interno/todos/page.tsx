@@ -145,7 +145,7 @@ export default function TodosPedidosPage() {
 
     if (sortConfig.key && sortConfig.direction) {
       const column = sortConfig.key === 'client' ? 'clients(name)' : sortConfig.key;
-      query = query.order(column, { ascending: sortConfig.direction === 'asc' });
+      query = query.order(sortConfig.key, { ascending: sortConfig.direction === 'asc' });
     } else {
       query = query.order('updated_at', { ascending: false });
     }
