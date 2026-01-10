@@ -21,12 +21,18 @@ export function useAuth(): AuthContextValue {
   const hasChecked = useRef(false);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem("tenislab_role");
-    setUser(null);
-    setRole(null);
-    router.push("/interno/login");
-  }, [router]);
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("tenislab_role");
+      setUser(null);
+      setRole(null);
+      // Força o redirecionamento via window.location para limpar o estado do Next.js
+      window.location.href = "/interno/login";
+    } catch (error) {
+      console.error("Erro ao sair:", error);
+      window.location.href = "/interno/login";
+    }
+  }, []);
 
   useEffect(() => {
     if (hasChecked.current) return;
