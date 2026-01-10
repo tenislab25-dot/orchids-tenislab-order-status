@@ -97,7 +97,8 @@ interface OSItem {
     const [clientName, setClientName] = useState("");
     const [clientPhone, setClientPhone] = useState("");
     const [clientEmail, setClientEmail] = useState("");
-    const [clientAddress, setClientAddress] = useState("");
+    const [clientPlusCode, setClientPlusCode] = useState("");
+    const [clientComplementoEndereco, setClientComplementoEndereco] = useState("");
     const [isSearchingClient, setIsSearchingClient] = useState(false);
 
     useEffect(() => {
@@ -117,7 +118,8 @@ interface OSItem {
             setClientName(data.name);
             setClientPhone(data.phone);
             setClientEmail(data.email || "");
-            setClientAddress(data.address || "");
+            setClientPlusCode(data.plus_code || "");
+            setClientComplementoEndereco(data.complemento_endereco || "");
             toast.success("Cliente recorrente encontrado!");
           }
           setIsSearchingClient(false);
@@ -226,7 +228,8 @@ interface OSItem {
         setClientName("");
         setClientPhone("");
         setClientEmail("");
-        setClientAddress("");
+        setClientPlusCode("");
+        setClientComplementoEndereco("");
         return;
       }
       
@@ -236,7 +239,8 @@ interface OSItem {
         setClientName(client.name);
         setClientPhone(client.phone);
         setClientEmail(client.email || "");
-        setClientAddress(client.address || "");
+        setClientPlusCode(client.plus_code || "");
+        setClientComplementoEndereco(client.complemento_endereco || "");
       }
     };
 
