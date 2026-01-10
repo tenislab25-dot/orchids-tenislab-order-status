@@ -25,7 +25,7 @@ export function useAuth(): AuthContextValue {
     localStorage.removeItem("tenislab_role");
     setUser(null);
     setRole(null);
-    router.push("/login");
+    router.push("/interno/login");
   }, [router]);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export function useAuth(): AuthContextValue {
         
         if (!session) {
           if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-            router.push("/login");
+            router.push("/interno/login");
           }
           setLoading(false);
           return;
@@ -90,6 +90,8 @@ export function useAuth(): AuthContextValue {
           setRole(profile.role as UserRole);
           localStorage.setItem("tenislab_role", profile.role);
         }
+      } else if (event === "SIGNED_OUT") {
+        router.push("/interno/login");
       }
     });
 
