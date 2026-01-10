@@ -78,7 +78,7 @@ export default function InternoPage() {
 
         {/* MENU */}
         <main className="flex flex-col gap-4">
-            {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
+            {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && role !== 'ENTREGADOR' && (
               <MenuButton 
                 href="/interno/dashboard"
                 title="Dashboard"
