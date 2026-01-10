@@ -51,6 +51,7 @@ export default function EntregasPage() {
 
       setPedidos(filtrados || []);
     } catch (error: any) {
+      console.error("Erro ao carregar entregas:", error);
       toast.error("Erro ao carregar entregas");
     } finally {
       setLoading(false);
