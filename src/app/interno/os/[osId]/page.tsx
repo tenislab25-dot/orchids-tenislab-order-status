@@ -128,10 +128,7 @@ export default function OSViewPage() {
     
     // 1. Primeiro definimos a função fetchOrder
   const fetchOrder = useCallback(async () => {
-    if (!osNumber) return;
     setLoading(true);
-    
-    // Tenta buscar pelo número exato da OS
     const { data, error } = await supabase
       .from("service_orders")
       .select(`
@@ -142,15 +139,12 @@ export default function OSViewPage() {
         )
       `)
       .eq("os_number", osNumber)
-      .limit(1);
+      .single();
 
     if (error) {
-      console.error("Erro ao carregar OS:", error);
       toast.error("Erro ao carregar OS: " + error.message);
-    } else if (data && data.length > 0) {
-      setOrder(data[0] as OrderData);
     } else {
-      setOrder(null);
+      setOrder(data as OrderData);
     }
     setLoading(false);
   }, [osNumber]);
@@ -295,203 +289,168 @@ export default function OSViewPage() {
       setStatusUpdating(newStatus);
 
       try {
-        // Usar o Supabase diretamente (assim como no Dashboard) para evitar problemas de permissão na API
-        const { error } = await supabase
-          .from("service_orders")
-          .update({ 
-            status: newStatus,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", order.id);
-
-        if (error) throw error;
-
-        toast.success(`Status atualizado para: ${newStatus}`);
-        
-        // Atualiza o estado local imediatamente
-        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
-
-        // Notificações automáticas de WhatsApp
-        if (newStatus === "Pronto para entrega ou retirada" && order.clients) {
-          const cleanPhone = order.clients.phone.replace(/\D/g, "");
-          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-          const message = encodeURIComponent(
-            `Olá ${order.clients.name}! Seus tênis estão prontinhos e limpos na Tenislab. ✨\n\n` +
-            `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
-            `Qualquer dúvida, estamos à disposição!`
-          );
-          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-        } else if (newStatus === "Entregue" && order.clients) {
-          const cleanPhone = order.clients.phone.replace(/\D/g, "");
-          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-          const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
-          
-          const message = encodeURIComponent(
-            `Olá ${order.clients.name}! Seu pedido #${order.os_number} foi entregue! 📦\n\n` +
-            `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-            `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-            `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
-            `Obrigado pela preferência!`
-          );
-          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        // VERIFICAÇÃO DE SEGURANÇA: Garante que o usuário está logado
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast.error("Sessão expirada. Por favor, faça login novamente.");
+          router.push("/login");
+          return;
         }
 
+        const response = await fetch("/api/orders/update-status", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ orderId: order?.id, status: newStatus }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Erro ao atualizar status");
+        }
+
+        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+        toast.success(`Status atualizado para ${newStatus}`);
+        
+        // Se mudar para Pronto, pergunta se quer notificar
+        if (newStatus === "Pronto para entrega ou retirada") {
+          handleSendReadyNotification();
+        }
       } catch (error: any) {
-        console.error("Erro na atualização:", error);
-        toast.error("Falha ao atualizar status: " + error.message);
+        toast.error(error.message);
       } finally {
         setStatusUpdating(null);
       }
     };
 
     const handleEntregueClick = () => {
-      if (!order) return;
-      if (order.status === "Entregue") return;
-      
-      if (!order.payment_confirmed && !order.pay_on_entry) {
+      if (!order?.payment_confirmed && !order?.pay_on_entry) {
         setDeliveryModalOpen(true);
       } else {
         handleStatusUpdate("Entregue");
       }
     };
 
-  const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
-  const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number, type: 'before' | 'after'} | null>(null);
-  const [uploadingAfterPhoto, setUploadingAfterPhoto] = useState<number | null>(null);
-
-  const handleAddAfterPhoto = async (itemIdx: number, file: File) => {
-    if (!order) return;
-    
-    setUploadingAfterPhoto(itemIdx);
-    
-    try {
-      // Comprime a imagem para não ficar pesada no banco de dados
-      const compressedFile = await compressImage(file, 1080, 0.7);
-      const fileExt = 'jpg';
-      const fileName = `${order.id}_item${itemIdx}_after_${Date.now()}.${fileExt}`;
-      const filePath = `service-orders/${fileName}`;
+    const handleDeliveryConfirm = async (sendLink: boolean) => {
+      setDeliveryModalOpen(false);
+      await handleStatusUpdate("Entregue");
       
-      const { error: uploadError } = await supabase.storage
-        .from('photos')
-        .upload(filePath, compressedFile);
-      
-      if (uploadError) throw uploadError;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('photos')
-        .getPublicUrl(filePath);
-      
-      const newItems = [...order.items];
-      const currentPhotosAfter = newItems[itemIdx].photosAfter || [];
-      newItems[itemIdx].photosAfter = [...currentPhotosAfter, publicUrl];
-      
-      const { error: updateError } = await supabase
-        .from("service_orders")
-        .update({ items: newItems })
-        .eq("id", order.id);
-      
-      if (updateError) throw updateError;
-      
-      setOrder({ ...order, items: newItems });
-      toast.success("Foto DEPOIS adicionada com sucesso!");
-    } catch (error: any) {
-      console.error("Erro no upload:", error);
-      toast.error("Erro ao adicionar foto: " + (error.message || "Erro desconhecido"));
-    } finally {
-      setUploadingAfterPhoto(null);
-    }
-  };
-
-  const handleDeliveryConfirm = async (sendPaymentLink: boolean) => {
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ status: "Entregue" })
-      .eq("os_number", osNumber);
-
-    if (error) {
-      toast.error("Erro ao atualizar status: " + error.message);
-      return;
-    }
-
-    setOrder(prev => prev ? { ...prev, status: "Entregue" } : null);
-    setDeliveryModalOpen(false);
-    toast.success("Pedido marcado como entregue!");
-    toast.info("Certifique-se de enviar o link p/pagamento.", { duration: 6000 });
-
-    if (sendPaymentLink && order) {
-      const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
-      const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-      const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
-      
-      const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue! 📦\n\n` +
-        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-        `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
-        `Obrigado pela preferência!`
-      );
-      
-      const waUrl = `https://wa.me/${whatsappPhone}?text=${message}`;
-      
-      window.open(waUrl, "_blank");
-    }
-  };
+      if (sendLink) {
+        handleSharePaymentLink();
+      }
+    };
 
     const handleSharePaymentLink = () => {
       if (!order) return;
-      
       const cleanPhone = order.clients?.phone.replace(/\D/g, "") || "";
       const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
-      const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
       
+      const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
       const message = encodeURIComponent(
-        `Olá ${order.clients?.name}! Seu pedido #${order.os_number} foi entregue! 📦\n\n` +
-        `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
-        `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
-        `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
-        `Obrigado pela preferência!`
+        `Olá ${order.clients?.name}! Seus tênis já foram entregues.\n\n` +
+        `Para realizar o pagamento de R$ ${Number(order.total).toFixed(2)}, acesse nosso link seguro:\n${paymentLink}\n\n` +
+        `Qualquer dúvida, estamos à disposição!`
       );
       
       window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
     };
 
-  const handleDeletePhoto = async () => {
-    if (!order || !photoToDelete) return;
-    
-    const { itemIdx, photoIdx, type } = photoToDelete;
-    const newItems = [...order.items];
-    
-    if (type === 'before') {
-      const photos = [...(newItems[itemIdx].photos || [])];
-      photos.splice(photoIdx, 1);
-      newItems[itemIdx].photos = photos;
-    } else {
-      const photos = [...(newItems[itemIdx].photosAfter || [])];
-      photos.splice(photoIdx, 1);
-      newItems[itemIdx].photosAfter = photos;
-    }
+    const [uploadingBeforePhoto, setUploadingBeforePhoto] = useState<number | null>(null);
+    const [uploadingAfterPhoto, setUploadingAfterPhoto] = useState<number | null>(null);
+    const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
+    const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, type: 'before' | 'after'} | null>(null);
 
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ items: newItems })
-      .eq("id", order.id);
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, itemIdx: number, type: 'before' | 'after') => {
+      const file = e.target.files?.[0];
+      if (!file || !order) return;
 
-    if (error) {
-      toast.error("Erro ao excluir foto: " + error.message);
-    } else {
-      setOrder({ ...order, items: newItems });
-      toast.success("Foto excluída com sucesso!");
-    }
-    setDeletePhotoModalOpen(false);
-    setPhotoToDelete(null);
-  };
+      if (type === 'before') setUploadingBeforePhoto(itemIdx);
+      else setUploadingAfterPhoto(itemIdx);
+
+      try {
+        const compressedFile = await compressImage(file);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${order.id}-${itemIdx}-${type}-${Date.now()}.${fileExt}`;
+        const filePath = `orders/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("photos")
+          .upload(filePath, compressedFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("photos")
+          .getPublicUrl(filePath);
+
+        const newItems = [...order.items];
+        if (type === 'before') {
+          newItems[itemIdx].before_photos = [...(newItems[itemIdx].before_photos || []), publicUrl];
+        } else {
+          newItems[itemIdx].after_photos = [...(newItems[itemIdx].after_photos || []), publicUrl];
+        }
+
+        const { error: updateError } = await supabase
+          .from("service_orders")
+          .update({ items: newItems })
+          .eq("id", order.id);
+
+        if (updateError) throw updateError;
+
+        setOrder({ ...order, items: newItems });
+        toast.success("Foto adicionada com sucesso!");
+      } catch (error: any) {
+        toast.error("Erro ao enviar foto: " + error.message);
+      } finally {
+        setUploadingBeforePhoto(null);
+        setUploadingAfterPhoto(null);
+      }
+    };
+
+    const handleDeletePhoto = async () => {
+      if (!order || !photoToDelete) return;
+      const { itemIdx, type } = photoToDelete;
+
+      try {
+        const newItems = [...order.items];
+        const photos = type === 'before' ? newItems[itemIdx].before_photos : newItems[itemIdx].after_photos;
+        
+        // Pega a última foto para deletar (ou poderíamos passar o index da foto específica)
+        const photoUrl = photos[photos.length - 1];
+        const filePath = photoUrl.split('/public/photos/')[1];
+
+        await supabase.storage.from("photos").remove([filePath]);
+
+        if (type === 'before') {
+          newItems[itemIdx].before_photos = photos.slice(0, -1);
+        } else {
+          newItems[itemIdx].after_photos = photos.slice(0, -1);
+        }
+
+        const { error } = await supabase
+          .from("service_orders")
+          .update({ items: newItems })
+          .eq("id", order.id);
+
+        if (error) throw error;
+
+        setOrder({ ...order, items: newItems });
+        toast.success("Foto excluída!");
+      } catch (error: any) {
+        toast.error("Erro ao excluir foto: " + error.message);
+      } finally {
+        setDeletePhotoModalOpen(false);
+        setPhotoToDelete(null);
+      }
+    };
 
     const toggleItemStatus = async (itemIdx: number) => {
       if (!order) return;
-      
       const newItems = [...order.items];
-      const currentStatus = newItems[itemIdx].status || "Pendente";
-      newItems[itemIdx].status = currentStatus === "Pendente" ? "Pronto" : "Pendente";
+      const currentStatus = newItems[itemIdx].status;
+      newItems[itemIdx].status = currentStatus === "Pronto" ? "Pendente" : "Pronto";
 
       const { error } = await supabase
         .from("service_orders")
@@ -728,24 +687,15 @@ export default function OSViewPage() {
     };
 
     if (loading) return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin" />
-          <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">Carregando OS...</span>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin" />
       </div>
     );
 
     if (!order) return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-6 bg-white">
-        <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
-          <Package className="w-10 h-10 text-slate-200" />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">OS não encontrada</h1>
-          <p className="text-slate-400 font-medium mt-2">O pedido #{osNumber} não foi localizado no sistema.</p>
-        </div>
-        <Button asChild className="rounded-2xl h-12 px-8 bg-slate-900 hover:bg-slate-800 font-bold">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
+        <h1 className="text-xl font-bold">OS não encontrada</h1>
+        <Button asChild>
           <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
         </Button>
       </div>
@@ -754,8 +704,8 @@ export default function OSViewPage() {
     return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/interno/dashboard">
+        <div className="grid grid-cols-3 items-center max-w-6xl mx-auto">
+          <Link href="/interno/dashboard" className="w-fit">
             <Button variant="ghost" size="icon" className="rounded-full -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>
@@ -801,8 +751,8 @@ export default function OSViewPage() {
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl animate-in zoom-in duration-500">
                     <div className="flex items-center gap-2 text-blue-700">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">
-                        OS aceita em: {new Date(order.accepted_at).toLocaleString('pt-BR')}
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                        OS aceita em: {order.accepted_at ? new Date(order.accepted_at).toLocaleString('pt-BR') : '---'}
                       </span>
                     </div>
                   </div>
@@ -811,73 +761,73 @@ export default function OSViewPage() {
               {getStatusBadge(order.status)}
             </div>
 
-            {(role === "ADMIN" || role === "ATENDENTE") && (
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entrada</span>
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Calendar className="w-3 h-3" />
+                  <span className="text-xs font-bold">{new Date(order.entry_date).toLocaleDateString('pt-BR')}</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Previsão</span>
+                <div className="flex items-center gap-2">
+                  <Clock className={`w-3 h-3 ${getDeadlineStatus(order.delivery_date).color}`} />
+                  <span className={`text-xs font-bold ${getDeadlineStatus(order.delivery_date).color}`}>
+                    {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : '---'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
               <Button 
                 onClick={handleWhatsAppDirect}
-                className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2 shadow-lg shadow-green-100 transition-all active:scale-[0.98]"
+                className="flex-1 h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
               >
                 <MessageCircle className="w-4 h-4" />
-                WhatsApp do Cliente
+                WhatsApp
               </Button>
-            )}
-
-{(role === "ADMIN" || role === "ATENDENTE") && (
-  <Button
-    onClick={handleShareLink}
-    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold gap-2 shadow-lg shadow-blue-100"
-  >
-    <Share2 className="w-4 h-4" />
-    Gerar link para aceite
-  </Button>
-)}
-                {(role === "ADMIN" || role === "ATENDENTE") && (
-                  <div className="grid grid-cols-2 gap-2 w-full">
-                    <Link href={`/interno/os/${osIdRaw}/editar`} className="w-full">
-                      <Button 
-                        variant="outline"
-                        className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        Editar OS
-                      </Button>
-                    </Link>
-                    <Button 
-                      variant="outline"
-                      onClick={handlePrintLabels}
-                      className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
-                    >
-                      <Printer className="w-4 h-4" />
-                      Imprimir OS
-                    </Button>
-                  </div>
-                )}
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-blue-500" /> Entrada
-                    </span>
-                    <span className="text-xs font-bold text-slate-700">
-                      {new Date(order.entry_date).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-                    {order.delivery_date && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                          <Package className="w-3 h-3 text-blue-500" /> Prev. Entrega
-                        </span>
-                        <span className={`text-xs font-bold ${getDeadlineStatus(order.delivery_date).color}`}>
-                          {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                    )}
-
-                  </div>
+              <Button 
+                onClick={handleShareLink}
+                variant="outline"
+                className="h-12 w-12 rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 p-0"
+              >
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
           </section>
+
+          <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
+            <CardHeader className="py-4 px-6 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
+              <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">Ações Rápidas</CardTitle>
+              <Printer className="w-4 h-4 text-slate-400" />
+            </CardHeader>
+            <CardContent className="p-4 flex flex-col gap-2">
+              <Button 
+                onClick={() => handlePrintLabel(order.items)}
+                variant="outline" 
+                className="w-full h-11 rounded-xl border-slate-200 text-slate-700 font-bold text-xs justify-start px-4 hover:bg-slate-50"
+              >
+                <Printer className="w-4 h-4 mr-3 text-slate-400" />
+                Imprimir Todas Etiquetas
+              </Button>
+              <Button 
+                asChild
+                variant="outline" 
+                className="w-full h-11 rounded-xl border-slate-200 text-slate-700 font-bold text-xs justify-start px-4 hover:bg-slate-50"
+              >
+                <Link href={`/interno/os/editar/${order.os_number.replace("/", "-")}`}>
+                  <Pencil className="w-4 h-4 mr-3 text-slate-400" />
+                  Editar Ordem de Serviço
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="lg:col-span-8 lg:row-start-1 lg:row-span-10 flex flex-col gap-4">
-          <div className="flex items-center justify-between mx-2">
+        <div className="lg:col-span-8 lg:row-start-1 flex flex-col gap-6">
+              <div className="flex items-center justify-between px-2">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pares de Tênis</h3>
                 
               </div>
@@ -889,130 +839,141 @@ export default function OSViewPage() {
                       <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">
                         ITEM {idx + 1} - {item.itemNumber}
                       </CardTitle>
+                      <span className="text-[10px] font-bold text-slate-400 mt-0.5">{item.brand} {item.model} ({item.color})</span>
                     </div>
-                      <div className="flex items-center gap-2">
-                          
-
-                        <Button
-                        variant={item.status === 'Pronto' ? 'default' : 'outline'}
+                    <div className="flex items-center gap-2">
+                      <Button
                         size="sm"
+                        variant="ghost"
+                        onClick={() => handlePrintLabel([item])}
+                        className="h-8 w-8 p-0 rounded-full hover:bg-white"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-slate-400" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={item.status === 'Pronto' ? 'default' : 'outline'}
                         onClick={() => toggleItemStatus(idx)}
-                        className={`h-7 text-[9px] font-bold uppercase tracking-wider gap-1 px-3 ${
+                        className={`h-8 rounded-full px-4 text-[10px] font-black uppercase tracking-wider transition-all ${
                           item.status === 'Pronto' 
                           ? 'bg-green-500 hover:bg-green-600 text-white border-green-500' 
-                          : 'bg-white border-slate-200 text-slate-500'
+                          : 'bg-white text-slate-400 border-slate-200'
                         }`}
                       >
-                        <CheckCircle2 className="w-3 h-3" />
-                        {item.status === 'Pronto' ? 'Pronto' : 'Pendente'}
+                        {item.status === 'Pronto' ? (
+                          <><PackageCheck className="w-3 h-3 mr-1.5" /> PRONTO</>
+                        ) : (
+                          'MARCAR PRONTO'
+                        )}
                       </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                      {item.services?.map((s: any, i: number) => (
-                        <Badge key={i} className="bg-blue-50 text-blue-700 border-blue-100 font-bold text-[10px] rounded-lg px-3 py-1">
-                          {s.name} - R$ {Number(s.price).toFixed(2)}
-                        </Badge>
-                      ))}
-                      {item.customService?.name && (
-                        <Badge className="bg-purple-50 text-purple-700 border-purple-100 font-bold text-[10px] rounded-lg px-3 py-1">
-                          {item.customService.name} - R$ {Number(item.customService.price).toFixed(2)}
-                        </Badge>
+                  <CardContent className="p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Serviços Contratados</span>
+                        <div className="flex flex-wrap gap-2">
+                          {item.services.map((service: any, sIdx: number) => (
+                            <Badge key={sIdx} variant="secondary" className="bg-slate-100 text-slate-600 border-none px-3 py-1 font-bold text-[10px]">
+                              {service.name}
+                            </Badge>
+                          ))}
+                          {item.customService?.name && (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none px-3 py-1 font-bold text-[10px]">
+                              {item.customService.name}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {item.observations && (
+                        <div className="space-y-3">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Observações</span>
+                          <p className="text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100 italic">
+                            "{item.observations}"
+                          </p>
+                        </div>
                       )}
                     </div>
 
-                    {item.notes && (
-                      <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl">
-                        <p className="text-xs text-amber-800 font-medium">{item.notes}</p>
-                      </div>
-                    )}
-
-                    {((item.photos && item.photos.length > 0) || (item.photosBefore && item.photosBefore.length > 0)) && (
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-500" />
-                          Fotos ANTES (Recebimento)
-                        </span>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[...(item.photos || []), ...(item.photosBefore || [])].map((photo: string, pIdx: number) => (
-                            <div 
-                              key={pIdx} 
-                              className="relative aspect-square rounded-2xl overflow-hidden border-2 border-blue-200 cursor-pointer group"
-                              onClick={() => setSelectedImage(photo)}
-                            >
-                              <Image src={photo} alt={`Foto ${pIdx + 1}`} fill className="object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-{(role === "ADMIN" || role === "ATENDENTE") && (
-                        <div className="space-y-2">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500" />
-                            Fotos DEPOIS (Finalizado)
-                          </span>
-                          <div className="grid grid-cols-3 gap-2">
-                            {item.photosAfter?.map((photo: string, pIdx: number) => (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fotos do Antes</span>
+                        <div className="flex flex-wrap gap-2">
+                          {item.before_photos?.map((photo: string, pIdx: number) => (
+                            <div key={pIdx} className="relative group">
                               <div 
-                                key={pIdx} 
-                                className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
+                                className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-100 cursor-pointer hover:border-blue-400 transition-all"
                                 onClick={() => setSelectedImage(photo)}
                               >
-                                <Image src={photo} alt={`Foto depois ${pIdx + 1}`} fill className="object-cover" />
-                                <div className="absolute top-1 left-1">
-                                  <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
-                                </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setPhotoToDelete({ itemIdx: idx, photoIdx: pIdx, type: 'after' });
-                                    setDeletePhotoModalOpen(true);
-                                  }}
-                                  className="absolute top-1 right-1 w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg active:scale-90"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                <Image src={photo} alt="Antes" fill className="object-cover" />
                               </div>
-                            ))}
-                            {(!item.photosAfter || item.photosAfter.length === 0) && (
-                              <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-50 flex items-center justify-center opacity-40 grayscale">
-                                <Image 
-                                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=200&height=200&resize=contain" 
-                                  alt="Sem foto" 
-                                  width={60} 
-                                  height={60} 
-                                  className="object-contain opacity-20"
-                                />
-                                <span className="absolute bottom-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest">Sem Foto Depois</span>
-                              </div>
+                              <button 
+                                onClick={() => { setPhotoToDelete({itemIdx: idx, type: 'before'}); setDeletePhotoModalOpen(true); }}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                          <label className="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={(e) => handlePhotoUpload(e, idx, 'before')}
+                              disabled={uploadingBeforePhoto === idx}
+                            />
+                            {uploadingBeforePhoto === idx ? (
+                              <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                            ) : (
+                              <>
+                                <Camera className="w-5 h-5 text-slate-300" />
+                                <span className="text-[8px] font-bold text-slate-400 mt-1">ADD</span>
+                              </>
                             )}
-                            <label className="relative aspect-square rounded-2xl overflow-hidden border-2 border-dashed border-green-300 cursor-pointer flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 transition-colors">
-                              <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden"
-                                disabled={uploadingAfterPhoto === idx}
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleAddAfterPhoto(idx, file);
-                                  e.target.value = '';
-                                }}
-                              />
-                              {uploadingAfterPhoto === idx ? (
-                                <Loader2 className="w-6 h-6 text-green-500 animate-spin" />
-                              ) : (
-                                <>
-                                  <Camera className="w-6 h-6 text-green-500" />
-                                  <span className="text-[8px] font-bold text-green-600 mt-1">ADICIONAR</span>
-                                </>
-                              )}
-                            </label>
-                          </div>
+                          </label>
                         </div>
-                      )}
+                      </div>
+
+                      <div className="space-y-3">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fotos do Depois</span>
+                        <div className="flex flex-wrap gap-2">
+                          {item.after_photos?.map((photo: string, pIdx: number) => (
+                            <div key={pIdx} className="relative group">
+                              <div 
+                                className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-green-100 cursor-pointer hover:border-green-400 transition-all"
+                                onClick={() => setSelectedImage(photo)}
+                              >
+                                <Image src={photo} alt="Depois" fill className="object-cover" />
+                              </div>
+                              <button 
+                                onClick={() => { setPhotoToDelete({itemIdx: idx, type: 'after'}); setDeletePhotoModalOpen(true); }}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                          <label className="w-16 h-16 rounded-2xl border-2 border-dashed border-green-200 bg-green-50/30 flex flex-col items-center justify-center cursor-pointer hover:bg-green-50 transition-all">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={(e) => handlePhotoUpload(e, idx, 'after')}
+                              disabled={uploadingAfterPhoto === idx}
+                            />
+                            {uploadingAfterPhoto === idx ? (
+                              <Loader2 className="w-5 h-5 text-green-500 animate-spin" />
+                            ) : (
+                              <>
+                                <Camera className="w-5 h-5 text-green-400" />
+                                <span className="text-[8px] font-bold text-green-500 mt-1">ADD</span>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="flex justify-end pt-2 border-t border-slate-50">
                       <span className="text-lg font-black text-slate-900">R$ {Number(item.subtotal).toFixed(2)}</span>
@@ -1138,16 +1099,15 @@ export default function OSViewPage() {
                 ))}
               </div>
 
-             {order.status === "Pronto para entrega ou retirada" && role !== "OPERACIONAL" && (
-  <Button
-    onClick={handleSendReadyNotification}
-    className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
-  >
-    <MessageCircle className="w-4 h-4" />
-    Notificar Cliente (WhatsApp)
-  </Button>
-)}
-
+              {order.status === "Pronto para entrega ou retirada" && (
+                <Button 
+                  onClick={handleSendReadyNotification}
+                  className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
+                >
+                  <Bell className="w-4 h-4" />
+                  Notificar Cliente (Pronto)
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -1274,7 +1234,7 @@ export default function OSViewPage() {
               O pagamento ainda não foi confirmado. Deseja enviar o link de pagamento?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 pt-4 flex-col sm:flex-row">
+          <DialogFooter className="gap-2 pt-4">
             <Button 
               variant="outline" 
               onClick={() => handleDeliveryConfirm(false)} 
