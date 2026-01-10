@@ -801,8 +801,8 @@ export default function OSViewPage() {
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl animate-in zoom-in duration-500">
                     <div className="flex items-center gap-2 text-blue-700">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">
-                        OS aceita em: {new Date(order.accepted_at).toLocaleString('pt-BR')}
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                        OS aceita em: {order.accepted_at ? new Date(order.accepted_at).toLocaleString('pt-BR') : '---'}
                       </span>
                     </div>
                   </div>
@@ -858,7 +858,7 @@ export default function OSViewPage() {
                       <Calendar className="w-3 h-3 text-blue-500" /> Entrada
                     </span>
                     <span className="text-xs font-bold text-slate-700">
-                      {new Date(order.entry_date).toLocaleDateString('pt-BR')}
+                      {order.entry_date ? new Date(order.entry_date).toLocaleDateString('pt-BR') : '---'}
                     </span>
                   </div>
                     {order.delivery_date && (
