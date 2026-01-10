@@ -1002,7 +1002,6 @@ interface OSItem {
               onClick={sendWhatsAppLink}
               className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
             >
-              <QrCode className="w-5 h-5" />
               Enviar Link via WhatsApp
             </Button>
             <Button 
