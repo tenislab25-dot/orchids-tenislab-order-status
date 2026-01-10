@@ -132,7 +132,7 @@ export default function InternoPage() {
                 />
               )}
 
-              {(role === 'ADMIN' || role === 'OPERACIONAL' || role === 'ATENDENTE') && (
+              {(role === 'ADMIN' || role === 'OPERACIONAL' || role === 'ATENDENTE' || role === 'ENTREGADOR') && (
                 <MenuButton 
   href="/interno/entregas" 
   title="Entregas" 
