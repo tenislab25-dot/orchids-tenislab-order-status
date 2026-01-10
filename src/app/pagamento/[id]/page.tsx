@@ -46,7 +46,11 @@ export default function PaymentPage() {
 
   const fetchOrder = async () => {
     try {
-      const { data, error } = await supabase
+      // Tenta buscar pelo ID (UUID) ou pelo número da OS (os_number)
+      // Isso garante que links antigos e novos funcionem
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+      
+      let query = supabase
         .from("service_orders")
         .select(`
           id,
@@ -57,9 +61,16 @@ export default function PaymentPage() {
           clients (
             name
           )
-        `)
-        .eq("id", id)
-        .single();
+        `);
+
+      if (isUuid) {
+        query = query.eq("id", id);
+      } else {
+        // Se não for UUID, tenta buscar pelo número da OS formatado (ex: 001-2026 -> 001/2026)
+        query = query.eq("os_number", id.replace("-", "/"));
+      }
+
+      const { data, error } = await query.single();
 
       if (error) throw error;
       setOrder(data as any);

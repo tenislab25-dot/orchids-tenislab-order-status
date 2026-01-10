@@ -237,16 +237,15 @@ function OrderContent() {
       setError(null);
       
       let searchOs = os.trim();
-      if (searchOs.includes("/")) {
-        const [num, year] = searchOs.split("/");
-        searchOs = `${num.padStart(3, "0")}/${year || new Date().getFullYear()}`;
-      } else if (searchOs.length > 0) {
+      // Se o usuário digitar apenas o número (ex: "1"), formatamos para "001/2026" (ou ano atual)
+      if (!searchOs.includes("/") && searchOs.length > 0 && searchOs.length <= 3) {
         const year = new Date().getFullYear();
         searchOs = `${searchOs.padStart(3, "0")}/${year}`;
       }
 
     const searchPhone = phone.replace(/\D/g, "");
 
+    // Tenta buscar pelo número exato ou pelo número formatado
     const { data, error: sbError } = await supabase
       .from("service_orders")
       .select(`
@@ -262,7 +261,7 @@ function OrderContent() {
           phone
         )
       `)
-      .eq("os_number", searchOs)
+      .or(`os_number.eq.${searchOs},os_number.ilike.%${os.trim()}%`)
       .single();
 
       if (sbError || !data) {
