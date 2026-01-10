@@ -316,22 +316,22 @@ function OrderContent() {
           initialOs={initialOs}
         />
       ) : (
-<motion.div
-            key="result"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex flex-col gap-6"
-          >
-                  <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
-                    <div className="flex flex-col gap-2 items-center">
-                      <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
-                        <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
-                          <span className="text-2xl font-black">
-                            {order.os_number.replace(/^0+/, '')}
-                          </span>
-                        </div>
-                    </div>
+      <motion.div
+        key="result"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="flex flex-col gap-6"
+      >
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-6">
+          <div className="flex flex-col gap-2 items-center">
+            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nº do Pedido</span>
+            <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg shadow-blue-100">
+              <span className="text-2xl font-black">
+                {order.os_number}
+              </span>
+            </div>
+          </div>
 
               <div className={`w-20 h-20 rounded-full ${statusConfig[order.status as keyof typeof statusConfig].bg} flex items-center justify-center`}>
                 {(() => {
