@@ -826,15 +826,14 @@ export default function OSViewPage() {
                         Editar OS
                       </Button>
                     </Link>
-                    <Link href={`/interno/os/${osIdRaw}/imprimir`} className="w-full">
-                      <Button 
-                        variant="outline"
-                        className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
-                      >
-                        <Printer className="w-4 h-4" />
-                        Imprimir OS
-                      </Button>
-                    </Link>
+                    <Button 
+                      variant="outline"
+                      onClick={handlePrintLabels}
+                      className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Imprimir OS
+                    </Button>
                   </div>
                 )}
 
