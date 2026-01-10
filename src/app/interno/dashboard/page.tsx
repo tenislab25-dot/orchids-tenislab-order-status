@@ -671,52 +671,52 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Package className="w-4 h-4 text-blue-600" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Package className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Ativas</span>
+                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Ativas</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{metrics.active}</div>
+              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.active}</div>
             </CardContent>
           </Card>
           
-          <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Star className="w-4 h-4 text-amber-600" />
+          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prioridades</span>
+                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Prioridades</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{metrics.priority}</div>
+              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.priority}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-green-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prontas</span>
+                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Prontas</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{metrics.ready}</div>
+              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.ready}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <History className="w-4 h-4 text-slate-600" />
+          <Card className="border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <History className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimos 30 dias</span>
+                <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimos 30 dias</span>
               </div>
-              <div className="text-3xl font-black text-slate-900">{metrics.total}</div>
+              <div className="text-xl sm:text-3xl font-black text-slate-900">{metrics.total}</div>
             </CardContent>
           </Card>
         </div>

@@ -308,13 +308,38 @@ export default function OSViewPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || "Erro ao atualizar no servidor");
+          throw new Error(errorData.error || errorData.message || "Erro ao atualizar no servidor");
         }
 
         toast.success(`Status atualizado para: ${newStatus}`);
-        // O fetchOrder será chamado pelo canal do Supabase automaticamente, 
-        // mas podemos forçar um refresh se necessário:
-        // fetchOrder(); 
+        
+        // Atualiza o estado local imediatamente para refletir a mudança
+        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+
+        // Notificações automáticas de WhatsApp
+        if (newStatus === "Pronto para entrega ou retirada" && order.clients) {
+          const cleanPhone = order.clients.phone.replace(/\D/g, "");
+          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+          const message = encodeURIComponent(
+            `Olá ${order.clients.name}! Seus tênis estão prontinhos e limpos na Tenislab. ✨\n\n` +
+            `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+            `Qualquer dúvida, estamos à disposição!`
+          );
+          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        } else if (newStatus === "Entregue" && order.clients) {
+          const cleanPhone = order.clients.phone.replace(/\D/g, "");
+          const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+          const paymentLink = `${window.location.origin}/pagamento/${order.id}`;
+          
+          const message = encodeURIComponent(
+            `Olá ${order.clients.name}! Seu pedido #${order.os_number} foi entregue! 📦\n\n` +
+            `Valor total: R$ ${Number(order.total).toFixed(2)}\n\n` +
+            `Para realizar o pagamento via Pix ou ver os detalhes, acesse o link abaixo:\n${paymentLink}\n\n` +
+            `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
+            `Obrigado pela preferência!`
+          );
+          window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
+        }
 
       } catch (error: any) {
         console.error("Erro na atualização:", error);
