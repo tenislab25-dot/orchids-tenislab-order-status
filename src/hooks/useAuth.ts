@@ -62,8 +62,9 @@ export function useAuth(): AuthContextValue {
           setRole(userRole);
           localStorage.setItem("tenislab_role", userRole);
 
-          const internalPath = pathname || "/"; // Usar o pathname original para a verificação de permissão
+          const internalPath = pathname || "/"; // Garante que o pathname correto seja usado
           if (pathname?.startsWith("/interno") && !canAccessPage(userRole, internalPath)) {
+            console.log("Redirecionando para /interno. Role:", userRole, "Path:", internalPath, "Can access:", canAccessPage(userRole, internalPath));
             router.push("/interno");
           }
         } else {
