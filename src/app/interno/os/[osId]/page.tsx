@@ -289,32 +289,33 @@ export default function OSViewPage() {
       setStatusUpdating(newStatus);
 
       try {
-        // VERIFICAÇÃO DE SEGURANÇA: Garante que o usuário está logado
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          toast.error("Sessão expirada. Por favor, faça login novamente.");
-          router.push("/login");
-          return;
-        }
+        const { error } = await supabase
+          .from("service_orders")
+          .update({ 
+            status: newStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", order.id);
 
-        const response = await fetch("/api/orders/update-status", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ orderId: order?.id, status: newStatus }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Erro ao atualizar no servidor");
-        }
+        if (error) throw error;
 
         toast.success(`Status atualizado para: ${newStatus}`);
-        // O fetchOrder será chamado pelo canal do Supabase automaticamente, 
-        // mas podemos forçar um refresh se necessário:
-        // fetchOrder(); 
+        
+        // Notificação via API (opcional, não trava o processo)
+        fetch("/api/notifications/status-change", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: newStatus,
+            clientName: order.clients?.name || "Cliente",
+            osNumber: order.os_number,
+          }),
+        }).catch(console.error);
+
+        // WhatsApp automático para status específicos
+        if (newStatus === "Pronto para entrega ou retirada" && order.clients) {
+          handleSendReadyNotification();
+        }
 
       } catch (error: any) {
         console.error("Erro na atualização:", error);
@@ -1085,7 +1086,10 @@ export default function OSViewPage() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-2">
-                {getAllowedStatuses(role as UserRole).map((status) => (
+                {(role === "ADMIN" || role === "ATENDENTE" 
+                  ? ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto para entrega ou retirada", "Entregue", "Cancelado"] as Status[]
+                  : getAllowedStatuses(role as UserRole)
+                ).map((status) => (
                     <Button
                       key={status}
                       variant={order.status === status ? "default" : "outline"}
@@ -1109,7 +1113,6 @@ export default function OSViewPage() {
                       ) : null}
                       {status === "Pronto para entrega ou retirada" ? "Pronto p/ entrega" : status}
                     </Button>
-
                 ))}
               </div>
 
