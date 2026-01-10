@@ -33,7 +33,8 @@ export default function EntregasPage() {
           clients (
             name,
             phone,
-            address
+            plus_code,
+            complemento_endereco
           )
         `)
         .order("updated_at", { ascending: false });
@@ -156,7 +157,10 @@ export default function EntregasPage() {
                     <div className="flex-1">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Endereço de Entrega</p>
                       <p className="text-slate-700 font-medium leading-snug mt-0.5">
-                        {pedido.clients?.address || "Endereço não cadastrado"}
+                        {pedido.clients?.plus_code && `${pedido.clients.plus_code}`}
+                        {pedido.clients?.plus_code && pedido.clients?.complemento_endereco && `, `}
+                        {pedido.clients?.complemento_endereco && `${pedido.clients.complemento_endereco}`}
+                        {!pedido.clients?.plus_code && !pedido.clients?.complemento_endereco && "Endereço não cadastrado"}
                       </p>
                     </div>
                   </div>
@@ -177,7 +181,7 @@ export default function EntregasPage() {
                   <Button 
                     variant="outline" 
                     className="h-14 rounded-2xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
-                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pedido.clients?.address || "" )}`, "_blank")}
+                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pedido.clients?.plus_code || pedido.clients?.complemento_endereco || "" )}`, "_blank")}
                   >
                     <Navigation className="w-5 h-5 text-blue-500" /> Maps
                   </Button>
