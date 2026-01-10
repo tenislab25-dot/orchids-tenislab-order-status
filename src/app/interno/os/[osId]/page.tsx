@@ -128,7 +128,10 @@ export default function OSViewPage() {
     
     // 1. Primeiro definimos a função fetchOrder
   const fetchOrder = useCallback(async () => {
+    if (!osNumber) return;
     setLoading(true);
+    
+    // Tenta buscar pelo número exato da OS
     const { data, error } = await supabase
       .from("service_orders")
       .select(`
@@ -139,12 +142,15 @@ export default function OSViewPage() {
         )
       `)
       .eq("os_number", osNumber)
-      .single();
+      .limit(1);
 
     if (error) {
+      console.error("Erro ao carregar OS:", error);
       toast.error("Erro ao carregar OS: " + error.message);
+    } else if (data && data.length > 0) {
+      setOrder(data[0] as OrderData);
     } else {
-      setOrder(data as OrderData);
+      setOrder(null);
     }
     setLoading(false);
   }, [osNumber]);
