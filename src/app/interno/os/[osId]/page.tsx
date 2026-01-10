@@ -289,31 +289,20 @@ export default function OSViewPage() {
       setStatusUpdating(newStatus);
 
       try {
-        // VERIFICAÇÃO DE SEGURANÇA: Garante que o usuário está logado
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          toast.error("Sessão expirada. Por favor, faça login novamente.");
-          router.push("/interno/login");
-          return;
-        }
+        // Usar o Supabase diretamente (assim como no Dashboard) para evitar problemas de permissão na API
+        const { error } = await supabase
+          .from("service_orders")
+          .update({ 
+            status: newStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", order.id);
 
-        const response = await fetch("/api/orders/update-status", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ orderId: order?.id, status: newStatus }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || errorData.message || "Erro ao atualizar no servidor");
-        }
+        if (error) throw error;
 
         toast.success(`Status atualizado para: ${newStatus}`);
         
-        // Atualiza o estado local imediatamente para refletir a mudança
+        // Atualiza o estado local imediatamente
         setOrder(prev => prev ? { ...prev, status: newStatus } : null);
 
         // Notificações automáticas de WhatsApp
