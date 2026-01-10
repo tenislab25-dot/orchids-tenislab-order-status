@@ -29,7 +29,8 @@ import {
   VolumeX,
   Filter,
   MessageCircle,
-  Loader2
+  Loader2,
+  List
 } from "lucide-react";
 
 import {
@@ -385,17 +386,23 @@ export default function DashboardPage() {
   };
 
   const sortedAndFilteredOrders = useMemo(() => {
-    let result = orders.filter((order) => {
+    // Filtra para remover pedidos pagos (exceto na aba de Pagamentos Pendentes onde queremos ver o que falta pagar)
+    let result = orders.filter(o => !o.payment_confirmed);
+
+    if (globalSearch.trim()) {
       const searchLower = globalSearch.toLowerCase();
-      return (
-        order.os_number.toLowerCase().includes(searchLower) ||
-        order.clients?.name.toLowerCase().includes(searchLower) ||
-        order.clients?.phone?.includes(globalSearch)
-      );
-    });
+      result = result.filter((order) => {
+        return (
+          order.os_number.toLowerCase().includes(searchLower) ||
+          order.clients?.name.toLowerCase().includes(searchLower) ||
+          order.clients?.phone?.includes(globalSearch)
+        );
+      });
+    }
 
     if (filter === "pendentes") {
-      result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
+      // Na aba de pagamentos pendentes, mostramos apenas os entregues que não foram pagos
+      result = orders.filter(o => o.status === "Entregue" && !o.payment_confirmed);
     } else if (filter !== "smart" && filter !== "os_number") {
       result = result.filter(o => o.status === filter);
     }
@@ -418,7 +425,8 @@ export default function DashboardPage() {
       result.sort((a, b) => a.os_number.localeCompare(b.os_number));
     }
 
-    return result;
+    // Limite de 30 pedidos para o Dashboard ficar leve
+    return result.slice(0, 30);
   }, [orders, globalSearch, sortConfig, filter]);
 
   const getStatusBadge = (status: Status) => {
