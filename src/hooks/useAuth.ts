@@ -18,7 +18,7 @@ export function useAuth(): AuthContextValue {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const hasChecked = useRef(false);
+  // Removido hasChecked - causava loading infinito
 
   const signOut = useCallback(async () => {
     try {
@@ -35,9 +35,6 @@ export function useAuth(): AuthContextValue {
   }, []);
 
   useEffect(() => {
-    if (hasChecked.current) return;
-    hasChecked.current = true;
-
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -101,7 +98,7 @@ export function useAuth(): AuthContextValue {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [pathname, router]);
 
   return { user, role, loading, signOut };
 }
