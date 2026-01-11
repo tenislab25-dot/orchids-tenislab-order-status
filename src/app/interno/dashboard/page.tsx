@@ -141,10 +141,8 @@ export default function DashboardPage() {
   });
 
   const sortOptions = [
-    { label: "INTELIGENTE", value: "smart" },
-    { label: "ENTRADA", value: "entry_date" },
-    { label: "ENTREGA", value: "delivery_date" },
-    { label: "OS", value: "os_number" },
+    { label: "✨ Inteligente", value: "smart", icon: "sparkles" },
+    { label: "📅 Entrega", value: "delivery_date", icon: "calendar" },
   ];
 
   const handleSort = (key: string) => {
@@ -321,7 +319,7 @@ export default function DashboardPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: Status) => {
-    if (userRole === 'OPERACIONAL' && !['Recebido', 'Em espera', 'Em serviço', 'Em finalização'].includes(newStatus)) {
+    if (role === 'OPERACIONAL' && !['Recebido', 'Em espera', 'Em serviço', 'Em finalização'].includes(newStatus)) {
       toast.error("Você não tem permissão para alterar para este status");
       return;
     }
@@ -354,7 +352,7 @@ export default function DashboardPage() {
         }),
       }).catch(console.error);
 
-      if (newStatus === "Pronto para entrega ou retirada" && data?.clients) {
+      if (newStatus === "Pronto" && data?.clients) {
         const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
         const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
         const message = encodeURIComponent(
@@ -847,10 +845,10 @@ export default function DashboardPage() {
                 variant={sortConfig.key === opt.value ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleSort(opt.value)}
-                className={`rounded-full px-3 sm:px-5 h-8 sm:h-9 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`rounded-full px-4 sm:px-6 h-9 sm:h-10 text-xs sm:text-sm font-bold transition-all ${
                   sortConfig.key === opt.value 
-                    ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100" 
-                    : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600 shadow-sm"
+                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white border-blue-600 shadow-lg shadow-blue-200/50 scale-105" 
+                    : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600 hover:shadow-md shadow-sm"
                 }`}
               >
                 {opt.label}
@@ -864,13 +862,13 @@ export default function DashboardPage() {
                 variant={filter === "pendentes" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilter(filter === "pendentes" ? "all" : "pendentes")}
-                className={`rounded-full px-3 sm:px-5 h-8 sm:h-9 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`rounded-full px-4 sm:px-6 h-9 sm:h-10 text-xs sm:text-sm font-bold transition-all ${
                   filter === "pendentes" 
-                    ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100" 
-                    : "border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-500 shadow-lg shadow-amber-200/50 scale-105" 
+                    : "border-slate-200 bg-white text-slate-600 hover:border-amber-300 hover:text-amber-600 hover:shadow-md shadow-sm"
                 }`}
               >
-                PENDENTES
+                💰 Pendentes
               </Button>
             )}
           </div>
