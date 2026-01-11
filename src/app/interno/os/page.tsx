@@ -97,7 +97,9 @@ interface OSItem {
     const [clientName, setClientName] = useState("");
     const [clientPhone, setClientPhone] = useState("");
     const [clientEmail, setClientEmail] = useState("");
-    const [clientAddress, setClientAddress] = useState("");
+    const [clientPlusCode, setClientPlusCode] = useState("");
+    const [clientCoordinates, setClientCoordinates] = useState("");
+    const [clientComplement, setClientComplement] = useState("");
     const [isSearchingClient, setIsSearchingClient] = useState(false);
 
     useEffect(() => {
@@ -117,7 +119,9 @@ interface OSItem {
             setClientName(data.name);
             setClientPhone(data.phone);
             setClientEmail(data.email || "");
-            setClientAddress(data.address || "");
+            setClientPlusCode(data.plus_code || "");
+            setClientCoordinates(data.coordinates || "");
+            setClientComplement(data.complement || "");
             toast.success("Cliente recorrente encontrado!");
           }
           setIsSearchingClient(false);
@@ -226,7 +230,9 @@ interface OSItem {
         setClientName("");
         setClientPhone("");
         setClientEmail("");
-        setClientAddress("");
+        setClientPlusCode("");
+        setClientCoordinates("");
+        setClientComplement("");
         return;
       }
       
@@ -236,7 +242,9 @@ interface OSItem {
         setClientName(client.name);
         setClientPhone(client.phone);
         setClientEmail(client.email || "");
-        setClientAddress(client.address || "");
+        setClientPlusCode(client.plus_code || "");
+        setClientCoordinates(client.coordinates || "");
+        setClientComplement(client.complement || "");
       }
     };
 
@@ -254,7 +262,8 @@ interface OSItem {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
-        const compressedFile = await compressImage(file, 1920, 0.85);
+        toast.loading(`Processando foto ${i + 1}/${files.length}...`, { id: "upload" });
+        const compressedFile = await compressImage(file, 1080, 0.7);
         
         const fileExt = 'jpg';
         const fileName = `${Math.random()}.${fileExt}`;
@@ -397,7 +406,9 @@ interface OSItem {
               name: formattedName, 
               phone: formattedPhone,
               email: clientEmail.trim() || null,
-              address: clientAddress.trim() || null
+              plus_code: clientPlusCode.trim() || null,
+              coordinates: clientCoordinates.trim() || null,
+              complement: clientComplement.trim() || null
             }])
             .select()
             .single();
@@ -411,7 +422,9 @@ interface OSItem {
               name: formattedName, 
               phone: formattedPhone,
               email: clientEmail.trim() || null,
-              address: clientAddress.trim() || null
+              plus_code: clientPlusCode.trim() || null,
+              coordinates: clientCoordinates.trim() || null,
+              complement: clientComplement.trim() || null
             })
             .eq("id", selectedClientId);
         }
@@ -563,12 +576,24 @@ interface OSItem {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="endereco">Endereço (Opcional)</Label>
+                        <Label htmlFor="location">Plus Code ou Coordenadas (Opcional)</Label>
                         <Input 
-                          id="endereco" 
-                          placeholder="Rua, número, bairro..." 
-                          value={clientAddress}
-                          onChange={(e) => setClientAddress(e.target.value)}
+                          id="pluscode" 
+                          placeholder="Ex: 8C7X+2G ou -9.123456,-35.123456" 
+                          value={clientPlusCode}
+                          onChange={(e) => setClientPlusCode(e.target.value)}
+                          className="h-12 bg-slate-50 border-slate-200 rounded-xl"
+                        />
+                        <p className="text-xs text-slate-500">Abra Google Maps, clique no local e copie o Plus Code ou coordenadas</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="complement">Complemento (Opcional)</Label>
+                        <Input 
+                          id="complement" 
+                          placeholder="Condomínio, Bloco, Apartamento" 
+                          value={clientComplement}
+                          onChange={(e) => setClientComplement(e.target.value)}
                           className="h-12 bg-slate-50 border-slate-200 rounded-xl"
                         />
                       </div>
