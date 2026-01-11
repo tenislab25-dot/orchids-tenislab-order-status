@@ -55,7 +55,7 @@ import {
   type Alert 
 } from "@/lib/notifications";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto p/ entrega" | "Em Rota" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Em Rota" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -81,8 +81,8 @@ const statusWeight: Record<Status, number> = {
   "Em serviço": 1,
   "Em finalização": 2,
   "Recebido": 3,
-  "Pronto p/ entrega": 4, // Ajustado para o nome real do banco
-  "Em Rota": 5,           // Adicionado para fluidez da logística
+  "Pronto": 4,
+  "Em Rota": 5,
   "Entregue": 6,
   "Cancelado": 7,
 };
@@ -445,22 +445,18 @@ export default function DashboardPage() {
 
   const getStatusBadge = (status: Status) => {
     const styles = {
-      Recebido: "bg-blue-100 text-blue-700",
-      "Em espera": "bg-orange-100 text-orange-700",
-      "Em serviço": "bg-amber-100 text-amber-700",
-      "Em finalização": "bg-indigo-100 text-indigo-700",
-      "Pronto p/ entrega": "bg-green-100 text-green-700",
+      Recebido: "bg-sky-100 text-sky-700",
+      "Em espera": "bg-amber-100 text-amber-700",
+      "Em serviço": "bg-orange-100 text-orange-700",
+      "Em finalização": "bg-purple-100 text-purple-700",
+      "Pronto": "bg-emerald-100 text-emerald-700",
+      "Em Rota": "bg-blue-100 text-blue-700",
       Entregue: "bg-slate-100 text-slate-700",
       Cancelado: "bg-red-100 text-red-700",
     };
     return (
       <Badge className={`${styles[status]} border-none px-3 py-1 h-auto whitespace-normal text-center transition-all duration-300`}>
-        {status === "Pronto p/ entrega" ? (
-          <span className="flex flex-col leading-none py-0.5">
-            <span>Pronto p/</span>
-            <span>entrega</span>
-          </span>
-        ) : status}
+        {status}
       </Badge>
     );
   };
@@ -475,13 +471,13 @@ export default function DashboardPage() {
         case "Recebido":
           return { label: "Ver Detalhes", icon: Eye, nextStatus: null };
         case "Em espera":
-          return { label: "Iniciar Produção", icon: ArrowRight, nextStatus: "Em serviço" };
+          return { label: "▶ Iniciar Produção", icon: ArrowRight, nextStatus: "Em serviço" };
         case "Em serviço":
-          return { label: "Finalizar Serviço", icon: ArrowRight, nextStatus: "Em finalização" };
+          return { label: "▶ Finalizar Serviço", icon: ArrowRight, nextStatus: "Em finalização" };
         case "Em finalização":
-          return { label: "Pronto p/ Entrega", icon: ArrowRight, nextStatus: "Pronto p/ entrega" };
-        case "Pronto p/ entrega":
-          return { label: "Marcar Entregue", icon: ArrowRight, nextStatus: "Entregue" };
+          return { label: "✓ Marcar Pronto", icon: ArrowRight, nextStatus: "Pronto" };
+        case "Pronto":
+          return { label: "✓ Marcar Entregue", icon: ArrowRight, nextStatus: "Entregue" };
         default:
           return { label: "Ver OS", icon: Eye, nextStatus: null };
       }
@@ -503,13 +499,14 @@ export default function DashboardPage() {
             router.push(`/interno/os/${order.os_number.replace("/", "-")}`);
           }}
           className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden transition-all-smooth hover:ring-2 ring-blue-400/30 group relative cursor-pointer ${order.priority ? 'ring-1 ring-amber-200' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''} ${isChanged ? 'animate-status-change' : ''} ${
-            order.status === 'Recebido' ? 'bg-blue-50/50' :
-            order.status === 'Em espera' ? 'bg-orange-50/50' :
-            order.status === 'Em serviço' ? 'bg-amber-50/50' :
-            order.status === 'Em finalização' ? 'bg-indigo-50/50' :
-            order.status === 'Pronto p/ entrega' ? 'bg-green-50/50' :
-            order.status === 'Entregue' ? 'bg-slate-50/50' :
-            order.status === 'Cancelado' ? 'bg-red-50/50' : 'bg-white'
+            order.status === 'Recebido' ? 'bg-gradient-to-br from-sky-50 to-sky-100/30' :
+            order.status === 'Em espera' ? 'bg-gradient-to-br from-amber-50 to-amber-100/30' :
+            order.status === 'Em serviço' ? 'bg-gradient-to-br from-orange-50 to-orange-100/30' :
+            order.status === 'Em finalização' ? 'bg-gradient-to-br from-purple-50 to-purple-100/30' :
+            order.status === 'Pronto' ? 'bg-gradient-to-br from-emerald-50 to-emerald-100/30' :
+            order.status === 'Em Rota' ? 'bg-gradient-to-br from-blue-50 to-blue-100/30' :
+            order.status === 'Entregue' ? 'bg-gradient-to-br from-slate-50 to-slate-100/30' :
+            order.status === 'Cancelado' ? 'bg-gradient-to-br from-red-50 to-red-100/30' : 'bg-white'
           }`}
         >
           <CardContent className="p-4 sm:p-6">
