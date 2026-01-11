@@ -449,13 +449,13 @@ export default function DashboardPage() {
       "Em espera": "bg-orange-100 text-orange-700",
       "Em serviço": "bg-amber-100 text-amber-700",
       "Em finalização": "bg-indigo-100 text-indigo-700",
-      "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+      "Pronto p/ entrega": "bg-green-100 text-green-700",
       Entregue: "bg-slate-100 text-slate-700",
       Cancelado: "bg-red-100 text-red-700",
     };
     return (
       <Badge className={`${styles[status]} border-none px-3 py-1 h-auto whitespace-normal text-center transition-all duration-300`}>
-        {status === "Pronto para entrega ou retirada" ? (
+        {status === "Pronto p/ entrega" ? (
           <span className="flex flex-col leading-none py-0.5">
             <span>Pronto p/</span>
             <span>entrega</span>
@@ -473,17 +473,17 @@ export default function DashboardPage() {
     const getActionButton = () => {
       switch (order.status) {
         case "Recebido":
-          return { label: "Ver Detalhes", icon: Eye };
+          return { label: "Ver Detalhes", icon: Eye, nextStatus: null };
         case "Em espera":
-          return { label: "Iniciar Produção", icon: CheckCircle2 };
+          return { label: "Iniciar Produção", icon: ArrowRight, nextStatus: "Em serviço" };
         case "Em serviço":
-          return { label: "Finalizar Serviço", icon: CheckCircle2 };
+          return { label: "Finalizar Serviço", icon: ArrowRight, nextStatus: "Em finalização" };
         case "Em finalização":
-          return { label: "Pronto p/ Entrega", icon: CheckCircle2 };
-        case "Pronto para entrega ou retirada":
-          return { label: "Marcar Entregue", icon: CheckCircle2 };
+          return { label: "Pronto p/ Entrega", icon: ArrowRight, nextStatus: "Pronto p/ entrega" };
+        case "Pronto p/ entrega":
+          return { label: "Marcar Entregue", icon: ArrowRight, nextStatus: "Entregue" };
         default:
-          return { label: "Ver OS", icon: Eye };
+          return { label: "Ver OS", icon: Eye, nextStatus: null };
       }
     };
 
@@ -497,9 +497,20 @@ export default function DashboardPage() {
         transition={{ duration: 0.3, delay: index * 0.05 }}
         layout
       >
-        <Card 
-          onClick={() => router.push(`/interno/os/${order.os_number.replace("/", "-")}`)}
-          className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden bg-white transition-all-smooth hover:ring-2 ring-blue-400/30 group relative cursor-pointer ${order.priority ? 'bg-amber-50/20 ring-1 ring-amber-200' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''} ${isChanged ? 'animate-status-change' : ''}`}
+        <Card
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest('button')) return;
+            router.push(`/interno/os/${order.os_number.replace("/", "-")}`);
+          }}
+          className={`border-none shadow-lg shadow-slate-100 rounded-[2rem] overflow-hidden transition-all-smooth hover:ring-2 ring-blue-400/30 group relative cursor-pointer ${order.priority ? 'ring-1 ring-amber-200' : ''} ${isVeryRecent ? 'ring-4 ring-red-500 animate-pulse-red' : ''} ${isChanged ? 'animate-status-change' : ''} ${
+            order.status === 'Recebido' ? 'bg-blue-50/50' :
+            order.status === 'Em espera' ? 'bg-orange-50/50' :
+            order.status === 'Em serviço' ? 'bg-amber-50/50' :
+            order.status === 'Em finalização' ? 'bg-indigo-50/50' :
+            order.status === 'Pronto p/ entrega' ? 'bg-green-50/50' :
+            order.status === 'Entregue' ? 'bg-slate-50/50' :
+            order.status === 'Cancelado' ? 'bg-red-50/50' : 'bg-white'
+          }`}
         >
           <CardContent className="p-4 sm:p-6">
             <div className="flex justify-between items-start mb-3 sm:mb-4">
@@ -560,6 +571,14 @@ export default function DashboardPage() {
 
             <div className="flex flex-col gap-2">
               <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (action.nextStatus) {
+                    handleStatusChange(order.id, action.nextStatus as Status);
+                  } else {
+                    router.push(`/interno/os/${order.os_number.replace("/", "-")}`);
+                  }
+                }}
                 variant="ghost" 
                 className="w-full justify-between rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 font-bold text-[10px] sm:text-xs h-10 sm:h-12 px-3 sm:px-5 transition-all active:scale-95"
               >
@@ -568,28 +587,6 @@ export default function DashboardPage() {
                   <action.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 </div>
               </Button>
-
-              {order.status !== "Entregue" && order.status !== "Cancelado" && (
-                <div onClick={(e) => e.stopPropagation()}>
-                  <Select
-                    value={order.status}
-                    onValueChange={(v) => handleStatusChange(order.id, v as Status)}
-                  >
-                    <SelectTrigger className="h-7 sm:h-8 text-[8px] sm:text-[9px] rounded-lg sm:rounded-xl border-none bg-transparent hover:bg-slate-50 font-black uppercase tracking-widest text-slate-400">
-                      <SelectValue placeholder="Alterar Status" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-slate-100 shadow-xl">
-                      <SelectItem value="Recebido" className="font-bold text-xs">Recebido</SelectItem>
-                      <SelectItem value="Em espera" className="font-bold text-xs">Em espera</SelectItem>
-                      <SelectItem value="Em serviço" className="font-bold text-xs">Em serviço</SelectItem>
-                      <SelectItem value="Em finalização" className="font-bold text-xs">Em finalização</SelectItem>
-                      <SelectItem value="Pronto para entrega ou retirada" className="font-bold text-xs">Pronto p/ Entrega</SelectItem>
-                      <SelectItem value="Entregue" className="font-bold text-xs">Entregue</SelectItem>
-                      <SelectItem value="Cancelado" className="font-bold text-xs">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
