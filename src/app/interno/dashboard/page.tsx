@@ -319,6 +319,16 @@ export default function DashboardPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: Status) => {
+    // Buscar o status atual da OS
+    const currentOrder = orders.find(o => o.id === orderId);
+    
+    // Bloquear OPERACIONAL de alterar OS que já estão Pronto ou Entregue
+    if (role === 'OPERACIONAL' && currentOrder && ['Pronto', 'Entregue'].includes(currentOrder.status)) {
+      toast.error("Você não pode alterar o status de uma OS que já está Pronta ou Entregue");
+      return;
+    }
+    
+    // Bloquear OPERACIONAL de mudar para status que não são permitidos
     if (role === 'OPERACIONAL' && !['Recebido', 'Em espera', 'Em serviço', 'Em finalização'].includes(newStatus)) {
       toast.error("Você não tem permissão para alterar para este status");
       return;
