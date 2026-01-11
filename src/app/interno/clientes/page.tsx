@@ -42,7 +42,10 @@ interface Client {
   name: string;
   phone: string;
   email?: string;
-  address?: string;
+  address?: string; // DEPRECATED: mantido por compatibilidade
+  plus_code?: string;
+  coordinates?: string;
+  complement?: string;
   created_at: string;
 }
 
@@ -70,7 +73,9 @@ export default function ClientsPage() {
     name: "",
     phone: "",
     email: "",
-    address: ""
+    plus_code: "",
+    coordinates: "",
+    complement: ""
   });
 
   useEffect(() => {
@@ -116,11 +121,13 @@ export default function ClientsPage() {
         name: client.name,
         phone: client.phone,
         email: client.email || "",
-        address: client.address || ""
+        plus_code: client.plus_code || "",
+        coordinates: client.coordinates || "",
+        complement: client.complement || ""
       });
     } else {
       setEditingClient(null);
-      setFormData({ name: "", phone: "", email: "", address: "" });
+      setFormData({ name: "", phone: "", email: "", plus_code: "", coordinates: "", complement: "" });
     }
     setIsDialogOpen(true);
   };
@@ -359,12 +366,22 @@ export default function ClientsPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="address">Endereço (Opcional)</Label>
+              <Label htmlFor="location">Plus Code ou Coordenadas (Opcional)</Label>
               <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Rua, Número, Bairro"
+                id="plus_code"
+                value={formData.plus_code}
+                onChange={(e) => setFormData({ ...formData, plus_code: e.target.value })}
+                placeholder="Ex: 8C7X+2G ou -9.123456,-35.123456"
+              />
+              <p className="text-xs text-slate-500">Para obter: abra Google Maps, clique no local e copie o Plus Code ou as coordenadas</p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="complement">Complemento (Opcional)</Label>
+              <Input
+                id="complement"
+                value={formData.complement}
+                onChange={(e) => setFormData({ ...formData, complement: e.target.value })}
+                placeholder="Condomínio, Bloco, Apartamento"
               />
             </div>
           </div>
