@@ -41,17 +41,21 @@ export async function POST(request: NextRequest) {
       .eq("id", orderId)
       .single();
 
+    console.log("[API Entregas] Buscando pedido:", { orderId, order, fetchError });
+
     if (fetchError || !order) {
+      console.error("[API Entregas] Pedido não encontrado:", fetchError);
       return NextResponse.json(
-        { error: "Pedido não encontrado" },
+        { error: "Pedido não encontrado", details: fetchError?.message },
         { status: 404 }
       );
     }
 
     // Validação: ENTREGADOR só pode atualizar pedidos Pronto ou Em Rota
     if (!["Pronto", "Em Rota"].includes(order.status)) {
+      console.log("[API Entregas] Status inválido:", order.status);
       return NextResponse.json(
-        { error: "Pedido não está disponível para entrega" },
+        { error: "Pedido não está disponível para entrega. Status atual: " + order.status },
         { status: 400 }
       );
     }
