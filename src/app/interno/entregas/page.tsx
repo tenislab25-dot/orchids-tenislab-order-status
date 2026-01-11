@@ -44,7 +44,7 @@ export default function EntregasPage() {
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
         return (
-          s === "Pronto para entrega ou retirada" || 
+          s === "Pronto" || 
           s === "Em Rota"
         );
       });
@@ -196,7 +196,7 @@ export default function EntregasPage() {
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
-                  {pedido.status === "Pronto para entrega ou retirada" ? (
+                  {pedido.status === "Pronto" ? (
                     <Button 
                       className="w-full h-16 rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg gap-3 shadow-xl shadow-slate-200"
                       onClick={() => atualizarStatus(pedido, "Em Rota")}
@@ -210,7 +210,7 @@ export default function EntregasPage() {
                       <Button 
                         variant="outline"
                         className="flex-1 h-16 rounded-[1.5rem] border-2 border-red-100 text-red-600 font-black gap-2 hover:bg-red-50" 
-                        onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto para entrega ou retirada")}
+                        onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
                         disabled={updating === pedido.id}
                       >
                         <XCircle className="w-6 h-6" />
