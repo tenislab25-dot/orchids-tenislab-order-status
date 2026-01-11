@@ -24,7 +24,9 @@ export default function PrintOSPage() {
         clients (
           name,
           phone,
-          address
+          plus_code,
+          coordinates,
+          complement
         )
       `)
       .eq("os_number", osNumber)
@@ -32,7 +34,8 @@ export default function PrintOSPage() {
 
     if (error) {
       console.error("Erro ao carregar OS:", error);
-      router.push("/interno/dashboard");
+      // Não redireciona automaticamente, apenas mostra erro
+      setOrder(null);
     } else {
       setOrder(data);
     }
