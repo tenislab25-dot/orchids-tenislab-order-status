@@ -57,7 +57,7 @@ const statusConfig = {
       bg: "bg-indigo-50",
       message: "Seu tênis está nas etapas finais de acabamento e controle de qualidade.",
     },
-    "Pronto para entrega ou retirada": {
+    "Pronto": {
     icon: CheckCircle2,
     color: "text-green-500",
     bg: "bg-green-50",
