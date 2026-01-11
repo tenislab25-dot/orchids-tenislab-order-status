@@ -33,7 +33,9 @@ export default function EntregasPage() {
           clients (
             name,
             phone,
-            address
+            plus_code,
+            coordinates,
+            complement
           )
         `)
         .order("updated_at", { ascending: false });
@@ -154,9 +156,9 @@ export default function EntregasPage() {
                       <MapPin className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Endereço de Entrega</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Localização</p>
                       <p className="text-slate-700 font-medium leading-snug mt-0.5">
-                        {pedido.clients?.address || "Endereço não cadastrado"}
+                        {pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "Localização não cadastrada"}
                       </p>
                     </div>
                   </div>
@@ -177,7 +179,10 @@ export default function EntregasPage() {
                   <Button 
                     variant="outline" 
                     className="h-14 rounded-2xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
-                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pedido.clients?.address || "" )}`, "_blank")}
+                    onClick={() => {
+                      const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
+                    }}
                   >
                     <Navigation className="w-5 h-5 text-blue-500" /> Maps
                   </Button>
