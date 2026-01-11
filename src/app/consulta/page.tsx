@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
   os_number: string;

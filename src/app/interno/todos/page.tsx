@@ -36,7 +36,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
@@ -195,7 +195,7 @@ export default function TodosPedidosPage() {
           "Em espera": "bg-orange-100 text-orange-700",
           "Em serviço": "bg-amber-100 text-amber-700",
           "Em finalização": "bg-indigo-100 text-indigo-700",
-          "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+          "Pronto": "bg-green-100 text-green-700",
           Entregue: "bg-slate-100 text-slate-700",
           Cancelado: "bg-red-100 text-red-700",
         };

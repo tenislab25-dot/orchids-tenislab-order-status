@@ -67,12 +67,23 @@ export default function EntregasPage() {
   const atualizarStatus = async (pedido: any, novoStatus: string) => {
     try {
       setUpdating(pedido.id);
-      const { error } = await supabase
-        .from("service_orders")
-        .update({ status: novoStatus })
-        .eq("id", pedido.id);
+      
+      // Usar API que bypassa RLS para ENTREGADOR
+      const response = await fetch("/api/entregas/update-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: pedido.id,
+          newStatus: novoStatus,
+          userRole: role
+        })
+      });
 
-      if (error) throw error;
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || "Erro ao atualizar status");
+      }
       
       toast.success(`Status atualizado: ${novoStatus}`);
       

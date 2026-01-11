@@ -1,11 +1,11 @@
 export type UserRole = 'OPERACIONAL' | 'ATENDENTE' | 'ADMIN' | 'ENTREGADOR';
 
-export type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+export type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
 
 const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
   OPERACIONAL: ["Recebido", "Em espera", "Em serviço", "Em finalização"],
-  ATENDENTE: ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto para entrega ou retirada", "Entregue", "Cancelado"],
-  ADMIN: ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto para entrega ou retirada", "Entregue", "Cancelado"],
+  ATENDENTE: ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto", "Entregue", "Cancelado"],
+  ADMIN: ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto", "Entregue", "Cancelado"],
   ENTREGADOR: ["Entregue"],
 };
 

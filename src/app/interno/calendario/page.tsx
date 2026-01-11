@@ -229,7 +229,7 @@ export default function CalendarioPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Entregue": return "bg-emerald-100 text-emerald-700";
-      case "Pronto para entrega ou retirada": return "bg-green-100 text-green-700";
+      case "Pronto": return "bg-green-100 text-green-700";
       case "Em finalização": return "bg-indigo-100 text-indigo-700";
       case "Em serviço": return "bg-amber-100 text-amber-700";
       case "Em espera": return "bg-orange-100 text-orange-700";
@@ -461,7 +461,7 @@ export default function CalendarioPage() {
                             <div className="flex items-start justify-between mb-2">
                               <span className="text-lg font-black text-blue-600">{order.os_number}</span>
                               <Badge className={`${getStatusColor(order.status)} border-none text-[9px] font-bold`}>
-                                {order.status === "Pronto para entrega ou retirada" ? "PRONTO" : order.status}
+                                {order.status === "Pronto" ? "PRONTO" : order.status}
                               </Badge>
                             </div>
                             <p className="text-sm font-bold text-slate-700 truncate">{order.clients?.name}</p>

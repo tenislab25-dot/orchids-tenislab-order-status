@@ -115,7 +115,7 @@ export function checkOrderAlerts(orders: any[]): Alert[] {
       }
     }
 
-    if (order.status === "Pronto para entrega ou retirada") {
+    if (order.status === "Pronto") {
       const readyAt = new Date(order.updated_at || order.entry_date);
       if (readyAt < threeDaysAgo) {
         alerts.push({

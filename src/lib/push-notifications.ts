@@ -84,7 +84,7 @@ export function getStatusMessage(status: string, clientName: string, osNumber: s
         body: `OS ${osNumber} de ${clientName} está em finalização`,
         url: `/interno/os/${osNumber.replace("/", "-")}`,
       };
-    case "Pronto para entrega ou retirada":
+    case "Pronto":
       return {
         title: "Pedido pronto!",
         body: `OS ${osNumber} de ${clientName} está pronto para entrega/retirada`,

@@ -56,7 +56,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { canChangeToStatus, getAllowedStatuses, type UserRole } from "@/lib/auth";
 import { compressImage } from "@/lib/image-utils";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
 
 interface OrderData {
   id: string;
@@ -313,7 +313,7 @@ export default function OSViewPage() {
         }).catch(console.error);
 
         // WhatsApp automático para status específicos
-        if (newStatus === "Pronto para entrega ou retirada" && order.clients) {
+        if (newStatus === "Pronto" && order.clients) {
           handleSendReadyNotification();
         }
 
@@ -692,13 +692,13 @@ export default function OSViewPage() {
         "Em espera": "bg-orange-100 text-orange-700",
         "Em serviço": "bg-amber-100 text-amber-700",
         "Em finalização": "bg-indigo-100 text-indigo-700",
-        "Pronto para entrega ou retirada": "bg-green-100 text-green-700",
+        "Pronto": "bg-green-100 text-green-700",
         Entregue: "bg-slate-100 text-slate-700",
         Cancelado: "bg-red-100 text-red-700",
       };
       return (
         <Badge className={`${styles[status]} border-none px-3 py-1 font-bold text-center leading-tight whitespace-normal h-auto min-h-7`}>
-          {status === "Pronto para entrega ou retirada" ? (
+          {status === "Pronto" ? (
             <div className="flex flex-col">
               <span>Pronto para</span>
               <span>entrega/retirada</span>
@@ -1087,7 +1087,7 @@ export default function OSViewPage() {
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-2">
                 {(role === "ADMIN" || role === "ATENDENTE" 
-                  ? ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto para entrega ou retirada", "Entregue", "Cancelado"] as Status[]
+                  ? ["Recebido", "Em espera", "Em serviço", "Em finalização", "Pronto", "Entregue", "Cancelado"] as Status[]
                   : getAllowedStatuses(role as UserRole)
                 ).map((status) => (
                     <Button
@@ -1111,12 +1111,12 @@ export default function OSViewPage() {
                       {statusUpdating === status ? (
                         <Loader2 className="w-3 h-3 animate-spin mr-1" />
                       ) : null}
-                      {status === "Pronto para entrega ou retirada" ? "Pronto p/ entrega" : status}
+                      {status === "Pronto" ? "Pronto" : status}
                     </Button>
                 ))}
               </div>
 
-             {order.status === "Pronto para entrega ou retirada" && role !== "OPERACIONAL" && (
+             {order.status === "Pronto" && role !== "OPERACIONAL" && (
   <Button
     onClick={handleSendReadyNotification}
     className="w-full h-12 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold gap-2"

@@ -7,7 +7,7 @@ const VALID_STATUSES = [
   "Em espera",
   "Em serviço",
   "Em finalização",
-  "Pronto para entrega ou retirada",
+  "Pronto",
   "Entregue",
   "Cancelado"
 ];

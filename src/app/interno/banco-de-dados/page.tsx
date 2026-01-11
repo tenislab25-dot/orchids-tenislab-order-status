@@ -26,7 +26,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto para entrega ou retirada" | "Entregue" | "Cancelado";
+type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
 
 interface Order {
   id: string;
