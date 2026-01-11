@@ -361,13 +361,13 @@ function OrderContent() {
                             <span className="font-bold text-red-500">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
                           </div>
                         )}
-                        {order.machine_fee && order.machine_fee > 0 && (
+                        {order.machine_fee > 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-red-500 font-medium">Desconto do Cartão</span>
                             <span className="font-bold text-red-500">- R$ {Number(order.machine_fee).toFixed(2)}</span>
                           </div>
                         )}
-                        {order.delivery_fee && order.delivery_fee > 0 && (
+                        {order.delivery_fee > 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-500">Taxa de Entrega</span>
                             <span className="font-bold text-slate-700">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
