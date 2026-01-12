@@ -94,6 +94,7 @@ export default function EditOSPage() {
   const [photoToDelete, setPhotoToDelete] = useState<{ itemId: string; type: 'photos' | 'photosBefore' | 'photosAfter'; index: number } | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
+  const [tipoEntrega, setTipoEntrega] = useState<'entrega' | 'retirada'>('entrega');
 
 
   const handleAddPhoto = async (itemId: string, file: File) => {
@@ -158,6 +159,7 @@ export default function EditOSPage() {
       setPaymentMethod(data.payment_method || "Pix");
       setPayOnEntry(data.pay_on_entry || false);
       setItems(data.items || []);
+      setTipoEntrega(data.tipo_entrega || 'entrega');
     }
     setLoading(false);
   }, [osNumber, router]);
@@ -352,7 +354,8 @@ export default function EditOSPage() {
           payment_method: paymentMethod,
           pay_on_entry: payOnEntry,
           total: finalTotal,
-          items: items
+          items: items,
+          tipo_entrega: tipoEntrega
         })
         .eq("os_number", osNumber);
 
@@ -787,6 +790,46 @@ export default function EditOSPage() {
                   onCheckedChange={setPayOnEntry}
                 />
               </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white border-b border-slate-100 py-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Tipo de Serviço</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTipoEntrega('entrega')}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
+                    tipoEntrega === 'entrega'
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  🚚 Entrega
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTipoEntrega('retirada')}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
+                    tipoEntrega === 'retirada'
+                      ? 'bg-purple-600 text-white shadow-lg'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  🏠 Retirada
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 mt-3 text-center">
+                {tipoEntrega === 'entrega' 
+                  ? '🚚 Esta OS aparecerá na página de entregas'
+                  : '🏠 Cliente vai retirar na loja'
+                }
+              </p>
             </CardContent>
           </Card>
         </section>

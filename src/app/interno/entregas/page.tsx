@@ -144,14 +144,18 @@ export default function EntregasPage() {
 
       if (error) throw error;
 
-      // Filtra apenas pedidos prontos para entrega ou que já estão em rota
-      // E que sejam do tipo 'entrega' (não 'retirada')
+      // Filtra pedidos:
+      // 1. Status "Coleta" - precisa ir buscar o tênis
+      // 2. Status "Pronto" ou "Em Rota" + tipo_entrega = 'entrega' - precisa entregar
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
-        const isEntrega = pedido.tipo_entrega === 'entrega' || !pedido.tipo_entrega; // Se não tem tipo_entrega, assume entrega (retrocompatibilidade)
-        return (
-          (s === "Pronto" || s === "Em Rota") && isEntrega
-        );
+        
+        // Se é coleta, sempre aparece (precisa buscar o tênis)
+        if (s === "Coleta") return true;
+        
+        // Se é Pronto ou Em Rota, verifica se é entrega
+        const isEntrega = pedido.tipo_entrega === 'entrega' || !pedido.tipo_entrega;
+        return (s === "Pronto" || s === "Em Rota") && isEntrega;
       });
 
       setPedidos(filtrados || []);
@@ -302,8 +306,12 @@ export default function EntregasPage() {
                           {pedido.clients?.name || "Cliente não identificado"}
                         </h2>
                       </div>
-                      <Badge className={`${pedido.status === 'Em Rota' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'} border-none font-bold px-3 py-1`}>
-                        {pedido.status === 'Em Rota' ? 'EM ROTA' : 'PRONTO'}
+                      <Badge className={`${
+                        pedido.status === 'Coleta' ? 'bg-purple-100 text-purple-700' :
+                        pedido.status === 'Em Rota' ? 'bg-amber-100 text-amber-700' : 
+                        'bg-green-100 text-green-700'
+                      } border-none font-bold px-3 py-1`}>
+                        {pedido.status === 'Coleta' ? 'COLETA' : pedido.status === 'Em Rota' ? 'EM ROTA' : 'PRONTO'}
                       </Badge>
                     </div>
                   </div>

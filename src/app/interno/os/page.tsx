@@ -105,6 +105,7 @@ interface OSItem {
     const [clienteSuggestions, setClienteSuggestions] = useState<any[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedClient, setSelectedClient] = useState<any>(null);
+    const [tipoEntrega, setTipoEntrega] = useState<'entrega' | 'retirada'>('entrega');
 
     useEffect(() => {
       const searchClient = async () => {
@@ -488,7 +489,8 @@ interface OSItem {
           pay_on_entry: payOnEntry,
           total: finalTotal,
           items: itemsWithPhotosBefore,
-          status: "Recebido"
+          status: "Recebido",
+          tipo_entrega: tipoEntrega
         }])
         .select()
         .single();
@@ -650,6 +652,40 @@ interface OSItem {
                           onChange={(e) => setClientComplement(e.target.value)}
                           className="h-12 bg-slate-50 border-slate-200 rounded-xl"
                         />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Tipo de Serviço</Label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setTipoEntrega('entrega')}
+                            className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
+                              tipoEntrega === 'entrega'
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            🚚 Entrega
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTipoEntrega('retirada')}
+                            className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
+                              tipoEntrega === 'retirada'
+                                ? 'bg-purple-600 text-white shadow-lg'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            🏠 Retirada
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-500 text-center mt-2">
+                          {tipoEntrega === 'entrega' 
+                            ? '🚚 Aparecerá na página de entregas'
+                            : '🏠 Cliente vai retirar na loja'
+                          }
+                        </p>
                       </div>
                 </div>
             </CardContent>
