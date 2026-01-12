@@ -369,14 +369,43 @@ export default function EntregasPage() {
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
                   {pedido.status === "Coleta" ? (
-                    <Button 
-                      className="w-full h-16 rounded-[1.5rem] bg-purple-600 hover:bg-purple-700 text-white font-black text-lg gap-3 shadow-xl shadow-purple-100"
-                      onClick={() => atualizarStatus(pedido, "Recebido")}
-                      disabled={updating === pedido.id}
-                    >
-                      {updating === pedido.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
-                      COLETADO - CRIAR OS
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button 
+                        variant="outline"
+                        className="flex-1 h-16 rounded-[1.5rem] border-2 border-red-100 text-red-600 font-black gap-2 hover:bg-red-50"
+                        onClick={async () => {
+                          if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
+                            try {
+                              setUpdating(pedido.id);
+                              const { error } = await supabase
+                                .from('service_orders')
+                                .delete()
+                                .eq('id', pedido.id);
+                              
+                              if (error) throw error;
+                              toast.success('OS excluída com sucesso');
+                              fetchPedidos();
+                            } catch (error: any) {
+                              toast.error('Erro ao excluir: ' + error.message);
+                            } finally {
+                              setUpdating(null);
+                            }
+                          }
+                        }}
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="animate-spin" /> : <XCircle className="w-6 h-6" />}
+                        NÃO COLETADO
+                      </Button>
+                      <Button 
+                        className="flex-[2] h-16 rounded-[1.5rem] bg-purple-600 hover:bg-purple-700 text-white font-black text-lg gap-3 shadow-xl shadow-purple-100"
+                        onClick={() => atualizarStatus(pedido, "Recebido")}
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
+                        COLETADO
+                      </Button>
+                    </div>
                   ) : pedido.status === "Pronto" ? (
                     <Button 
                       className="w-full h-16 rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg gap-3 shadow-xl shadow-slate-200"
@@ -564,16 +593,22 @@ export default function EntregasPage() {
                     clientData = newClient;
                   }
 
-                  // Gera número da OS
+                  // Gera número da OS no formato 000001/2026
+                  const currentYear = new Date().getFullYear();
                   const { data: lastOS } = await supabase
                     .from('service_orders')
                     .select('os_number')
+                    .like('os_number', `%/${currentYear}`)
                     .order('created_at', { ascending: false })
                     .limit(1)
                     .single();
 
-                  const lastNumber = lastOS?.os_number ? parseInt(lastOS.os_number) : 0;
-                  const newOsNumber = String(lastNumber + 1).padStart(6, '0');
+                  let nextNumber = 1;
+                  if (lastOS?.os_number) {
+                    const [numPart] = lastOS.os_number.split('/');
+                    nextNumber = parseInt(numPart) + 1;
+                  }
+                  const newOsNumber = `${String(nextNumber).padStart(6, '0')}/${currentYear}`;
 
                   // Cria a OS com status "Coleta"
                   const { error: osError } = await supabase
