@@ -615,9 +615,17 @@ export default function EntregasPage() {
                 }
               }}
               disabled={savingColeta}
-              className="w-full h-14 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black"
+              className={`w-full h-14 rounded-xl text-white font-black ${
+                coletaForm.tipoEntrega === 'entrega'
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-purple-600 hover:bg-purple-700'
+              }`}
             >
-              {savingColeta ? <Loader2 className="animate-spin" /> : 'Cadastrar Cliente'}
+              {savingColeta ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                coletaForm.tipoEntrega === 'entrega' ? '🚚 Salvar e Adicionar à Rota' : '🏠 Cadastrar Cliente'
+              )}
             </Button>
           </div>
         </div>
