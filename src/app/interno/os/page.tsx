@@ -393,6 +393,7 @@ interface OSItem {
 
       setIsCreating(true);
       try {
+        toast.loading("Salvando cliente...", { id: "creating-os" });
 
       let clientId = selectedClientId;
 
@@ -435,6 +436,7 @@ interface OSItem {
         photos: undefined
       }));
 
+      toast.loading("Criando ordem de serviço...", { id: "creating-os" });
       const { data: newOS, error: osError } = await supabase
         .from("service_orders")
         .insert([{
@@ -458,10 +460,10 @@ interface OSItem {
         setIsCreating(false);
         setCreatedOS(newOS);
         setShowSuccessDialog(true);
-        toast.success("Ordem de Serviço criada com sucesso!");
+        toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
       } catch (error: any) {
         setIsCreating(false);
-        toast.error("Erro ao criar OS: " + error.message);
+        toast.error("Erro ao criar OS: " + error.message, { id: "creating-os" });
       }
     };
 
