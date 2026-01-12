@@ -33,6 +33,9 @@ export default function EntregasPage() {
   });
   const [savingColeta, setSavingColeta] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [clienteSuggestions, setClienteSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -69,6 +72,40 @@ export default function EntregasPage() {
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
+  };
+
+  const searchClientes = async (query: string) => {
+    if (query.length < 2) {
+      setClienteSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .ilike('name', `%${query}%`)
+        .limit(5);
+
+      if (error) throw error;
+      setClienteSuggestions(data || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+    }
+  };
+
+  const selectCliente = (cliente: any) => {
+    setSelectedClient(cliente);
+    setColetaForm({
+      name: cliente.name,
+      phone: cliente.phone,
+      plusCode: cliente.plus_code || '',
+      complement: cliente.complement || '',
+      tipoEntrega: 'entrega'
+    });
+    setShowSuggestions(false);
   };
 
   const handleOptimizeRoute = async () => {
@@ -364,25 +401,72 @@ export default function EntregasPage() {
 
       {/* Modal Adicionar Coleta */}
       {showColetaModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowColetaModal(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => {
+          setShowColetaModal(false);
+          setSelectedClient(null);
+          setShowSuggestions(false);
+          setClienteSuggestions([]);
+        }}>
           <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-slate-900">Adicionar Coleta</h2>
-              <Button variant="ghost" size="icon" onClick={() => setShowColetaModal(false)}>
+              <Button variant="ghost" size="icon" onClick={() => {
+                setShowColetaModal(false);
+                setSelectedClient(null);
+                setShowSuggestions(false);
+                setClienteSuggestions([]);
+              }}>
                 <XCircle className="w-5 h-5" />
               </Button>
             </div>
 
             <div className="space-y-3">
-              <div>
+              <div className="relative">
                 <label className="text-sm font-bold text-slate-700 mb-1 block">Nome do Cliente</label>
                 <input
                   type="text"
                   value={coletaForm.name}
-                  onChange={(e) => setColetaForm({ ...coletaForm, name: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setColetaForm({ ...coletaForm, name: value });
+                    setSelectedClient(null);
+                    searchClientes(value);
+                  }}
+                  onFocus={() => {
+                    if (coletaForm.name.length >= 2) {
+                      searchClientes(coletaForm.name);
+                    }
+                  }}
                   className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
-                  placeholder="Nome completo"
+                  placeholder="Digite o nome para buscar..."
                 />
+                
+                {/* Dropdown de sugestões */}
+                {showSuggestions && clienteSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border-2 border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    {clienteSuggestions.map((cliente) => (
+                      <button
+                        key={cliente.id}
+                        type="button"
+                        onClick={() => selectCliente(cliente)}
+                        className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
+                      >
+                        <div className="font-bold text-slate-900">{cliente.name}</div>
+                        <div className="text-sm text-slate-500">{cliente.phone}</div>
+                        {cliente.complement && (
+                          <div className="text-xs text-slate-400 mt-1">{cliente.complement}</div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Indicador de cliente existente */}
+                {selectedClient && (
+                  <div className="mt-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs font-bold text-green-700">✅ Cliente já cadastrado! Dados preenchidos automaticamente.</p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -459,29 +543,37 @@ export default function EntregasPage() {
                     return;
                   }
 
-                  // Processa coordenadas se fornecidas (formato: lat,lng)
-                  let coordinates = null;
-                  if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
-                    const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                      coordinates = JSON.stringify({ lat, lng });
+                  let clientData;
+                  
+                  // Se já selecionou um cliente existente, usa ele
+                  if (selectedClient) {
+                    clientData = selectedClient;
+                  } else {
+                    // Processa coordenadas se fornecidas (formato: lat,lng)
+                    let coordinates = null;
+                    if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
+                      const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
+                      if (!isNaN(lat) && !isNaN(lng)) {
+                        coordinates = JSON.stringify({ lat, lng });
+                      }
                     }
+
+                    // Cria novo cliente
+                    const { data: newClient, error: clientError } = await supabase
+                      .from('clients')
+                      .insert({
+                        name: coletaForm.name,
+                        phone: coletaForm.phone,
+                        plus_code: coletaForm.plusCode || null,
+                        coordinates: coordinates,
+                        complement: coletaForm.complement || null
+                      })
+                      .select()
+                      .single();
+
+                    if (clientError) throw clientError;
+                    clientData = newClient;
                   }
-
-                  // Cria o cliente
-                  const { data: clientData, error: clientError } = await supabase
-                    .from('clients')
-                    .insert({
-                      name: coletaForm.name,
-                      phone: coletaForm.phone,
-                      plus_code: coletaForm.plusCode || null,
-                      coordinates: coordinates,
-                      complement: coletaForm.complement || null
-                    })
-                    .select()
-                    .single();
-
-                  if (clientError) throw clientError;
 
                   // Gera número da OS
                   const { data: lastOS } = await supabase
@@ -511,6 +603,9 @@ export default function EntregasPage() {
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
                   setColetaForm({ name: '', phone: '', plusCode: '', complement: '', tipoEntrega: 'entrega' });
+                  setSelectedClient(null);
+                  setShowSuggestions(false);
+                  setClienteSuggestions([]);
                   fetchPedidos();
                 } catch (error: any) {
                   console.error('Erro ao cadastrar cliente:', error);
