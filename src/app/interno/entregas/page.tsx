@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
   Truck, Loader2, Package, XCircle, Phone, MessageCircle,
-  Clock, Hash
+  Clock, Hash, Download, UserPlus
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { plusCodeToCoordinates, generateRouteCSV, downloadCSV } from "@/lib/pluscode-utils";
 
 export default function EntregasPage() {
   const router = useRouter();
@@ -22,6 +23,65 @@ export default function EntregasPage() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [showColetaModal, setShowColetaModal] = useState(false);
+  const [coletaForm, setColetaForm] = useState({
+    name: '',
+    phone: '',
+    plusCode: '',
+    complement: ''
+  });
+  const [savingColeta, setSavingColeta] = useState(false);
+
+  const handleExportRoute = () => {
+    try {
+      const routes = pedidos
+        .map(pedido => {
+          const client = pedido.clients;
+          if (!client) return null;
+
+          // Tenta usar coordenadas diretas primeiro
+          if (client.coordinates) {
+            try {
+              const coords = JSON.parse(client.coordinates);
+              return {
+                name: `${client.name} - OS ${pedido.os_number}`,
+                lat: coords.lat,
+                lng: coords.lng
+              };
+            } catch (e) {
+              console.error('Erro ao parsear coordenadas:', e);
+            }
+          }
+
+          // Se não tem coordenadas, tenta converter Plus Code
+          if (client.plus_code) {
+            const coords = plusCodeToCoordinates(client.plus_code);
+            if (coords) {
+              return {
+                name: `${client.name} - OS ${pedido.os_number}`,
+                lat: coords.lat,
+                lng: coords.lng
+              };
+            }
+          }
+
+          return null;
+        })
+        .filter(route => route !== null) as Array<{ name: string; lat: number; lng: number }>;
+
+      if (routes.length === 0) {
+        toast.error('Nenhuma entrega com localização válida');
+        return;
+      }
+
+      const csv = generateRouteCSV(routes);
+      downloadCSV(csv, `rota_entregas_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+      toast.success(`${routes.length} entregas exportadas!`);
+    } catch (error) {
+      console.error('Erro ao exportar rota:', error);
+      toast.error('Erro ao exportar rota');
+    }
+  };
 
   const fetchPedidos = useCallback(async () => {
     try {
@@ -117,9 +177,28 @@ export default function EntregasPage() {
               <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Logística Tenislab</p>
             </div>
           </div>
-          <Badge className="bg-blue-500 text-white border-none px-4 py-1 rounded-full font-black">
-            {pedidos.length}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowColetaModal(true)}
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
+            >
+              <UserPlus className="w-4 h-4 mr-1" />
+              Coleta
+            </Button>
+            <Button
+              onClick={handleExportRoute}
+              disabled={pedidos.length === 0}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
+            >
+              <Download className="w-4 h-4 mr-1" />
+              CSV
+            </Button>
+            <Badge className="bg-blue-500 text-white border-none px-4 py-1 rounded-full font-black">
+              {pedidos.length}
+            </Badge>
+          </div>
         </div>
       </header>
 
@@ -237,6 +316,124 @@ export default function EntregasPage() {
           ))
         )}
       </main>
+
+      {/* Modal Adicionar Coleta */}
+      {showColetaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowColetaModal(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-slate-900">Adicionar Coleta</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowColetaModal(false)}>
+                <XCircle className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-1 block">Nome do Cliente</label>
+                <input
+                  type="text"
+                  value={coletaForm.name}
+                  onChange={(e) => setColetaForm({ ...coletaForm, name: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                  placeholder="Nome completo"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-1 block">Telefone</label>
+                <input
+                  type="tel"
+                  value={coletaForm.phone}
+                  onChange={(e) => setColetaForm({ ...coletaForm, phone: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                  placeholder="(82) 99999-9999"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-1 block">Plus Code / Coordenadas</label>
+                <input
+                  type="text"
+                  value={coletaForm.plusCode}
+                  onChange={(e) => setColetaForm({ ...coletaForm, plusCode: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                  placeholder="97HR+H3V ou -9.123,-35.456"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-1 block">Complemento</label>
+                <input
+                  type="text"
+                  value={coletaForm.complement}
+                  onChange={(e) => setColetaForm({ ...coletaForm, complement: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                  placeholder="Apt 101, Bloco A"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={async () => {
+                try {
+                  setSavingColeta(true);
+                  
+                  // Validações
+                  if (!coletaForm.name || !coletaForm.phone) {
+                    toast.error('Preencha nome e telefone');
+                    return;
+                  }
+
+                  // Converte Plus Code para coordenadas se necessário
+                  let coordinates = null;
+                  if (coletaForm.plusCode) {
+                    // Verifica se já é coordenada (formato: lat,lng)
+                    if (coletaForm.plusCode.includes(',')) {
+                      const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
+                      if (!isNaN(lat) && !isNaN(lng)) {
+                        coordinates = JSON.stringify({ lat, lng });
+                      }
+                    } else {
+                      // Tenta converter Plus Code
+                      const coords = plusCodeToCoordinates(coletaForm.plusCode);
+                      if (coords) {
+                        coordinates = JSON.stringify(coords);
+                      }
+                    }
+                  }
+
+                  // Cria o cliente
+                  const { error } = await supabase
+                    .from('clients')
+                    .insert({
+                      name: coletaForm.name,
+                      phone: coletaForm.phone,
+                      plus_code: coletaForm.plusCode || null,
+                      coordinates: coordinates,
+                      complement: coletaForm.complement || null
+                    });
+
+                  if (error) throw error;
+
+                  toast.success('Cliente cadastrado com sucesso!');
+                  setShowColetaModal(false);
+                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '' });
+                } catch (error: any) {
+                  console.error('Erro ao cadastrar cliente:', error);
+                  toast.error('Erro ao cadastrar: ' + error.message);
+                } finally {
+                  setSavingColeta(false);
+                }
+              }}
+              disabled={savingColeta}
+              className="w-full h-14 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black"
+            >
+              {savingColeta ? <Loader2 className="animate-spin" /> : 'Cadastrar Cliente'}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
