@@ -408,13 +408,13 @@ export default function EntregasPage() {
 
       {/* Modal Adicionar Coleta */}
       {showColetaModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => {
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={() => {
           setShowColetaModal(false);
           setSelectedClient(null);
           setShowSuggestions(false);
           setClienteSuggestions([]);
         }}>
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 my-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-slate-900">Adicionar Coleta</h2>
               <Button variant="ghost" size="icon" onClick={() => {
@@ -573,8 +573,9 @@ export default function EntregasPage() {
                       os_number: newOsNumber,
                       client_id: clientData.id,
                       status: 'Coleta',
-                      total_price: 0,
-                      paid_amount: 0
+                      entry_date: new Date().toISOString().split('T')[0],
+                      items: [],
+                      total: 0
                     });
 
                   if (osError) throw osError;
