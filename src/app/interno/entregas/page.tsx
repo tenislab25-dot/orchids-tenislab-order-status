@@ -608,7 +608,7 @@ export default function EntregasPage() {
                     const [numPart] = lastOS.os_number.split('/');
                     nextNumber = parseInt(numPart) + 1;
                   }
-                  const newOsNumber = `${String(nextNumber).padStart(6, '0')}/${currentYear}`;
+                  const newOsNumber = `${String(nextNumber).padStart(3, '0')}/${currentYear}`;
 
                   // Cria a OS com status "Coleta"
                   const { error: osError } = await supabase
