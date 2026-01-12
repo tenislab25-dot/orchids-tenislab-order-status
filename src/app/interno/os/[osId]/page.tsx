@@ -1048,7 +1048,7 @@ export default function OSViewPage() {
                 </div>
               </div>
 
-              {role === "ADMIN" && (
+              {(role === "ADMIN" || role === "ATENDENTE") && (
                 <div className="flex gap-2 pt-4 border-t border-slate-100">
                   {!order.payment_confirmed && !order.pay_on_entry ? (
                     <Button 
