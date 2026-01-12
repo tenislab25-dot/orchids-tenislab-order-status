@@ -399,11 +399,31 @@ export default function EntregasPage() {
                       </Button>
                       <Button 
                         className="flex-[2] h-16 rounded-[1.5rem] bg-purple-600 hover:bg-purple-700 text-white font-black text-lg gap-3 shadow-xl shadow-purple-100"
-                        onClick={() => atualizarStatus(pedido, "Recebido")}
+                        onClick={async () => {
+                          try {
+                            setUpdating(pedido.id);
+                            const { error } = await supabase
+                              .from("service_orders")
+                              .update({ status: "Recebido" })
+                              .eq("id", pedido.id);
+
+                            if (error) throw error;
+                            
+                            toast.success('Tênis coletado! Redirecionando para concluir cadastro...');
+                            
+                            // Redireciona para editar a OS
+                            setTimeout(() => {
+                              router.push(`/interno/os/${pedido.os_number}/editar`);
+                            }, 1000);
+                          } catch (error: any) {
+                            toast.error('Erro ao atualizar: ' + error.message);
+                            setUpdating(null);
+                          }
+                        }}
                         disabled={updating === pedido.id}
                       >
                         {updating === pedido.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
-                        COLETADO
+                        COLETADO - CONCLUIR OS
                       </Button>
                     </div>
                   ) : pedido.status === "Pronto" ? (
