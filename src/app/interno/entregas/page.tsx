@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
   Truck, Loader2, Package, XCircle, Phone, MessageCircle,
-  Clock, Hash, Download, UserPlus, ChevronUp, ChevronDown, GripVertical
+  Clock, Hash, UserPlus, ChevronUp, ChevronDown, GripVertical, Route
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { plusCodeToCoordinates, generateRouteCSV, downloadCSV } from "@/lib/pluscode-utils";
+
 
 export default function EntregasPage() {
   const router = useRouter();
@@ -28,7 +28,8 @@ export default function EntregasPage() {
     name: '',
     phone: '',
     plusCode: '',
-    complement: ''
+    complement: '',
+    tipoEntrega: 'entrega' as 'entrega' | 'retirada'
   });
   const [savingColeta, setSavingColeta] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -70,54 +71,21 @@ export default function EntregasPage() {
     setDraggedIndex(null);
   };
 
-  const handleExportRoute = () => {
+  const handleOptimizeRoute = async () => {
     try {
-      const routes = pedidos
-        .map(pedido => {
-          const client = pedido.clients;
-          if (!client) return null;
-
-          // Tenta usar coordenadas diretas primeiro
-          if (client.coordinates) {
-            try {
-              const coords = JSON.parse(client.coordinates);
-              return {
-                name: `${client.name} - OS ${pedido.os_number}`,
-                lat: coords.lat,
-                lng: coords.lng
-              };
-            } catch (e) {
-              console.error('Erro ao parsear coordenadas:', e);
-            }
-          }
-
-          // Se não tem coordenadas, tenta converter Plus Code
-          if (client.plus_code) {
-            const coords = plusCodeToCoordinates(client.plus_code);
-            if (coords) {
-              return {
-                name: `${client.name} - OS ${pedido.os_number}`,
-                lat: coords.lat,
-                lng: coords.lng
-              };
-            }
-          }
-
-          return null;
-        })
-        .filter(route => route !== null) as Array<{ name: string; lat: number; lng: number }>;
-
-      if (routes.length === 0) {
-        toast.error('Nenhuma entrega com localização válida');
-        return;
-      }
-
-      const csv = generateRouteCSV(routes);
-      downloadCSV(csv, `rota_entregas_${format(new Date(), 'dd-MM-yyyy')}.csv`);
-      toast.success(`${routes.length} entregas exportadas!`);
+      // TODO: Implementar integração com Google Routes API
+      // Por enquanto, apenas mostra mensagem informativa
+      toast.info('Funcionalidade de otimização de rota em desenvolvimento. Configure a API Key do Google Routes para usar.');
+      
+      // Estrutura preparada para futura implementação:
+      // 1. Coletar endereços dos pedidos
+      // 2. Enviar para Google Routes API
+      // 3. Receber rota otimizada
+      // 4. Reordenar pedidos conforme rota
+      
     } catch (error) {
-      console.error('Erro ao exportar rota:', error);
-      toast.error('Erro ao exportar rota');
+      console.error('Erro ao otimizar rota:', error);
+      toast.error('Erro ao otimizar rota');
     }
   };
 
@@ -141,11 +109,12 @@ export default function EntregasPage() {
       if (error) throw error;
 
       // Filtra apenas pedidos prontos para entrega ou que já estão em rota
+      // E que sejam do tipo 'entrega' (não 'retirada')
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
+        const isEntrega = pedido.tipo_entrega === 'entrega' || !pedido.tipo_entrega; // Se não tem tipo_entrega, assume entrega (retrocompatibilidade)
         return (
-          s === "Pronto" || 
-          s === "Em Rota"
+          (s === "Pronto" || s === "Em Rota") && isEntrega
         );
       });
 
@@ -225,13 +194,13 @@ export default function EntregasPage() {
               Coleta
             </Button>
             <Button
-              onClick={handleExportRoute}
+              onClick={handleOptimizeRoute}
               disabled={pedidos.length === 0}
               size="sm"
               className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
             >
-              <Download className="w-4 h-4 mr-1" />
-              CSV
+              <Route className="w-4 h-4 mr-1" />
+              Otimizar
             </Button>
             <Badge className="bg-blue-500 text-white border-none px-4 py-1 rounded-full font-black">
               {pedidos.length}
@@ -448,6 +417,35 @@ export default function EntregasPage() {
                   placeholder="Apt 101, Bloco A"
                 />
               </div>
+
+              {/* Toggle Entrega/Retirada */}
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-2 block">Tipo de Serviço</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setColetaForm({ ...coletaForm, tipoEntrega: 'entrega' })}
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
+                      coletaForm.tipoEntrega === 'entrega'
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    🚚 Entrega
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setColetaForm({ ...coletaForm, tipoEntrega: 'retirada' })}
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
+                      coletaForm.tipoEntrega === 'retirada'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    🏠 Retirada
+                  </button>
+                </div>
+              </div>
             </div>
 
             <Button
@@ -461,26 +459,17 @@ export default function EntregasPage() {
                     return;
                   }
 
-                  // Converte Plus Code para coordenadas se necessário
+                  // Processa coordenadas se fornecidas (formato: lat,lng)
                   let coordinates = null;
-                  if (coletaForm.plusCode) {
-                    // Verifica se já é coordenada (formato: lat,lng)
-                    if (coletaForm.plusCode.includes(',')) {
-                      const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
-                      if (!isNaN(lat) && !isNaN(lng)) {
-                        coordinates = JSON.stringify({ lat, lng });
-                      }
-                    } else {
-                      // Tenta converter Plus Code
-                      const coords = plusCodeToCoordinates(coletaForm.plusCode);
-                      if (coords) {
-                        coordinates = JSON.stringify(coords);
-                      }
+                  if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
+                    const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                      coordinates = JSON.stringify({ lat, lng });
                     }
                   }
 
                   // Cria o cliente
-                  const { error } = await supabase
+                  const { data: clientData, error: clientError } = await supabase
                     .from('clients')
                     .insert({
                       name: coletaForm.name,
@@ -488,13 +477,41 @@ export default function EntregasPage() {
                       plus_code: coletaForm.plusCode || null,
                       coordinates: coordinates,
                       complement: coletaForm.complement || null
+                    })
+                    .select()
+                    .single();
+
+                  if (clientError) throw clientError;
+
+                  // Gera número da OS
+                  const { data: lastOS } = await supabase
+                    .from('service_orders')
+                    .select('os_number')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                  const lastNumber = lastOS?.os_number ? parseInt(lastOS.os_number) : 0;
+                  const newOsNumber = String(lastNumber + 1).padStart(6, '0');
+
+                  // Cria a OS com status "Coleta"
+                  const { error: osError } = await supabase
+                    .from('service_orders')
+                    .insert({
+                      os_number: newOsNumber,
+                      client_id: clientData.id,
+                      status: 'Coleta',
+                      tipo_entrega: coletaForm.tipoEntrega,
+                      total_price: 0,
+                      paid_amount: 0
                     });
 
-                  if (error) throw error;
+                  if (osError) throw osError;
 
-                  toast.success('Cliente cadastrado com sucesso!');
+                  toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
-                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '' });
+                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', tipoEntrega: 'entrega' });
+                  fetchPedidos();
                 } catch (error: any) {
                   console.error('Erro ao cadastrar cliente:', error);
                   toast.error('Erro ao cadastrar: ' + error.message);
