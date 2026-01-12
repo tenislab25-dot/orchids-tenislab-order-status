@@ -339,6 +339,7 @@ export default function OSViewPage() {
   const [deletePhotoModalOpen, setDeletePhotoModalOpen] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<{itemIdx: number, photoIdx: number, type: 'before' | 'after'} | null>(null);
   const [uploadingAfterPhoto, setUploadingAfterPhoto] = useState<number | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   const handleAddAfterPhoto = async (itemIdx: number, file: File) => {
     if (!order) return;
@@ -347,11 +348,13 @@ export default function OSViewPage() {
     
     try {
       // Comprime a imagem para não ficar pesada no banco de dados
+      setUploadProgress("Comprimindo imagem...");
       const compressedFile = await compressImage(file, 1080, 0.7);
       const fileExt = 'jpg';
       const fileName = `${order.id}_item${itemIdx}_after_${Date.now()}.${fileExt}`;
       const filePath = `service-orders/${fileName}`;
       
+      setUploadProgress("Enviando foto...");
       const { error: uploadError } = await supabase.storage
         .from('photos')
         .upload(filePath, compressedFile);
@@ -366,6 +369,7 @@ export default function OSViewPage() {
       const currentPhotosAfter = newItems[itemIdx].photosAfter || [];
       newItems[itemIdx].photosAfter = [...currentPhotosAfter, publicUrl];
       
+      setUploadProgress("Salvando...");
       const { error: updateError } = await supabase
         .from("service_orders")
         .update({ items: newItems })
@@ -380,6 +384,7 @@ export default function OSViewPage() {
       toast.error("Erro ao adicionar foto: " + (error.message || "Erro desconhecido"));
     } finally {
       setUploadingAfterPhoto(null);
+      setUploadProgress("");
     }
   };
 
@@ -978,7 +983,12 @@ export default function OSViewPage() {
                                 }}
                               />
                               {uploadingAfterPhoto === idx ? (
-                                <Loader2 className="w-6 h-6 text-green-500 animate-spin" />
+                                <div className="flex flex-col items-center gap-1">
+                                  <Loader2 className="w-6 h-6 text-green-500 animate-spin" />
+                                  {uploadProgress && (
+                                    <span className="text-[8px] font-bold text-green-600">{uploadProgress}</span>
+                                  )}
+                                </div>
                               ) : (
                                 <>
                                   <Camera className="w-6 h-6 text-green-500" />
