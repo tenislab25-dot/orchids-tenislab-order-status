@@ -28,8 +28,7 @@ export default function EntregasPage() {
     name: '',
     phone: '',
     plusCode: '',
-    complement: '',
-    tipoEntrega: 'entrega' as 'entrega' | 'retirada'
+    complement: ''
   });
   const [savingColeta, setSavingColeta] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -262,8 +261,8 @@ export default function EntregasPage() {
               onDragEnd={handleDragEnd}
               className={`${draggedIndex === index ? 'opacity-50' : ''} cursor-move`}
             >
-              <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden rounded-[2.5rem] bg-white animate-in fade-in slide-in-from-bottom-4">
-                <CardContent className="p-6 sm:p-8 space-y-6">
+              <Card className="border-none shadow-lg shadow-slate-200/50 overflow-hidden rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4">
+                <CardContent className="p-4 space-y-3">
                   {/* Cabeçalho do Card com Botões de Reordenação */}
                   <div className="flex justify-between items-start gap-3">
                     {/* Botões de Reordenação */}
@@ -299,7 +298,7 @@ export default function EntregasPage() {
                           <Hash className="w-3 h-3" />
                           <span className="text-xs font-black uppercase tracking-widest">{pedido.os_number}</span>
                         </div>
-                        <h2 className="text-2xl font-black text-slate-900 leading-tight">
+                        <h2 className="text-lg font-black text-slate-900 leading-tight">
                           {pedido.clients?.name || "Cliente não identificado"}
                         </h2>
                       </div>
@@ -310,7 +309,7 @@ export default function EntregasPage() {
                   </div>
 
                 {/* Informações de Endereço e Contato */}
-                <div className="bg-slate-50 rounded-3xl p-5 space-y-4">
+                <div className="bg-slate-50 rounded-2xl p-3 space-y-2">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
                       <MapPin className="w-4 h-4 text-blue-600" />
@@ -335,10 +334,10 @@ export default function EntregasPage() {
                 </div>
 
                 {/* Botões de Navegação e Contato */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <Button 
                     variant="outline" 
-                    className="h-14 rounded-2xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
+                    className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
                     onClick={() => {
                       const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
                       window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
@@ -348,7 +347,7 @@ export default function EntregasPage() {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="h-14 rounded-2xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
+                    className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
                     onClick={() => {
                       const phone = pedido.clients?.phone?.replace(/\D/g, "");
                       const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
@@ -502,34 +501,7 @@ export default function EntregasPage() {
                 />
               </div>
 
-              {/* Toggle Entrega/Retirada */}
-              <div>
-                <label className="text-sm font-bold text-slate-700 mb-2 block">Tipo de Serviço</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setColetaForm({ ...coletaForm, tipoEntrega: 'entrega' })}
-                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
-                      coletaForm.tipoEntrega === 'entrega'
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    🚚 Entrega
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setColetaForm({ ...coletaForm, tipoEntrega: 'retirada' })}
-                    className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all ${
-                      coletaForm.tipoEntrega === 'retirada'
-                        ? 'bg-purple-600 text-white shadow-lg'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    🏠 Retirada
-                  </button>
-                </div>
-              </div>
+
             </div>
 
             <Button
@@ -593,7 +565,6 @@ export default function EntregasPage() {
                       os_number: newOsNumber,
                       client_id: clientData.id,
                       status: 'Coleta',
-                      tipo_entrega: coletaForm.tipoEntrega,
                       total_price: 0,
                       paid_amount: 0
                     });
@@ -602,7 +573,7 @@ export default function EntregasPage() {
 
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
-                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', tipoEntrega: 'entrega' });
+                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '' });
                   setSelectedClient(null);
                   setShowSuggestions(false);
                   setClienteSuggestions([]);
@@ -615,17 +586,9 @@ export default function EntregasPage() {
                 }
               }}
               disabled={savingColeta}
-              className={`w-full h-14 rounded-xl text-white font-black ${
-                coletaForm.tipoEntrega === 'entrega'
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-purple-600 hover:bg-purple-700'
-              }`}
+              className="w-full h-14 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black"
             >
-              {savingColeta ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                coletaForm.tipoEntrega === 'entrega' ? '🚚 Salvar e Adicionar à Rota' : '🏠 Cadastrar Cliente'
-              )}
+              {savingColeta ? <Loader2 className="animate-spin" /> : '🏠 Cadastrar Cliente'}
             </Button>
           </div>
         </div>
