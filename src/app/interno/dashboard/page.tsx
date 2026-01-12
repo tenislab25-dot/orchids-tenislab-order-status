@@ -638,8 +638,9 @@ export default function DashboardPage() {
       .reduce((acc, o) => acc + Number(o.total || 0), 0);
     
     const pendingCollections = orders.filter(o => o.status === "Coleta").length;
+    const pendingCompletion = orders.filter(o => o.status === "Recebido" && (!o.items || o.items.length === 0)).length;
 
-    return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount, pendingCollections };
+    return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount, pendingCollections, pendingCompletion };
   }, [orders]);
 
   return (
@@ -742,6 +743,48 @@ export default function DashboardPage() {
                     <Link href="/interno/entregas">
                       <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl h-12 px-6">
                         Ver Coletas
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+          {metrics.pendingCompletion > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="overflow-hidden"
+            >
+              <Card className="border-orange-200 bg-orange-50 rounded-2xl shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-orange-600 flex items-center justify-center">
+                      <AlertTriangle className="w-7 h-7 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-black text-orange-900 mb-1">
+                        ⚠️ {metrics.pendingCompletion} OS Coletada{metrics.pendingCompletion > 1 ? 's' : ''} Aguardando Cadastro!
+                      </h3>
+                      <p className="text-sm text-orange-700 font-medium">
+                        Tênis já coletado! Complete o cadastro da OS com serviços, fotos e valores.
+                      </p>
+                    </div>
+                    <Link href="/interno/dashboard">
+                      <Button 
+                        className="bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl h-12 px-6"
+                        onClick={() => {
+                          // Rola até a lista de OS
+                          setTimeout(() => {
+                            const osList = document.querySelector('[data-os-list]');
+                            if (osList) {
+                              osList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                          }, 100);
+                        }}
+                      >
+                        Concluir Cadastro
                       </Button>
                     </Link>
                   </div>
@@ -871,7 +914,7 @@ export default function DashboardPage() {
         )}
       </section>
 
-      <section className="flex flex-col gap-4 sm:gap-6">
+      <section className="flex flex-col gap-4 sm:gap-6" data-os-list>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <h2 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
