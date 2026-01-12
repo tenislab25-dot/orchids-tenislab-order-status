@@ -661,6 +661,39 @@ export default function EditOSPage() {
                     onChange={(e) => setDeliveryDate(e.target.value)}
                     className="h-11 bg-white border-blue-200 focus:border-blue-500 ring-blue-500 rounded-xl text-xs"
                   />
+                  <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {[
+                      { label: "1 dia", days: 1 },
+                      { label: "3 dias", days: 3 },
+                      { label: "5 dias", days: 5 },
+                      { label: "7 dias", days: 7 }
+                    ].map((shortcut) => (
+                      <Button
+                        key={shortcut.label}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl h-10 px-0 text-[10px] font-bold bg-white border-slate-200 text-slate-600 active:bg-blue-50 active:text-blue-600 active:border-blue-200"
+                        onClick={() => {
+                          const addBusinessDays = (date: Date, days: number) => {
+                            let count = 0;
+                            const newDate = new Date(date);
+                            while (count < days) {
+                              newDate.setDate(newDate.getDate() + 1);
+                              if (newDate.getDay() !== 0 && newDate.getDay() !== 6) {
+                                count++;
+                              }
+                            }
+                            return newDate;
+                          };
+                          const date = addBusinessDays(new Date(), shortcut.days);
+                          setDeliveryDate(date.toISOString().split('T')[0]);
+                        }}
+                      >
+                        {shortcut.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
