@@ -528,6 +528,15 @@ export default function DashboardPage() {
               </div>
               <div className="flex flex-col items-end gap-1">
                 {getStatusBadge(order.status)}
+                {(order as any).tipo_entrega && (
+                  <Badge className={`${
+                    (order as any).tipo_entrega === 'entrega' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'bg-purple-50 text-purple-600'
+                  } border-none px-2 py-0.5 text-[9px] font-bold`}>
+                    {(order as any).tipo_entrega === 'entrega' ? '🚚 ENTREGA' : '🏠 RETIRADA'}
+                  </Badge>
+                )}
                 {order.delivery_date && (
                   <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-tight flex items-center gap-1 ${isOverdue ? 'text-red-500 animate-pulse' : 'text-slate-900'}`}>
                     ENTREGA: {new Date(order.delivery_date).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}

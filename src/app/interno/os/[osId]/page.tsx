@@ -785,7 +785,18 @@ export default function OSViewPage() {
                   </div>
                 )}
               </div>
-              {getStatusBadge(order.status)}
+              <div className="flex flex-col items-end gap-2">
+                {getStatusBadge(order.status)}
+                {(order as any).tipo_entrega && (
+                  <Badge className={`${
+                    (order as any).tipo_entrega === 'entrega' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'bg-purple-50 text-purple-600'
+                  } border-none px-3 py-1 font-bold text-xs`}>
+                    {(order as any).tipo_entrega === 'entrega' ? '🚚 Entrega' : '🏠 Retirada'}
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {(role === "ADMIN" || role === "ATENDENTE") && (
