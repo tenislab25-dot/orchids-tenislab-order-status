@@ -636,8 +636,10 @@ export default function DashboardPage() {
     const pendingAmount = orders
       .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
       .reduce((acc, o) => acc + Number(o.total || 0), 0);
+    
+    const pendingCollections = orders.filter(o => o.status === "Coleta").length;
 
-    return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount };
+    return { sneakersMonth, pendingAcceptance, inProduction, overdue, pendingPayments, pendingAmount, pendingCollections };
   }, [orders]);
 
   return (
@@ -716,6 +718,37 @@ export default function DashboardPage() {
         </div>
 
         <AnimatePresence>
+          {metrics.pendingCollections > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="overflow-hidden"
+            >
+              <Card className="border-purple-200 bg-purple-50 rounded-2xl shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-600 flex items-center justify-center">
+                      <Package className="w-7 h-7 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-black text-purple-900 mb-1">
+                        📦 {metrics.pendingCollections} Coleta{metrics.pendingCollections > 1 ? 's' : ''} Pendente{metrics.pendingCollections > 1 ? 's' : ''}!
+                      </h3>
+                      <p className="text-sm text-purple-700 font-medium">
+                        Você tem coletas agendadas que precisam ser realizadas. Acesse a página de Entregas para visualizar.
+                      </p>
+                    </div>
+                    <Link href="/interno/entregas">
+                      <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl h-12 px-6">
+                        Ver Coletas
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
           {showAlerts && alerts.length > 0 && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}

@@ -368,7 +368,16 @@ export default function EntregasPage() {
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
-                  {pedido.status === "Pronto" ? (
+                  {pedido.status === "Coleta" ? (
+                    <Button 
+                      className="w-full h-16 rounded-[1.5rem] bg-purple-600 hover:bg-purple-700 text-white font-black text-lg gap-3 shadow-xl shadow-purple-100"
+                      onClick={() => atualizarStatus(pedido, "Recebido")}
+                      disabled={updating === pedido.id}
+                    >
+                      {updating === pedido.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
+                      COLETADO - CRIAR OS
+                    </Button>
+                  ) : pedido.status === "Pronto" ? (
                     <Button 
                       className="w-full h-16 rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg gap-3 shadow-xl shadow-slate-200"
                       onClick={() => atualizarStatus(pedido, "Em Rota")}
