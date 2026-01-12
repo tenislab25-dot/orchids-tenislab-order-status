@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
   Truck, Loader2, Package, XCircle, Phone, MessageCircle,
-  Clock, Hash, Download, UserPlus
+  Clock, Hash, Download, UserPlus, ChevronUp, ChevronDown, GripVertical
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -31,6 +31,44 @@ export default function EntregasPage() {
     complement: ''
   });
   const [savingColeta, setSavingColeta] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const moveUp = (index: number) => {
+    if (index === 0) return;
+    const newPedidos = [...pedidos];
+    [newPedidos[index - 1], newPedidos[index]] = [newPedidos[index], newPedidos[index - 1]];
+    setPedidos(newPedidos);
+    toast.success('Ordem atualizada');
+  };
+
+  const moveDown = (index: number) => {
+    if (index === pedidos.length - 1) return;
+    const newPedidos = [...pedidos];
+    [newPedidos[index], newPedidos[index + 1]] = [newPedidos[index + 1], newPedidos[index]];
+    setPedidos(newPedidos);
+    toast.success('Ordem atualizada');
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const newPedidos = [...pedidos];
+    const draggedItem = newPedidos[draggedIndex];
+    newPedidos.splice(draggedIndex, 1);
+    newPedidos.splice(index, 0, draggedItem);
+    
+    setPedidos(newPedidos);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
 
   const handleExportRoute = () => {
     try {
@@ -209,24 +247,61 @@ export default function EntregasPage() {
             <p className="text-slate-500 font-bold">Nenhuma entrega pendente no momento.</p>
           </div>
         ) : (
-          pedidos.map((pedido) => (
-            <Card key={pedido.id} className="border-none shadow-xl shadow-slate-200/50 overflow-hidden rounded-[2.5rem] bg-white animate-in fade-in slide-in-from-bottom-4">
-              <CardContent className="p-6 sm:p-8 space-y-6">
-                {/* Cabeçalho do Card */}
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Hash className="w-3 h-3" />
-                      <span className="text-xs font-black uppercase tracking-widest">{pedido.os_number}</span>
+          pedidos.map((pedido, index) => (
+            <div
+              key={pedido.id}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`${draggedIndex === index ? 'opacity-50' : ''} cursor-move`}
+            >
+              <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden rounded-[2.5rem] bg-white animate-in fade-in slide-in-from-bottom-4">
+                <CardContent className="p-6 sm:p-8 space-y-6">
+                  {/* Cabeçalho do Card com Botões de Reordenação */}
+                  <div className="flex justify-between items-start gap-3">
+                    {/* Botões de Reordenação */}
+                    <div className="flex flex-col gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveUp(index)}
+                        disabled={index === 0}
+                        className="h-8 w-8 rounded-lg hover:bg-slate-100 disabled:opacity-30"
+                      >
+                        <ChevronUp className="w-4 h-4 text-slate-600" />
+                      </Button>
+                      <div className="flex items-center justify-center">
+                        <GripVertical className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveDown(index)}
+                        disabled={index === pedidos.length - 1}
+                        className="h-8 w-8 rounded-lg hover:bg-slate-100 disabled:opacity-30"
+                      >
+                        <ChevronDown className="w-4 h-4 text-slate-600" />
+                      </Button>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 leading-tight">
-                      {pedido.clients?.name || "Cliente não identificado"}
-                    </h2>
+
+                    {/* Informações do Pedido */}
+                    <div className="flex-1 flex justify-between items-start">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <span className="text-sm font-black text-blue-600">#{index + 1}</span>
+                          <Hash className="w-3 h-3" />
+                          <span className="text-xs font-black uppercase tracking-widest">{pedido.os_number}</span>
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 leading-tight">
+                          {pedido.clients?.name || "Cliente não identificado"}
+                        </h2>
+                      </div>
+                      <Badge className={`${pedido.status === 'Em Rota' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'} border-none font-bold px-3 py-1`}>
+                        {pedido.status === 'Em Rota' ? 'EM ROTA' : 'PRONTO'}
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge className={`${pedido.status === 'Em Rota' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'} border-none font-bold px-3 py-1`}>
-                    {pedido.status === 'Em Rota' ? 'EM ROTA' : 'PRONTO'}
-                  </Badge>
-                </div>
 
                 {/* Informações de Endereço e Contato */}
                 <div className="bg-slate-50 rounded-3xl p-5 space-y-4">
@@ -313,6 +388,7 @@ export default function EntregasPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           ))
         )}
       </main>
