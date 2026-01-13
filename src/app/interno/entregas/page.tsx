@@ -634,9 +634,38 @@ export default function EntregasPage() {
 
                   let clientData;
                   
-                  // Se já selecionou um cliente existente, usa ele
+                  // Se já selecionou um cliente existente, atualiza os dados dele
                   if (selectedClient) {
-                    clientData = selectedClient;
+                    // Processa coordenadas se fornecidas (formato: lat,lng)
+                    let coordinates = null;
+                    if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
+                      const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
+                      if (!isNaN(lat) && !isNaN(lng)) {
+                        coordinates = JSON.stringify({ lat, lng });
+                      }
+                    }
+
+                    // Atualiza dados do cliente existente
+                    const { error: updateError } = await supabase
+                      .from('clients')
+                      .update({
+                        phone: coletaForm.phone,
+                        plus_code: coletaForm.plusCode || null,
+                        coordinates: coordinates,
+                        complement: coletaForm.complement || null
+                      })
+                      .eq('id', selectedClient.id);
+
+                    if (updateError) throw updateError;
+                    
+                    // Atualiza clientData com os novos valores
+                    clientData = {
+                      ...selectedClient,
+                      phone: coletaForm.phone,
+                      plus_code: coletaForm.plusCode || null,
+                      coordinates: coordinates,
+                      complement: coletaForm.complement || null
+                    };
                   } else {
                     // Processa coordenadas se fornecidas (formato: lat,lng)
                     let coordinates = null;
