@@ -98,7 +98,6 @@ export default function EditOSPage() {
 
 
   const handleAddPhoto = async (itemId: string, file: File) => {
-    setUploadingPhoto(itemId);
     try {
       const compressedFile = await compressImage(file, 1080, 0.7);
       const fileExt = 'jpg';
@@ -122,11 +121,8 @@ export default function EditOSPage() {
         }
         return it;
       }));
-      toast.success("Foto adicionada!");
     } catch (error: any) {
       toast.error("Erro ao adicionar foto: " + error.message);
-    } finally {
-      setUploadingPhoto(null);
     }
   };
 
@@ -488,11 +484,19 @@ export default function EditOSPage() {
                                 <input 
                                   type="file" 
                                   accept="image/*" 
+                                  multiple
                                   className="hidden"
                                   disabled={uploadingPhoto === item.id}
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleAddPhoto(item.id, file);
+                                  onChange={async (e) => {
+                                    const files = Array.from(e.target.files || []);
+                                    if (files.length > 0) {
+                                      setUploadingPhoto(item.id);
+                                      for (const file of files) {
+                                        await handleAddPhoto(item.id, file);
+                                      }
+                                      setUploadingPhoto(null);
+                                      toast.success(`${files.length} foto${files.length > 1 ? 's' : ''} adicionada${files.length > 1 ? 's' : ''}!`);
+                                    }
                                     e.target.value = '';
                                   }}
                                 />
