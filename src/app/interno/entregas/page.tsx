@@ -122,19 +122,40 @@ export default function EntregasPage() {
       // Coletar coordenadas dos pedidos
       const waypoints = pedidos
         .map(p => {
+          // Priorizar coordenadas diretas, fallback para plus_code
+          const coords = p.clients?.coordinates;
           const plusCode = p.clients?.plus_code;
-          if (!plusCode) return null;
-          return {
-            id: p.id,
-            location: plusCode,
-            osNumber: p.os_number,
-            clientName: p.clients?.name
-          };
+          
+          if (coords) {
+            // Coordenadas no formato "lat,lng"
+            const [lat, lng] = coords.split(',').map(c => parseFloat(c.trim()));
+            if (!isNaN(lat) && !isNaN(lng)) {
+              return {
+                id: p.id,
+                lat,
+                lng,
+                osNumber: p.os_number,
+                clientName: p.clients?.name
+              };
+            }
+          }
+          
+          // Fallback para Plus Code (requer Geocoding API)
+          if (plusCode) {
+            return {
+              id: p.id,
+              location: plusCode,
+              osNumber: p.os_number,
+              clientName: p.clients?.name
+            };
+          }
+          
+          return null;
         })
         .filter(Boolean);
 
       if (waypoints.length < 2) {
-        toast.error('É necessário pelo menos 2 entregas com Plus Code para otimizar');
+        toast.error('É necessário pelo menos 2 entregas com localização para otimizar');
         return;
       }
 
