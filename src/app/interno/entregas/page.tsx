@@ -558,6 +558,7 @@ export default function EntregasPage() {
                   // Validações
                   if (!coletaForm.name || !coletaForm.phone) {
                     toast.error('Preencha nome e telefone');
+                    setSavingColeta(false);
                     return;
                   }
 
@@ -577,7 +578,7 @@ export default function EntregasPage() {
                     }
 
                     // Cria novo cliente
-                    const { data: newClient, error: clientError } = await supabase
+                    const { data: newClientData, error: clientError } = await supabase
                       .from('clients')
                       .insert({
                         name: coletaForm.name,
@@ -586,11 +587,11 @@ export default function EntregasPage() {
                         coordinates: coordinates,
                         complement: coletaForm.complement || null
                       })
-                      .select()
-                      .single();
+                      .select();
 
                     if (clientError) throw clientError;
-                    clientData = newClient;
+                    clientData = newClientData && newClientData.length > 0 ? newClientData[0] : null;
+                    if (!clientData) throw new Error('Erro ao criar cliente');
                   }
 
                   // Gera número da OS no formato 000001/2026
