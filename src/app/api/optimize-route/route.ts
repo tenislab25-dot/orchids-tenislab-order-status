@@ -24,46 +24,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Total de waypoints recebidos:', waypoints.length);
+    console.log('Waypoints:', JSON.stringify(waypoints, null, 2));
+
     // Converter Plus Codes para coordenadas usando Google Geocoding API
-    const coordinates = await Promise.all(
-      waypoints.map(async (wp: any) => {
-        try {
-          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(wp.location)}&key=${apiKey}`;
-          console.log('Geocoding:', wp.location);
-          
-          const geocodeResponse = await fetch(geocodeUrl);
-          const geocodeData = await geocodeResponse.json();
-          
-          console.log('Geocode status:', geocodeData.status);
-          if (geocodeData.error_message) {
-            console.error('Geocode error:', geocodeData.error_message);
-          }
-          
-          if (geocodeData.results && geocodeData.results[0]) {
-            const { lat, lng } = geocodeData.results[0].geometry.location;
-            return {
-              id: wp.id,
-              lat,
-              lng,
-              location: wp.location
-            };
-          }
-          return null;
-        } catch (error) {
-          console.error(`Erro ao geocodificar ${wp.location}:`, error);
-          return null;
+    const geocodeResults = [];
+    for (const wp of waypoints) {
+      try {
+        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(wp.location)}&key=${apiKey}`;
+        console.log(`Geocoding [${wp.osNumber}]:`, wp.location);
+        
+        const geocodeResponse = await fetch(geocodeUrl);
+        const geocodeData = await geocodeResponse.json();
+        
+        console.log(`Geocode status [${wp.osNumber}]:`, geocodeData.status);
+        
+        if (geocodeData.error_message) {
+          console.error(`Geocode error [${wp.osNumber}]:`, geocodeData.error_message);
         }
-      })
-    );
+        
+        if (geocodeData.status === 'REQUEST_DENIED') {
+          return NextResponse.json(
+            { error: `API Key inválida ou sem permissão: ${geocodeData.error_message}` },
+            { status: 403 }
+          );
+        }
+        
+        if (geocodeData.results && geocodeData.results[0]) {
+          const { lat, lng } = geocodeData.results[0].geometry.location;
+          console.log(`Sucesso [${wp.osNumber}]:`, lat, lng);
+          geocodeResults.push({
+            id: wp.id,
+            lat,
+            lng,
+            location: wp.location,
+            osNumber: wp.osNumber
+          });
+        } else {
+          console.warn(`Não encontrou coordenadas para [${wp.osNumber}]:`, wp.location);
+        }
+      } catch (error) {
+        console.error(`Erro ao geocodificar [${wp.osNumber}] ${wp.location}:`, error);
+      }
+    }
 
-    const validCoordinates = coordinates.filter(Boolean);
+    console.log('Total de coordenadas válidas:', geocodeResults.length);
 
-    if (validCoordinates.length < 2) {
+    if (geocodeResults.length < 2) {
       return NextResponse.json(
-        { error: 'Não foi possível geocodificar os endereços' },
+        { error: `Apenas ${geocodeResults.length} endereço(s) puderam ser geocodificados. É necessário pelo menos 2 endereços válidos.` },
         { status: 400 }
       );
     }
+
+    const validCoordinates = geocodeResults;
 
     // Usar algoritmo simples de vizinho mais próximo para otimizar
     // (Para produção, considere usar Google Routes API ou Directions API)
