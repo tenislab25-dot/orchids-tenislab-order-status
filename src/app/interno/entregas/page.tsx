@@ -35,6 +35,7 @@ export default function EntregasPage() {
   const [clienteSuggestions, setClienteSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -109,26 +110,65 @@ export default function EntregasPage() {
 
   const handleOptimizeRoute = async () => {
     try {
-      // TODO: Implementar integração com Google Routes API
-      // Por enquanto, apenas mostra mensagem informativa
-      toast.info('Funcionalidade de otimização de rota em desenvolvimento. Configure a API Key do Google Routes para usar.');
-      
-      // Estrutura preparada para futura implementação:
-      // 1. Coletar endereços dos pedidos
-      // 2. Enviar para Google Routes API
-      // 3. Receber rota otimizada
-      // 4. Reordenar pedidos conforme rota
+      toast.info('Otimizando rota...');
+
+      // Verificar se há API key configurada
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      if (!apiKey || apiKey === 'your_google_maps_api_key_here') {
+        toast.error('Configure a API Key do Google Maps no arquivo .env.local');
+        return;
+      }
+
+      // Coletar coordenadas dos pedidos
+      const waypoints = pedidos
+        .map(p => {
+          const plusCode = p.clients?.plus_code;
+          if (!plusCode) return null;
+          return {
+            id: p.id,
+            location: plusCode,
+            osNumber: p.os_number,
+            clientName: p.clients?.name
+          };
+        })
+        .filter(Boolean);
+
+      if (waypoints.length < 2) {
+        toast.error('É necessário pelo menos 2 entregas com Plus Code para otimizar');
+        return;
+      }
+
+      // Chamar API de otimização de rotas
+      const response = await fetch('/api/optimize-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ waypoints })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao otimizar rota');
+      }
+
+      const { optimizedOrder } = await response.json();
+
+      // Reordenar pedidos conforme rota otimizada
+      const reordered = optimizedOrder.map((id: string) => 
+        pedidos.find(p => p.id === id)
+      ).filter(Boolean);
+
+      setPedidos(reordered);
+      toast.success('Rota otimizada com sucesso!');
       
     } catch (error) {
       console.error('Erro ao otimizar rota:', error);
-      toast.error('Erro ao otimizar rota');
+      toast.error('Erro ao otimizar rota. Verifique a configuração da API Key.');
     }
   };
 
   const fetchPedidos = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from("service_orders")
         .select(`
           *,
@@ -139,8 +179,21 @@ export default function EntregasPage() {
             coordinates,
             complement
           )
-        `)
-        .order("updated_at", { ascending: false });
+        `);
+
+      // Filtrar por data se selecionada
+      if (selectedDate) {
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        query = query
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
+      }
+
+      const { data, error } = await query.order("updated_at", { ascending: false });
 
       if (error) throw error;
 
@@ -165,7 +218,7 @@ export default function EntregasPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchPedidos();
@@ -246,6 +299,26 @@ export default function EntregasPage() {
               {pedidos.length}
             </Badge>
           </div>
+        </div>
+        {/* Filtro de Data */}
+        <div className="max-w-2xl mx-auto mt-4 flex items-center gap-3">
+          <label className="text-sm font-bold text-slate-300">Filtrar por data:</label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="px-3 py-2 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+          {selectedDate && (
+            <Button
+              onClick={() => setSelectedDate('')}
+              size="sm"
+              variant="ghost"
+              className="text-slate-300 hover:text-white hover:bg-slate-800"
+            >
+              Limpar
+            </Button>
+          )}
         </div>
       </header>
 
