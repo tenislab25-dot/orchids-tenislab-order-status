@@ -351,7 +351,7 @@ export default function EntregasPage() {
                           <div className="flex items-center gap-1 text-slate-400 mt-1">
                             <Clock className="w-3 h-3" />
                             <span className="text-xs font-medium">
-                              {format(new Date(pedido.delivery_date), "dd/MM/yyyy", { locale: ptBR })}
+                              {pedido.delivery_date.split('-').reverse().join('/')}
                             </span>
                           </div>
                         )}
