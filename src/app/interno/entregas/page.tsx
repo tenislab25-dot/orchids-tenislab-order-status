@@ -35,7 +35,6 @@ export default function EntregasPage() {
   const [clienteSuggestions, setClienteSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -181,18 +180,6 @@ export default function EntregasPage() {
           )
         `);
 
-      // Filtrar por data se selecionada
-      if (selectedDate) {
-        const startOfDay = new Date(selectedDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(selectedDate);
-        endOfDay.setHours(23, 59, 59, 999);
-        
-        query = query
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
-      }
-
       const { data, error } = await query.order("updated_at", { ascending: false });
 
       if (error) throw error;
@@ -218,7 +205,7 @@ export default function EntregasPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate]);
+  }, []);
 
   useEffect(() => {
     fetchPedidos();
@@ -300,26 +287,6 @@ export default function EntregasPage() {
             </Badge>
           </div>
         </div>
-        {/* Filtro de Data */}
-        <div className="max-w-2xl mx-auto mt-4 flex items-center gap-3">
-          <label className="text-sm font-bold text-slate-300">Filtrar por data:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-3 py-2 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          />
-          {selectedDate && (
-            <Button
-              onClick={() => setSelectedDate('')}
-              size="sm"
-              variant="ghost"
-              className="text-slate-300 hover:text-white hover:bg-slate-800"
-            >
-              Limpar
-            </Button>
-          )}
-        </div>
       </header>
 
       <main className="p-4 max-w-2xl mx-auto w-full space-y-6 mt-4">
@@ -378,6 +345,12 @@ export default function EntregasPage() {
                         <h2 className="text-lg font-black text-slate-900 leading-tight">
                           {pedido.clients?.name || "Cliente não identificado"}
                         </h2>
+                        <div className="flex items-center gap-1 text-slate-400 mt-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="text-xs font-medium">
+                            {format(new Date(pedido.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
                       </div>
                       <Badge className={`${
                         pedido.status === 'Coleta' ? 'bg-purple-100 text-purple-700' :
@@ -414,9 +387,16 @@ export default function EntregasPage() {
                   </div>
                 </div>
 
-                {/* Botões de Navegação e Contato */}
-                <div className="grid grid-cols-2 gap-2">
+                {/* Botões de Navegação e Comunicação */}
+                <div className="grid grid-cols-3 gap-2">
                   <Button 
+                    variant="outline" 
+                    className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
+                    onClick={() => router.push(`/interno/entregas/editar/${pedido.id}`)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                    Editar
+                  </Button>               <Button 
                     variant="outline" 
                     className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
                     onClick={() => {
