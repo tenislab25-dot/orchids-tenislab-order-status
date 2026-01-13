@@ -290,22 +290,23 @@ export default function EntregasPage() {
         </div>
       </header>
 
-      <main className="p-4 max-w-2xl mx-auto w-full space-y-6 mt-4">
+      <main className="p-4 w-full mt-4">
         {pedidos.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 shadow-sm">
+          <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 shadow-sm max-w-2xl mx-auto">
             <Package className="w-16 h-16 text-slate-200 mx-auto mb-4" />
             <p className="text-slate-500 font-bold">Nenhuma entrega pendente no momento.</p>
           </div>
         ) : (
-          pedidos.map((pedido, index) => (
-            <div
-              key={pedido.id}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`${draggedIndex === index ? 'opacity-50' : ''} cursor-move`}
-            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {pedidos.map((pedido, index) => (
+              <div
+                key={pedido.id}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`${draggedIndex === index ? 'opacity-50' : ''} cursor-move`}
+              >
               <Card className="border-none shadow-lg shadow-slate-200/50 overflow-hidden rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4">
                 <CardContent className="p-4 space-y-3">
                   {/* Cabeçalho do Card com Botões de Reordenação */}
@@ -496,7 +497,8 @@ export default function EntregasPage() {
               </CardContent>
             </Card>
             </div>
-          ))
+          ))}
+          </div>
         )}
       </main>
 
