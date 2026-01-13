@@ -392,44 +392,48 @@ export default function EntregasPage() {
                 </div>
 
                 {/* Botões de Navegação e Comunicação */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   <Button 
                     variant="outline" 
-                    className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
+                    size="sm"
+                    className="h-9 rounded-lg border border-slate-200 gap-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
                     onClick={() => router.push(`/interno/entregas/editar/${pedido.id}`)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                     Editar
-                  </Button>               <Button 
+                  </Button>
+                  <Button 
                     variant="outline" 
-                    className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
+                    size="sm"
+                    className="h-9 rounded-lg border border-slate-200 gap-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
                     onClick={() => {
                       const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
                       window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
                     }}
                   >
-                    <Navigation className="w-5 h-5 text-blue-500" /> Maps
+                    <Navigation className="w-3.5 h-3.5 text-blue-500" /> Maps
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="h-11 rounded-xl border-2 border-slate-100 gap-2 font-bold text-slate-700 hover:bg-slate-50"
+                    size="sm"
+                    className="h-9 rounded-lg border border-slate-200 gap-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
                     onClick={() => {
                       const phone = pedido.clients?.phone?.replace(/\D/g, "");
                       const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
                       window.open(`https://wa.me/${whatsapp}`, "_blank" );
                     }}
                   >
-                    <MessageCircle className="w-5 h-5 text-green-500" /> WhatsApp
+                    <MessageCircle className="w-3.5 h-3.5 text-green-500" /> Zap
                   </Button>
                 </div>
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
                   {pedido.status === "Coleta" ? (
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <Button 
                         variant="outline"
-                        className="flex-1 h-16 rounded-[1.5rem] border-2 border-red-100 text-red-600 font-black gap-2 hover:bg-red-50"
+                        className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm gap-1.5 hover:bg-red-50"
                         onClick={async () => {
                           if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
                             try {
@@ -451,44 +455,44 @@ export default function EntregasPage() {
                         }}
                         disabled={updating === pedido.id}
                       >
-                        {updating === pedido.id ? <Loader2 className="animate-spin" /> : <XCircle className="w-6 h-6" />}
+                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                         NÃO COLETADO
                       </Button>
                       <Button 
-                        className="flex-[2] h-16 rounded-[1.5rem] bg-purple-600 hover:bg-purple-700 text-white font-black text-lg gap-3 shadow-xl shadow-purple-100"
+                        className="flex-[2] h-12 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm gap-2 shadow-lg"
                         onClick={() => atualizarStatus(pedido, "Recebido")}
                         disabled={updating === pedido.id}
                       >
-                        {updating === pedido.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
+                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                         COLETADO
                       </Button>
                     </div>
                   ) : pedido.status === "Pronto" ? (
                     <Button 
-                      className="w-full h-16 rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white font-black text-lg gap-3 shadow-xl shadow-slate-200"
+                      className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm gap-2 shadow-lg"
                       onClick={() => atualizarStatus(pedido, "Em Rota")}
                       disabled={updating === pedido.id}
                     >
-                      {updating === pedido.id ? <Loader2 className="animate-spin" /> : <Truck className="w-6 h-6" />}
+                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
                       INICIAR ENTREGA
                     </Button>
                   ) : (
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <Button 
                         variant="outline"
-                        className="flex-1 h-16 rounded-[1.5rem] border-2 border-red-100 text-red-600 font-black gap-2 hover:bg-red-50" 
+                        className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm gap-1.5 hover:bg-red-50" 
                         onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
                         disabled={updating === pedido.id}
                       >
-                        <XCircle className="w-6 h-6" />
+                        <XCircle className="w-4 h-4" />
                         FALHOU
                       </Button>
                       <Button 
-                        className="flex-[2] h-16 rounded-[1.5rem] bg-green-600 hover:bg-green-700 text-white font-black text-lg gap-3 shadow-xl shadow-green-100"
+                        className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm gap-2 shadow-lg"
                         onClick={() => atualizarStatus(pedido, "Entregue")}
                         disabled={updating === pedido.id}
                       >
-                        {updating === pedido.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 className="w-6 h-6" />}
+                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                         ENTREGUE
                       </Button>
                     </div>

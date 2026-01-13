@@ -720,7 +720,7 @@ export default function DashboardPage() {
         </div>
 
         <AnimatePresence>
-          {metrics.pendingCollections > 0 && role !== 'operacional' && (
+          {metrics.pendingCollections > 0 && role?.toLowerCase() !== 'operacional' && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -751,7 +751,7 @@ export default function DashboardPage() {
               </Card>
             </motion.div>
           )}
-          {metrics.pendingCompletion > 0 && role !== 'operacional' && (
+          {metrics.pendingCompletion > 0 && role?.toLowerCase() !== 'operacional' && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
