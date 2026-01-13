@@ -28,7 +28,8 @@ export default function EntregasPage() {
     name: '',
     phone: '',
     plusCode: '',
-    complement: ''
+    complement: '',
+    deliveryDate: ''
   });
   const [savingColeta, setSavingColeta] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -102,7 +103,7 @@ export default function EntregasPage() {
       phone: cliente.phone,
       plusCode: cliente.plus_code || '',
       complement: cliente.complement || '',
-      tipoEntrega: 'entrega'
+      deliveryDate: ''
     });
     setShowSuggestions(false);
   };
@@ -345,12 +346,14 @@ export default function EntregasPage() {
                         <h2 className="text-lg font-black text-slate-900 leading-tight">
                           {pedido.clients?.name || "Cliente não identificado"}
                         </h2>
-                        <div className="flex items-center gap-1 text-slate-400 mt-1">
-                          <Clock className="w-3 h-3" />
-                          <span className="text-xs font-medium">
-                            {format(new Date(pedido.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                          </span>
-                        </div>
+                        {pedido.delivery_date && (
+                          <div className="flex items-center gap-1 text-slate-400 mt-1">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-xs font-medium">
+                              {format(new Date(pedido.delivery_date), "dd/MM/yyyy", { locale: ptBR })}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <Badge className={`${
                         pedido.status === 'Coleta' ? 'bg-purple-100 text-purple-700' :
@@ -600,6 +603,15 @@ export default function EntregasPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-1 block">Data da Coleta</label>
+                <input
+                  type="date"
+                  value={coletaForm.deliveryDate}
+                  onChange={(e) => setColetaForm({ ...coletaForm, deliveryDate: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
 
             </div>
 
@@ -673,6 +685,7 @@ export default function EntregasPage() {
                       client_id: clientData.id,
                       status: 'Coleta',
                       entry_date: new Date().toISOString().split('T')[0],
+                      delivery_date: coletaForm.deliveryDate || null,
                       items: [],
                       total: 0
                     });
@@ -681,7 +694,7 @@ export default function EntregasPage() {
 
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
-                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '' });
+                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: '' });
                   setSelectedClient(null);
                   setShowSuggestions(false);
                   setClienteSuggestions([]);

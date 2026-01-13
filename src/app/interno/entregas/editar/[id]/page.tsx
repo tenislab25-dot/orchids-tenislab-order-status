@@ -18,9 +18,8 @@ export default function EditarEntregaPage() {
   const [deleting, setDeleting] = useState(false);
   const [pedido, setPedido] = useState<any>(null);
   const [form, setForm] = useState({
-    os_number: '',
-    status: '',
     observations: '',
+    delivery_date: '',
     client_name: '',
     client_phone: '',
     client_plus_code: '',
@@ -60,9 +59,8 @@ export default function EditarEntregaPage() {
 
       setPedido(data);
       setForm({
-        os_number: data.os_number || '',
-        status: data.status || '',
         observations: data.observations || '',
+        delivery_date: data.delivery_date ? data.delivery_date.split('T')[0] : '',
         client_name: data.clients?.name || '',
         client_phone: data.clients?.phone || '',
         client_plus_code: data.clients?.plus_code || '',
@@ -83,10 +81,6 @@ export default function EditarEntregaPage() {
       setSaving(true);
 
       // Validações
-      if (!form.os_number.trim()) {
-        toast.error('Número da OS é obrigatório');
-        return;
-      }
       if (!form.client_name.trim()) {
         toast.error('Nome do cliente é obrigatório');
         return;
@@ -112,9 +106,8 @@ export default function EditarEntregaPage() {
       const { error: osError } = await supabase
         .from('service_orders')
         .update({
-          os_number: form.os_number,
-          status: form.status,
-          observations: form.observations
+          observations: form.observations,
+          delivery_date: form.delivery_date || null
         })
         .eq('id', params.id);
 
@@ -131,7 +124,7 @@ export default function EditarEntregaPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Confirmar exclusão da OS #${form.os_number}? Esta ação não pode ser desfeita.`)) {
+    if (!confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
       return;
     }
 
@@ -178,7 +171,7 @@ export default function EditarEntregaPage() {
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-black text-white">Editar Entrega</h1>
-              <p className="text-sm text-slate-400">OS #{form.os_number}</p>
+              <p className="text-sm text-slate-400">OS #{pedido?.os_number}</p>
             </div>
           </div>
         </div>
@@ -188,38 +181,20 @@ export default function EditarEntregaPage() {
       <main className="p-4 max-w-2xl mx-auto w-full space-y-4 mt-4">
         <Card className="border-none shadow-lg shadow-slate-200/50 rounded-2xl bg-white">
           <CardContent className="p-6 space-y-4">
-            {/* Informações da OS */}
+            {/* Informações da Entrega */}
             <div className="space-y-4">
-              <h2 className="text-lg font-black text-slate-900">Informações da OS</h2>
+              <h2 className="text-lg font-black text-slate-900">Informações da Entrega</h2>
               
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Número da OS *
+                  Data da Entrega/Coleta
                 </label>
                 <input
-                  type="text"
-                  value={form.os_number}
-                  onChange={(e) => setForm({ ...form, os_number: e.target.value })}
+                  type="date"
+                  value={form.delivery_date}
+                  onChange={(e) => setForm({ ...form, delivery_date: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
-                  placeholder="Ex: 12345"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Status
-                </label>
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="Coleta">Coleta</option>
-                  <option value="Recebido">Recebido</option>
-                  <option value="Pronto">Pronto</option>
-                  <option value="Em Rota">Em Rota</option>
-                  <option value="Entregue">Entregue</option>
-                </select>
               </div>
 
               <div>

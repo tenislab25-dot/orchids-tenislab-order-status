@@ -13,7 +13,11 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
+    console.log('API Key presente:', !!apiKey);
+    console.log('API Key primeiros caracteres:', apiKey?.substring(0, 10));
+    
     if (!apiKey || apiKey === 'your_google_maps_api_key_here') {
+      console.error('API Key não configurada');
       return NextResponse.json(
         { error: 'API Key do Google Maps não configurada' },
         { status: 500 }
@@ -24,10 +28,16 @@ export async function POST(request: NextRequest) {
     const coordinates = await Promise.all(
       waypoints.map(async (wp: any) => {
         try {
-          const geocodeResponse = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(wp.location)}&key=${apiKey}`
-          );
+          const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(wp.location)}&key=${apiKey}`;
+          console.log('Geocoding:', wp.location);
+          
+          const geocodeResponse = await fetch(geocodeUrl);
           const geocodeData = await geocodeResponse.json();
+          
+          console.log('Geocode status:', geocodeData.status);
+          if (geocodeData.error_message) {
+            console.error('Geocode error:', geocodeData.error_message);
+          }
           
           if (geocodeData.results && geocodeData.results[0]) {
             const { lat, lng } = geocodeData.results[0].geometry.location;
