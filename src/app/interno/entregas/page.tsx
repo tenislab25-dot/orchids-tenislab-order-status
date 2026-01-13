@@ -581,7 +581,7 @@ export default function EntregasPage() {
                     const { data: newClientData, error: clientError } = await supabase
                       .from('clients')
                       .insert({
-                        name: coletaForm.name,
+                        name: coletaForm.name.toUpperCase(),
                         phone: coletaForm.phone,
                         plus_code: coletaForm.plusCode || null,
                         coordinates: coordinates,
