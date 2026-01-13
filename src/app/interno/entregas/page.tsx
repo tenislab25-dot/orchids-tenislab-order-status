@@ -596,13 +596,14 @@ export default function EntregasPage() {
 
                   // Gera número da OS no formato 000001/2026
                   const currentYear = new Date().getFullYear();
-                  const { data: lastOS } = await supabase
+                  const { data: lastOSArray } = await supabase
                     .from('service_orders')
                     .select('os_number')
                     .like('os_number', `%/${currentYear}`)
                     .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
+                    .limit(1);
+                  
+                  const lastOS = lastOSArray && lastOSArray.length > 0 ? lastOSArray[0] : null;
 
                   let nextNumber = 1;
                   if (lastOS?.os_number) {
