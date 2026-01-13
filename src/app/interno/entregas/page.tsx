@@ -120,11 +120,21 @@ export default function EntregasPage() {
       }
 
       // Coletar coordenadas dos pedidos
+      console.log('Total de pedidos:', pedidos.length);
+      console.log('Pedidos:', pedidos.map(p => ({
+        id: p.id,
+        os: p.os_number,
+        coords: p.clients?.coordinates,
+        plusCode: p.clients?.plus_code
+      })));
+      
       const waypoints = pedidos
         .map(p => {
           // Priorizar coordenadas diretas, fallback para plus_code
           const coords = p.clients?.coordinates;
           const plusCode = p.clients?.plus_code;
+          
+          console.log(`Processando OS ${p.os_number}:`, { coords, plusCode });
           
           if (coords) {
             // Coordenadas no formato "lat,lng"
@@ -154,8 +164,11 @@ export default function EntregasPage() {
         })
         .filter(Boolean);
 
+      console.log('Waypoints gerados:', waypoints);
+      console.log('Total de waypoints:', waypoints.length);
+      
       if (waypoints.length < 2) {
-        toast.error('É necessário pelo menos 2 entregas com localização para otimizar');
+        toast.error(`É necessário pelo menos 2 entregas com localização para otimizar (encontrado: ${waypoints.length})`);
         return;
       }
 
