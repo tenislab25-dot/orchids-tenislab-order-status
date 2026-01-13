@@ -335,15 +335,16 @@ export default function DashboardPage() {
     }
     setChangedOrderId(orderId);
     
-    const { error, data } = await supabase
+    const { error, data: dataArray } = await supabase
       .from("service_orders")
       .update({ status: newStatus })
       .eq("id", orderId)
-      .select(`*, clients(name, phone)`)
-      .single();
+      .select(`*, clients(name, phone)`);
+    
+    const data = dataArray && dataArray.length > 0 ? dataArray[0] : null;
 
-    if (error) {
-      toast.error("Erro ao atualizar status: " + error.message);
+    if (error || !data) {
+      toast.error("Erro ao atualizar status: " + (error?.message || "Erro desconhecido"));
     } else {
       setOrders((prev) =>
         prev.map((order) =>
