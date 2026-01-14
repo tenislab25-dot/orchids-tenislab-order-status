@@ -29,7 +29,8 @@ export default function EntregasPage() {
     phone: '',
     plusCode: '',
     complement: '',
-    deliveryDate: ''
+    deliveryDate: '',
+    returnDate: ''
   });
   const [savingColeta, setSavingColeta] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -109,7 +110,8 @@ export default function EntregasPage() {
       phone: cliente.phone,
       plusCode: cliente.plus_code || '',
       complement: cliente.complement || '',
-      deliveryDate: ''
+      deliveryDate: '',
+      returnDate: ''
     });
     setShowSuggestions(false);
   };
@@ -1015,6 +1017,16 @@ export default function EntregasPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-1 block">Data de Entrega</label>
+                <input
+                  type="date"
+                  value={coletaForm.returnDate}
+                  onChange={(e) => setColetaForm({ ...coletaForm, returnDate: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
             </div>
 
             <Button
@@ -1152,7 +1164,7 @@ export default function EntregasPage() {
                   console.log('[CADASTRO] OS criada com sucesso!');
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
-                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: '' });
+                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: '', returnDate: '' });
                   setSelectedClient(null);
                   setShowSuggestions(false);
                   setClienteSuggestions([]);
