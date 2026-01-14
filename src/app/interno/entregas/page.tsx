@@ -126,13 +126,29 @@ export default function EntregasPage() {
       for (const p of pedidos) {
         let lat, lng;
         
+        console.log(`Processando OS ${p.os_number} - Cliente: ${p.clients?.name}`);
+        console.log('  Plus Code:', p.clients?.plus_code);
+        console.log('  Coordinates:', p.clients?.coordinates);
+        
         // Priorizar coordenadas diretas
         const coords = p.clients?.coordinates;
-        if (coords && coords.trim()) {
-          const parts = coords.split(',').map(c => parseFloat(c.trim()));
-          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            lat = parts[0];
-            lng = parts[1];
+        if (coords) {
+          // Tentar como string (formato: "lat,lng")
+          if (typeof coords === 'string' && coords.trim()) {
+            const parts = coords.split(',').map(c => parseFloat(c.trim()));
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+              lat = parts[0];
+              lng = parts[1];
+              console.log('  ✓ Coordenadas extraídas (string):', lat, lng);
+            }
+          }
+          // Tentar como objeto JSON
+          else if (typeof coords === 'object' && coords.lat && coords.lng) {
+            lat = parseFloat(coords.lat);
+            lng = parseFloat(coords.lng);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              console.log('  ✓ Coordenadas extraídas (objeto):', lat, lng);
+            }
           }
         }
         
@@ -154,13 +170,15 @@ export default function EntregasPage() {
               const decoded = olc.decode(code);
               lat = decoded.latitudeCenter;
               lng = decoded.longitudeCenter;
+              console.log('  ✓ Coordenadas extraídas do Plus Code:', lat, lng);
             } catch (error) {
-              console.warn(`Não foi possível decodificar Plus Code da OS ${p.os_number}:`, error);
+              console.warn(`  ✗ Não foi possível decodificar Plus Code da OS ${p.os_number}:`, error);
             }
           }
         }
         
         if (lat && lng) {
+          console.log('  ✓ Adicionado à rota!');
           waypoints.push({
             id: p.id,
             lat,
@@ -168,6 +186,8 @@ export default function EntregasPage() {
             osNumber: p.os_number,
             clientName: p.clients?.name
           });
+        } else {
+          console.log('  ✗ Não foi possível obter coordenadas - IGNORADO');
         }
       }
 
