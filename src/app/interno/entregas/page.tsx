@@ -378,6 +378,39 @@ export default function EntregasPage() {
     toast.success('Rota resetada');
   };
 
+  // Finalizar rota
+  const handleFinalizarRota = async () => {
+    try {
+      toast.info('Finalizando rota...');
+      
+      // Filtrar pedidos:
+      // - Remover Entregues e Recebidos (coletados)
+      // - Manter Falhados mas desmarcar _falhado
+      const pedidosAtualizados = pedidos.filter(p => {
+        // Remove entregues e coletados
+        if (p.status === 'Entregue' || p.status === 'Recebido') {
+          return false;
+        }
+        return true;
+      }).map(p => {
+        // Desmarca falhados
+        if (p._falhado) {
+          return { ...p, _falhado: false };
+        }
+        return p;
+      });
+      
+      setPedidos(pedidosAtualizados);
+      setRotaAtiva(false);
+      stopGPSTracking();
+      setPedidoCoords({});
+      
+      toast.success('Rota finalizada com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao finalizar rota: ' + error.message);
+    }
+  };
+
   // Limpar GPS ao desmontar componente
   useEffect(() => {
     return () => {
@@ -478,8 +511,8 @@ export default function EntregasPage() {
 
       // Se rota está ativa, atualizar localmente sem recarregar
       if (rotaAtiva) {
-        if (novoStatus === "Entregue") {
-          // Remove da lista
+        if (novoStatus === "Entregue" || novoStatus === "Recebido") {
+          // Remove da lista (entregue ou coletado)
           setPedidos(pedidos.filter(p => p.id !== pedido.id));
         } else if (novoStatus === "Pronto" || novoStatus === "Coleta") {
           // Marca como falhado (para mostrar botão incluir na rota)
@@ -588,14 +621,24 @@ export default function EntregasPage() {
                 Iniciar Rota
               </Button>
             ) : (
-              <Button
-                onClick={handleResetRoute}
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 text-white rounded-full font-bold"
-              >
-                <XCircle className="w-4 h-4 mr-1" />
-                Resetar
-              </Button>
+              <>
+                <Button
+                  onClick={handleFinalizarRota}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-1" />
+                  Finalizar
+                </Button>
+                <Button
+                  onClick={handleResetRoute}
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-full font-bold"
+                >
+                  <XCircle className="w-4 h-4 mr-1" />
+                  Resetar
+                </Button>
+              </>
             )}
             <Badge className="bg-blue-500 text-white border-none px-4 py-1 rounded-full font-black">
               {pedidos.length}
