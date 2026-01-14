@@ -116,9 +116,10 @@ export default function EntregasPage() {
       const { OpenLocationCode } = await import('open-location-code');
       const olc = new OpenLocationCode();
 
-      // Coordenadas da loja (ponto de partida)
-      const LOJA_LAT = -9.620027;
-      const LOJA_LNG = -35.709397;
+      // Coordenadas da loja (ponto de partida E retorno)
+      // Plus Code: 97JR+27 São Jorge, Maceió - AL
+      const LOJA_LAT = -9.619938;
+      const LOJA_LNG = -35.709313;
 
       // Coletar e converter coordenadas dos pedidos
       const waypoints = [];
@@ -223,12 +224,13 @@ export default function EntregasPage() {
         currentLng = nearest.lng;
       }
 
-      // Calcular distância total inicial
+      // Calcular distância total inicial (incluindo retorno à loja)
       let initialDistance = calculateDistance(LOJA_LAT, LOJA_LNG, route[0].lat, route[0].lng);
       for (let i = 0; i < route.length - 1; i++) {
         initialDistance += calculateDistance(route[i].lat, route[i].lng, route[i + 1].lat, route[i + 1].lng);
       }
-      console.log('Distância inicial:', initialDistance.toFixed(2), 'km');
+      initialDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, LOJA_LAT, LOJA_LNG);
+      console.log('Distância inicial (com retorno):', initialDistance.toFixed(2), 'km');
 
       // Passo 2: Otimização 2-opt (eliminar cruzamentos)
       console.log('\n=== PASSO 2: Otimização 2-opt ===');
@@ -265,14 +267,16 @@ export default function EntregasPage() {
         }
       }
 
-      // Calcular distância total final
+      // Calcular distância total final (incluindo retorno à loja)
       let finalDistance = calculateDistance(LOJA_LAT, LOJA_LNG, route[0].lat, route[0].lng);
       for (let i = 0; i < route.length - 1; i++) {
         finalDistance += calculateDistance(route[i].lat, route[i].lng, route[i + 1].lat, route[i + 1].lng);
       }
+      finalDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, LOJA_LAT, LOJA_LNG);
       
       const improvement = ((initialDistance - finalDistance) / initialDistance * 100).toFixed(1);
-      console.log('\nDistância final:', finalDistance.toFixed(2), 'km');
+      console.log('\nDistância final (com retorno):', finalDistance.toFixed(2), 'km');
+      console.log('Distância economizada:', (initialDistance - finalDistance).toFixed(2), 'km');
       console.log('Melhoria:', improvement, '%');
       console.log('Iterações 2-opt:', iterations);
 
