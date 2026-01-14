@@ -957,29 +957,36 @@ export default function EntregasPage() {
             <Button
               onClick={async () => {
                 try {
+                  console.log('[CADASTRO] Iniciando cadastro de cliente...');
                   setSavingColeta(true);
                   
                   // Validações
                   if (!coletaForm.name || !coletaForm.phone) {
+                    console.log('[CADASTRO] Validação falhou: nome ou telefone vazio');
                     toast.error('Preencha nome e telefone');
                     setSavingColeta(false);
                     return;
                   }
+                  
+                  console.log('[CADASTRO] Dados do formulário:', coletaForm);
 
                   let clientData;
                   
                   // Se já selecionou um cliente existente, atualiza os dados dele
                   if (selectedClient) {
+                    console.log('[CADASTRO] Atualizando cliente existente:', selectedClient.id);
                     // Processa coordenadas se fornecidas (formato: lat,lng)
                     let coordinates = null;
                     if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
                       const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
                       if (!isNaN(lat) && !isNaN(lng)) {
                         coordinates = JSON.stringify({ lat, lng });
+                        console.log('[CADASTRO] Coordenadas processadas:', coordinates);
                       }
                     }
 
                     // Atualiza dados do cliente existente
+                    console.log('[CADASTRO] Enviando atualização para Supabase...');
                     const { error: updateError } = await supabase
                       .from('clients')
                       .update({
@@ -1001,16 +1008,19 @@ export default function EntregasPage() {
                       complement: coletaForm.complement || null
                     };
                   } else {
+                    console.log('[CADASTRO] Criando novo cliente...');
                     // Processa coordenadas se fornecidas (formato: lat,lng)
                     let coordinates = null;
                     if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
                       const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
                       if (!isNaN(lat) && !isNaN(lng)) {
                         coordinates = JSON.stringify({ lat, lng });
+                        console.log('[CADASTRO] Coordenadas processadas:', coordinates);
                       }
                     }
 
                     // Cria novo cliente
+                    console.log('[CADASTRO] Enviando novo cliente para Supabase...');
                     const { data: newClientData, error: clientError } = await supabase
                       .from('clients')
                       .insert({
@@ -1028,13 +1038,19 @@ export default function EntregasPage() {
                   }
 
                   // Gera número da OS no formato 000001/2026
+                  console.log('[CADASTRO] Gerando número da OS...');
                   const currentYear = new Date().getFullYear();
-                  const { data: lastOSArray } = await supabase
+                  const { data: lastOSArray, error: osQueryError } = await supabase
                     .from('service_orders')
                     .select('os_number')
                     .like('os_number', `%/${currentYear}`)
                     .order('created_at', { ascending: false })
                     .limit(1);
+                  
+                  if (osQueryError) {
+                    console.error('[CADASTRO] Erro ao buscar última OS:', osQueryError);
+                    throw osQueryError;
+                  }
                   
                   const lastOS = lastOSArray && lastOSArray.length > 0 ? lastOSArray[0] : null;
 
@@ -1044,33 +1060,49 @@ export default function EntregasPage() {
                     nextNumber = parseInt(numPart) + 1;
                   }
                   const newOsNumber = `${String(nextNumber).padStart(3, '0')}/${currentYear}`;
+                  console.log('[CADASTRO] Número da OS gerado:', newOsNumber);
+
+                  // Formatar data de forma compatível com Safari
+                  const today = new Date();
+                  const entryDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                  console.log('[CADASTRO] Data de entrada:', entryDate);
 
                   // Cria a OS com status "Coleta"
+                  console.log('[CADASTRO] Criando OS no Supabase...');
                   const { error: osError } = await supabase
                     .from('service_orders')
                     .insert({
                       os_number: newOsNumber,
                       client_id: clientData.id,
                       status: 'Coleta',
-                      entry_date: new Date().toISOString().split('T')[0],
+                      entry_date: entryDate,
                       delivery_date: coletaForm.deliveryDate || null,
                       items: [],
                       total: 0
                     });
 
-                  if (osError) throw osError;
+                  if (osError) {
+                    console.error('[CADASTRO] Erro ao criar OS:', osError);
+                    throw osError;
+                  }
 
+                  console.log('[CADASTRO] OS criada com sucesso!');
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
                   setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: '' });
                   setSelectedClient(null);
                   setShowSuggestions(false);
                   setClienteSuggestions([]);
+                  console.log('[CADASTRO] Recarregando lista de pedidos...');
                   fetchPedidos();
+                  console.log('[CADASTRO] Processo concluído com sucesso!');
                 } catch (error: any) {
-                  console.error('Erro ao cadastrar cliente:', error);
-                  toast.error('Erro ao cadastrar: ' + error.message);
+                  console.error('[CADASTRO] ERRO CAPTURADO:', error);
+                  console.error('[CADASTRO] Stack trace:', error.stack);
+                  console.error('[CADASTRO] Mensagem:', error.message);
+                  toast.error('Erro ao cadastrar: ' + (error.message || 'Erro desconhecido'));
                 } finally {
+                  console.log('[CADASTRO] Finalizando (setSavingColeta = false)');
                   setSavingColeta(false);
                 }
               }}
