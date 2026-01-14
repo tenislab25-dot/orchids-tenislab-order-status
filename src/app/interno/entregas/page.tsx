@@ -528,15 +528,6 @@ export default function EntregasPage() {
                         COLETADO
                       </Button>
                     </div>
-                  ) : pedido.status === "Pronto" ? (
-                    <Button 
-                      className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-lg"
-                      onClick={() => atualizarStatus(pedido, "Em Rota")}
-                      disabled={updating === pedido.id}
-                    >
-                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
-                      INICIAR ENTREGA
-                    </Button>
                   ) : (
                     <div className="flex gap-2">
                       <Button 
