@@ -36,6 +36,11 @@ export default function EntregasPage() {
   const [clienteSuggestions, setClienteSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  
+  // Estados para rota ativa e GPS
+  const [rotaAtiva, setRotaAtiva] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [watchId, setWatchId] = useState<number | null>(null);
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -288,13 +293,70 @@ export default function EntregasPage() {
       ).filter(Boolean);
 
       setPedidos(reordered);
-      toast.success(`Rota otimizada! ${reordered.length} entregas | Melhoria: ${improvement}%`);
+      setRotaAtiva(true);
+      startGPSTracking();
+      toast.success(`Rota iniciada! ${reordered.length} entregas | Melhoria: ${improvement}%`);
       
     } catch (error) {
       console.error('Erro ao otimizar rota:', error);
       toast.error('Erro ao otimizar rota.');
     }
   };
+
+  // Iniciar rastreamento GPS
+  const startGPSTracking = () => {
+    if ('geolocation' in navigator) {
+      const id = navigator.geolocation.watchPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          console.log('Localização atualizada:', position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.error('Erro ao obter localização:', error);
+          toast.error('Não foi possível acessar sua localização');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+      setWatchId(id);
+      toast.info('GPS ativado');
+    } else {
+      toast.error('GPS não disponível neste dispositivo');
+    }
+  };
+
+  // Parar rastreamento GPS
+  const stopGPSTracking = () => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+      setUserLocation(null);
+      toast.info('GPS desativado');
+    }
+  };
+
+  // Resetar rota
+  const handleResetRoute = () => {
+    setRotaAtiva(false);
+    stopGPSTracking();
+    fetchPedidos();
+    toast.success('Rota resetada');
+  };
+
+  // Limpar GPS ao desmontar componente
+  useEffect(() => {
+    return () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [watchId]);
 
   // Função auxiliar para calcular distância entre dois pontos (Haversine)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -385,9 +447,47 @@ export default function EntregasPage() {
         }).catch(console.error);
       }
 
-      fetchPedidos();
+      // Se rota está ativa, atualizar localmente sem recarregar
+      if (rotaAtiva) {
+        if (novoStatus === "Entregue") {
+          // Remove da lista
+          setPedidos(pedidos.filter(p => p.id !== pedido.id));
+        } else {
+          // Atualiza status localmente
+          setPedidos(pedidos.map(p => 
+            p.id === pedido.id ? { ...p, status: novoStatus } : p
+          ));
+        }
+      } else {
+        // Se rota não está ativa, recarrega normalmente
+        fetchPedidos();
+      }
     } catch (error: any) {
       toast.error("Erro ao atualizar: " + error.message);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  // Função para incluir pedido falhado de volta na rota
+  const incluirNaRota = async (pedido: any) => {
+    try {
+      setUpdating(pedido.id);
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ status: "Pronto" })
+        .eq("id", pedido.id);
+
+      if (error) throw error;
+      
+      toast.success('Pedido incluído na rota novamente');
+      
+      // Atualiza localmente
+      setPedidos(pedidos.map(p => 
+        p.id === pedido.id ? { ...p, status: "Pronto" } : p
+      ));
+    } catch (error: any) {
+      toast.error("Erro ao incluir na rota: " + error.message);
     } finally {
       setUpdating(null);
     }
@@ -414,23 +514,36 @@ export default function EntregasPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setShowColetaModal(true)}
-              size="sm"
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
-            >
-              <UserPlus className="w-4 h-4 mr-1" />
-              Coleta
-            </Button>
-            <Button
-              onClick={handleOptimizeRoute}
-              disabled={pedidos.length === 0}
-              size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
-            >
-              <Route className="w-4 h-4 mr-1" />
-              Otimizar
-            </Button>
+            {!rotaAtiva && (
+              <Button
+                onClick={() => setShowColetaModal(true)}
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
+              >
+                <UserPlus className="w-4 h-4 mr-1" />
+                Coleta
+              </Button>
+            )}
+            {!rotaAtiva ? (
+              <Button
+                onClick={handleOptimizeRoute}
+                disabled={pedidos.length === 0}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
+              >
+                <Route className="w-4 h-4 mr-1" />
+                Iniciar Rota
+              </Button>
+            ) : (
+              <Button
+                onClick={handleResetRoute}
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-full font-bold"
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                Resetar
+              </Button>
+            )}
             <Badge className="bg-blue-500 text-white border-none px-4 py-1 rounded-full font-black">
               {pedidos.length}
             </Badge>
@@ -455,11 +568,20 @@ export default function EntregasPage() {
                 onDragEnd={handleDragEnd}
                 className={`${draggedIndex === index ? 'opacity-50' : ''} cursor-move`}
               >
-              <Card className="border-none shadow-lg shadow-slate-200/50 overflow-hidden rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4">
-                <CardContent className="p-4 space-y-3">
+              <Card className={`border-none shadow-lg shadow-slate-200/50 overflow-hidden rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4 ${
+                pedido.status === 'Pronto' && rotaAtiva ? 'opacity-50 saturate-50' : ''
+              }`}>
+                <CardContent className="p-4 space-y-3 relative">
+                  {/* Numeração da rota */}
+                  {rotaAtiva && (
+                    <div className="absolute top-2 right-2 w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-lg">
+                      {index + 1}
+                    </div>
+                  )}
                   {/* Cabeçalho do Card com Botões de Reordenação */}
                   <div className="flex justify-between items-start gap-3">
-                    {/* Botões de Reordenação */}
+                    {/* Botões de Reordenação (só quando rota não está ativa) */}
+                    {!rotaAtiva && (
                     <div className="flex flex-col gap-1">
                       <Button
                         variant="ghost"
@@ -483,10 +605,32 @@ export default function EntregasPage() {
                         <ChevronDown className="w-4 h-4 text-slate-600" />
                       </Button>
                     </div>
+                    )}
 
                     {/* Informações do Pedido */}
                     <div className="flex-1 flex justify-between items-start">
                       <div className="space-y-1">
+                        {/* Distância GPS */}
+                        {rotaAtiva && userLocation && pedido.clients?.coordinates && (() => {
+                          const coords = pedido.clients.coordinates;
+                          let lat, lng;
+                          if (typeof coords === 'string' && coords.includes(',')) {
+                            [lat, lng] = coords.split(',').map(c => parseFloat(c.trim()));
+                          } else if (typeof coords === 'object' && coords.lat && coords.lng) {
+                            lat = parseFloat(coords.lat);
+                            lng = parseFloat(coords.lng);
+                          }
+                          if (lat && lng) {
+                            const dist = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
+                            return (
+                              <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg mb-1">
+                                <Navigation className="w-3 h-3" />
+                                <span className="text-xs font-bold">{dist.toFixed(1)} km de você</span>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                         <div className="flex items-center gap-2 text-slate-400">
                           <span className="text-sm font-black text-blue-600">#{index + 1}</span>
                           <Hash className="w-3 h-3" />
@@ -614,7 +758,18 @@ export default function EntregasPage() {
                         COLETADO
                       </Button>
                     </div>
+                  ) : pedido.status === "Pronto" && rotaAtiva ? (
+                    // Pedido que falhou - mostrar botão para incluir na rota novamente
+                    <Button 
+                      className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
+                      onClick={() => incluirNaRota(pedido)}
+                      disabled={updating === pedido.id}
+                    >
+                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Route className="w-4 h-4" />}
+                      INCLUIR NA ROTA
+                    </Button>
                   ) : (
+                    // Botões normais de Falhou e Entregue
                     <div className="flex gap-2">
                       <Button 
                         variant="outline"
