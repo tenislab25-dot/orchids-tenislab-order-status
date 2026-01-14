@@ -196,8 +196,9 @@ export default function EntregasPage() {
         return;
       }
 
-      // Algoritmo do vizinho mais próximo (começando da loja)
-      const optimized = [];
+      // Passo 1: Algoritmo do vizinho mais próximo (solução inicial)
+      console.log('\n=== PASSO 1: Vizinho mais próximo ===');
+      let route = [];
       const remaining = [...waypoints];
       let currentLat = LOJA_LAT;
       let currentLng = LOJA_LNG;
@@ -215,12 +216,67 @@ export default function EntregasPage() {
           }
         }
 
-        // Mover o ponto mais próximo para a rota otimizada
+        // Mover o ponto mais próximo para a rota
         const nearest = remaining.splice(nearestIndex, 1)[0];
-        optimized.push(nearest);
+        route.push(nearest);
         currentLat = nearest.lat;
         currentLng = nearest.lng;
       }
+
+      // Calcular distância total inicial
+      let initialDistance = calculateDistance(LOJA_LAT, LOJA_LNG, route[0].lat, route[0].lng);
+      for (let i = 0; i < route.length - 1; i++) {
+        initialDistance += calculateDistance(route[i].lat, route[i].lng, route[i + 1].lat, route[i + 1].lng);
+      }
+      console.log('Distância inicial:', initialDistance.toFixed(2), 'km');
+
+      // Passo 2: Otimização 2-opt (eliminar cruzamentos)
+      console.log('\n=== PASSO 2: Otimização 2-opt ===');
+      let improved = true;
+      let iterations = 0;
+      const maxIterations = 100;
+
+      while (improved && iterations < maxIterations) {
+        improved = false;
+        iterations++;
+
+        for (let i = 0; i < route.length - 1; i++) {
+          for (let j = i + 2; j < route.length; j++) {
+            // Calcular distância atual
+            const before_i = i === 0 ? { lat: LOJA_LAT, lng: LOJA_LNG } : route[i - 1];
+            const after_j = j === route.length - 1 ? null : route[j + 1];
+
+            let currentDist = calculateDistance(before_i.lat, before_i.lng, route[i].lat, route[i].lng);
+            currentDist += calculateDistance(route[j].lat, route[j].lng, after_j ? after_j.lat : route[j].lat, after_j ? after_j.lng : route[j].lng);
+
+            // Calcular distância se inverter o segmento [i...j]
+            let newDist = calculateDistance(before_i.lat, before_i.lng, route[j].lat, route[j].lng);
+            newDist += calculateDistance(route[i].lat, route[i].lng, after_j ? after_j.lat : route[i].lat, after_j ? after_j.lng : route[i].lng);
+
+            // Se melhorar, inverter o segmento
+            if (newDist < currentDist - 0.001) { // Threshold para evitar instabilidade numérica
+              // Inverter segmento [i...j]
+              const segment = route.slice(i, j + 1).reverse();
+              route = [...route.slice(0, i), ...segment, ...route.slice(j + 1)];
+              improved = true;
+              console.log(`Iteração ${iterations}: Melhorou ${(currentDist - newDist).toFixed(3)} km`);
+            }
+          }
+        }
+      }
+
+      // Calcular distância total final
+      let finalDistance = calculateDistance(LOJA_LAT, LOJA_LNG, route[0].lat, route[0].lng);
+      for (let i = 0; i < route.length - 1; i++) {
+        finalDistance += calculateDistance(route[i].lat, route[i].lng, route[i + 1].lat, route[i + 1].lng);
+      }
+      
+      const improvement = ((initialDistance - finalDistance) / initialDistance * 100).toFixed(1);
+      console.log('\nDistância final:', finalDistance.toFixed(2), 'km');
+      console.log('Melhoria:', improvement, '%');
+      console.log('Iterações 2-opt:', iterations);
+
+      const optimized = route;
 
       // Reordenar pedidos conforme rota otimizada
       const reordered = optimized.map(wp => 
@@ -228,7 +284,7 @@ export default function EntregasPage() {
       ).filter(Boolean);
 
       setPedidos(reordered);
-      toast.success(`Rota otimizada! ${reordered.length} entregas ordenadas.`);
+      toast.success(`Rota otimizada! ${reordered.length} entregas | Melhoria: ${improvement}%`);
       
     } catch (error) {
       console.error('Erro ao otimizar rota:', error);
