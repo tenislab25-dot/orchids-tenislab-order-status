@@ -686,8 +686,13 @@ export default function EntregasPage() {
                     <div className="flex-1">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Localização</p>
                       <p className="text-slate-700 font-medium leading-snug mt-0.5">
-                        {pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "Localização não cadastrada"}
+                        {pedido.clients?.plus_code || pedido.clients?.coordinates || "Localização não cadastrada"}
                       </p>
+                      {pedido.clients?.complement && (
+                        <p className="text-slate-500 text-sm mt-1">
+                          {pedido.clients.complement}
+                        </p>
+                      )}
                     </div>
                   </div>
 
