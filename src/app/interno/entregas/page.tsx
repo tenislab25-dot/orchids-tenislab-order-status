@@ -724,36 +724,44 @@ export default function EntregasPage() {
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
-                  {pedido.status === "Coleta" && !pedido._falhado ? (
+                  {!rotaAtiva ? (
+                    // Rota inativa: apenas botão EXCLUIR
+                    <Button 
+                      variant="outline"
+                      className="w-full h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
+                      onClick={async () => {
+                        if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
+                          try {
+                            setUpdating(pedido.id);
+                            const { error } = await supabase
+                              .from('service_orders')
+                              .delete()
+                              .eq('id', pedido.id);
+                            
+                            if (error) throw error;
+                            toast.success('OS excluída com sucesso');
+                            fetchPedidos();
+                          } catch (error: any) {
+                            toast.error('Erro ao excluir: ' + error.message);
+                          } finally {
+                            setUpdating(null);
+                          }
+                        }
+                      }}
+                      disabled={updating === pedido.id}
+                    >
+                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                      EXCLUIR
+                    </Button>
+                  ) : pedido.status === "Coleta" && !pedido._falhado ? (
+                    // Rota ativa + Coleta: botões FALHOU e COLETADO
                     <div className="flex gap-2">
                       <Button 
                         variant="outline"
                         className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
-                        onClick={async () => {
-                          if (!rotaAtiva) {
-                            // Rota inativa: exclui o pedido
-                            if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
-                              try {
-                                setUpdating(pedido.id);
-                                const { error } = await supabase
-                                  .from('service_orders')
-                                  .delete()
-                                  .eq('id', pedido.id);
-                                
-                                if (error) throw error;
-                                toast.success('OS excluída com sucesso');
-                                fetchPedidos();
-                              } catch (error: any) {
-                                toast.error('Erro ao excluir: ' + error.message);
-                              } finally {
-                                setUpdating(null);
-                              }
-                            }
-                          } else {
-                            // Rota ativa: apenas marca como falhado
-                            if (confirm(`Confirmar que a coleta não foi realizada?`)) {
-                              atualizarStatus(pedido, "Coleta");
-                            }
+                        onClick={() => {
+                          if (confirm(`Confirmar que a coleta não foi realizada?`)) {
+                            atualizarStatus(pedido, "Coleta");
                           }
                         }}
                         disabled={updating === pedido.id}
