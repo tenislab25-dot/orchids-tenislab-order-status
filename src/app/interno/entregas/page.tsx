@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
@@ -40,7 +40,7 @@ export default function EntregasPage() {
   // Estados para rota ativa e GPS
   const [rotaAtiva, setRotaAtiva] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [watchId, setWatchId] = useState<number | null>(null);
+  const watchIdRef = useRef<number | null>(null);
   const [pedidoCoords, setPedidoCoords] = useState<Record<string, {lat: number, lng: number}>>({});
 
   const moveUp = (index: number) => {
@@ -333,7 +333,7 @@ export default function EntregasPage() {
           maximumAge: 0
         }
       );
-      setWatchId(id);
+      watchIdRef.current = id;
       toast.info('GPS ativado');
     } else {
       toast.error('GPS não disponível neste dispositivo');
@@ -342,9 +342,9 @@ export default function EntregasPage() {
 
   // Parar rastreamento GPS
   const stopGPSTracking = () => {
-    if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId);
-      setWatchId(null);
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
       setUserLocation(null);
       toast.info('GPS desativado');
     }
@@ -361,11 +361,11 @@ export default function EntregasPage() {
   // Limpar GPS ao desmontar componente
   useEffect(() => {
     return () => {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [watchId]);
+  }, []); // Sem dependências - useRef não causa re-render
 
   // Função auxiliar para calcular distância entre dois pontos (Haversine)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -507,6 +507,25 @@ export default function EntregasPage() {
     }
   };
 
+  // Memoizar cálculo de distâncias para evitar recalcular a cada render
+  const pedidosComDistancia = useMemo(() => {
+    if (!rotaAtiva || !userLocation) return pedidos;
+    
+    return pedidos.map(pedido => {
+      const coords = pedidoCoords[pedido.id];
+      if (!coords) return pedido;
+      
+      const dist = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        coords.lat,
+        coords.lng
+      );
+      
+      return { ...pedido, _distancia: dist };
+    });
+  }, [pedidos, userLocation, pedidoCoords, rotaAtiva]);
+
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
       <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
@@ -573,7 +592,7 @@ export default function EntregasPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pedidos.map((pedido, index) => (
+            {pedidosComDistancia.map((pedido, index) => (
               <div
                 key={pedido.id}
                 draggable
@@ -625,16 +644,12 @@ export default function EntregasPage() {
                     <div className="flex-1 flex justify-between items-start">
                       <div className="space-y-1">
                         {/* Distância GPS */}
-                        {rotaAtiva && userLocation && pedidoCoords[pedido.id] && (() => {
-                          const coords = pedidoCoords[pedido.id];
-                          const dist = calculateDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
-                          return (
-                            <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg mb-1">
-                              <Navigation className="w-3 h-3" />
-                              <span className="text-xs font-bold">{dist.toFixed(1)} km de você</span>
-                            </div>
-                          );
-                        })()}
+                        {rotaAtiva && pedido._distancia !== undefined && (
+                          <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg mb-1">
+                            <Navigation className="w-3 h-3" />
+                            <span className="text-xs font-bold">{pedido._distancia.toFixed(1)} km de você</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-slate-400">
                           <span className="text-sm font-black text-blue-600">#{index + 1}</span>
                           <Hash className="w-3 h-3" />
