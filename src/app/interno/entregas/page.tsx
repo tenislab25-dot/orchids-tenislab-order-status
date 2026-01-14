@@ -113,7 +113,7 @@ export default function EntregasPage() {
       toast.info('Otimizando rota...');
 
       // Importar biblioteca de Plus Code
-      const OpenLocationCode = (await import('open-location-code')).default;
+      const { OpenLocationCode } = await import('open-location-code');
       const olc = new OpenLocationCode();
 
       // Coordenadas da loja (ponto de partida)
@@ -142,7 +142,13 @@ export default function EntregasPage() {
           if (plusCode && plusCode.trim()) {
             try {
               // Remover cidade/estado se houver (ex: "97HR+2JF Maceió, AL" -> "97HR+2JF")
-              const code = plusCode.split(' ')[0];
+              let code = plusCode.split(' ')[0];
+              
+              // Se for código curto (sem os primeiros dígitos), recuperar código completo
+              // usando a localização da loja como referência
+              if (code.length < 10) {
+                code = olc.recoverNearest(code, LOJA_LAT, LOJA_LNG);
+              }
               
               // Decodificar Plus Code
               const decoded = olc.decode(code);
