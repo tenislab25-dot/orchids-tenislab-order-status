@@ -452,6 +452,11 @@ export default function EntregasPage() {
         if (novoStatus === "Entregue") {
           // Remove da lista
           setPedidos(pedidos.filter(p => p.id !== pedido.id));
+        } else if (novoStatus === "Pronto" || novoStatus === "Coleta") {
+          // Marca como falhado (para mostrar botão incluir na rota)
+          setPedidos(pedidos.map(p => 
+            p.id === pedido.id ? { ...p, status: novoStatus, _falhado: true } : p
+          ));
         } else {
           // Atualiza status localmente
           setPedidos(pedidos.map(p => 
@@ -482,9 +487,9 @@ export default function EntregasPage() {
       
       toast.success('Pedido incluído na rota novamente');
       
-      // Atualiza localmente
+      // Atualiza localmente e remove marcação de falhado
       setPedidos(pedidos.map(p => 
-        p.id === pedido.id ? { ...p, status: "Pronto" } : p
+        p.id === pedido.id ? { ...p, status: "Pronto", _falhado: false } : p
       ));
     } catch (error: any) {
       toast.error("Erro ao incluir na rota: " + error.message);
@@ -720,34 +725,42 @@ export default function EntregasPage() {
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
-                  {pedido.status === "Coleta" ? (
+                  {pedido.status === "Coleta" && !pedido._falhado ? (
                     <div className="flex gap-2">
                       <Button 
                         variant="outline"
                         className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
                         onClick={async () => {
-                          if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
-                            try {
-                              setUpdating(pedido.id);
-                              const { error } = await supabase
-                                .from('service_orders')
-                                .delete()
-                                .eq('id', pedido.id);
-                              
-                              if (error) throw error;
-                              toast.success('OS excluída com sucesso');
-                              fetchPedidos();
-                            } catch (error: any) {
-                              toast.error('Erro ao excluir: ' + error.message);
-                            } finally {
-                              setUpdating(null);
+                          if (!rotaAtiva) {
+                            // Rota inativa: exclui o pedido
+                            if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
+                              try {
+                                setUpdating(pedido.id);
+                                const { error } = await supabase
+                                  .from('service_orders')
+                                  .delete()
+                                  .eq('id', pedido.id);
+                                
+                                if (error) throw error;
+                                toast.success('OS excluída com sucesso');
+                                fetchPedidos();
+                              } catch (error: any) {
+                                toast.error('Erro ao excluir: ' + error.message);
+                              } finally {
+                                setUpdating(null);
+                              }
+                            }
+                          } else {
+                            // Rota ativa: apenas marca como falhado
+                            if (confirm(`Confirmar que a coleta não foi realizada?`)) {
+                              atualizarStatus(pedido, "Coleta");
                             }
                           }
                         }}
                         disabled={updating === pedido.id}
                       >
                         {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                        NÃO COLETADO
+                        FALHOU
                       </Button>
                       <Button 
                         className="flex-[2] h-12 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm shadow-lg"
@@ -758,7 +771,7 @@ export default function EntregasPage() {
                         COLETADO
                       </Button>
                     </div>
-                  ) : pedido.status === "Pronto" && rotaAtiva ? (
+                  ) : (pedido.status === "Coleta" || pedido.status === "Pronto") && rotaAtiva && pedido._falhado ? (
                     // Pedido que falhou - mostrar botão para incluir na rota novamente
                     <Button 
                       className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
