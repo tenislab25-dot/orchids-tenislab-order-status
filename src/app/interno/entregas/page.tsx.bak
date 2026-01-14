@@ -127,30 +127,10 @@ export default function EntregasPage() {
       const LOJA_LAT = -9.619938;
       const LOJA_LNG = -35.709313;
 
-      // Obter data de hoje no formato YYYY-MM-DD
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      console.log('Data de hoje:', todayStr);
-      
-      // Filtrar apenas pedidos do dia atual
-      const pedidosDoDia = pedidos.filter(p => {
-        const deliveryDate = p.delivery_date;
-        const isToday = deliveryDate === todayStr;
-        console.log(`OS ${p.os_number}: delivery_date=${deliveryDate}, isToday=${isToday}`);
-        return isToday;
-      });
-      
-      console.log(`Total de pedidos: ${pedidos.length}, Pedidos do dia: ${pedidosDoDia.length}`);
-      
-      if (pedidosDoDia.length === 0) {
-        toast.error('Nenhuma entrega/coleta agendada para hoje!');
-        return;
-      }
-      
-      // Coletar e converter coordenadas dos pedidos do dia
+      // Coletar e converter coordenadas dos pedidos
       const waypoints = [];
       
-      for (const p of pedidosDoDia) {
+      for (const p of pedidos) {
         let lat, lng;
         
         console.log(`Processando OS ${p.os_number} - Cliente: ${p.clients?.name}`);
