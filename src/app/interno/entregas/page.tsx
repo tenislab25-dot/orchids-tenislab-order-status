@@ -112,91 +112,119 @@ export default function EntregasPage() {
     try {
       toast.info('Otimizando rota...');
 
-      // Verificar se há API key configurada
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      if (!apiKey || apiKey === 'your_google_maps_api_key_here') {
-        toast.error('Configure a API Key do Google Maps no arquivo .env.local');
-        return;
-      }
+      // Importar biblioteca de Plus Code
+      const OpenLocationCode = (await import('open-location-code')).default;
+      const olc = new OpenLocationCode();
 
-      // Coletar coordenadas dos pedidos
-      console.log('Total de pedidos:', pedidos.length);
-      console.log('Pedidos:', pedidos.map(p => ({
-        id: p.id,
-        os: p.os_number,
-        coords: p.clients?.coordinates,
-        plusCode: p.clients?.plus_code
-      })));
+      // Coordenadas da loja (ponto de partida)
+      const LOJA_LAT = -9.620027;
+      const LOJA_LNG = -35.709397;
+
+      // Coletar e converter coordenadas dos pedidos
+      const waypoints = [];
       
-      const waypoints = pedidos
-        .map(p => {
-          // Priorizar coordenadas diretas, fallback para plus_code
-          const coords = p.clients?.coordinates;
+      for (const p of pedidos) {
+        let lat, lng;
+        
+        // Priorizar coordenadas diretas
+        const coords = p.clients?.coordinates;
+        if (coords && coords.trim()) {
+          const parts = coords.split(',').map(c => parseFloat(c.trim()));
+          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            lat = parts[0];
+            lng = parts[1];
+          }
+        }
+        
+        // Fallback para Plus Code (conversão local)
+        if (!lat && !lng) {
           const plusCode = p.clients?.plus_code;
-          
-          console.log(`Processando OS ${p.os_number}:`, { coords, plusCode });
-          
-          if (coords) {
-            // Coordenadas no formato "lat,lng"
-            const [lat, lng] = coords.split(',').map(c => parseFloat(c.trim()));
-            if (!isNaN(lat) && !isNaN(lng)) {
-              return {
-                id: p.id,
-                lat,
-                lng,
-                osNumber: p.os_number,
-                clientName: p.clients?.name
-              };
+          if (plusCode && plusCode.trim()) {
+            try {
+              // Remover cidade/estado se houver (ex: "97HR+2JF Maceió, AL" -> "97HR+2JF")
+              const code = plusCode.split(' ')[0];
+              
+              // Decodificar Plus Code
+              const decoded = olc.decode(code);
+              lat = decoded.latitudeCenter;
+              lng = decoded.longitudeCenter;
+            } catch (error) {
+              console.warn(`Não foi possível decodificar Plus Code da OS ${p.os_number}:`, error);
             }
           }
-          
-          // Fallback para Plus Code (requer Geocoding API)
-          if (plusCode) {
-            return {
-              id: p.id,
-              location: plusCode,
-              osNumber: p.os_number,
-              clientName: p.clients?.name
-            };
-          }
-          
-          return null;
-        })
-        .filter(Boolean);
+        }
+        
+        if (lat && lng) {
+          waypoints.push({
+            id: p.id,
+            lat,
+            lng,
+            osNumber: p.os_number,
+            clientName: p.clients?.name
+          });
+        }
+      }
 
-      console.log('Waypoints gerados:', waypoints);
-      console.log('Total de waypoints:', waypoints.length);
-      
-      if (waypoints.length < 2) {
-        toast.error(`É necessário pelo menos 2 entregas com localização para otimizar (encontrado: ${waypoints.length})`);
+      if (waypoints.length < 1) {
+        toast.error('Nenhuma entrega com localização válida encontrada');
         return;
       }
 
-      // Chamar API de otimização de rotas
-      const response = await fetch('/api/optimize-route', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ waypoints })
-      });
+      // Algoritmo do vizinho mais próximo (começando da loja)
+      const optimized = [];
+      const remaining = [...waypoints];
+      let currentLat = LOJA_LAT;
+      let currentLng = LOJA_LNG;
 
-      if (!response.ok) {
-        throw new Error('Erro ao otimizar rota');
+      while (remaining.length > 0) {
+        // Encontrar o ponto mais próximo
+        let nearestIndex = 0;
+        let minDistance = calculateDistance(currentLat, currentLng, remaining[0].lat, remaining[0].lng);
+
+        for (let i = 1; i < remaining.length; i++) {
+          const distance = calculateDistance(currentLat, currentLng, remaining[i].lat, remaining[i].lng);
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestIndex = i;
+          }
+        }
+
+        // Mover o ponto mais próximo para a rota otimizada
+        const nearest = remaining.splice(nearestIndex, 1)[0];
+        optimized.push(nearest);
+        currentLat = nearest.lat;
+        currentLng = nearest.lng;
       }
 
-      const { optimizedOrder } = await response.json();
-
       // Reordenar pedidos conforme rota otimizada
-      const reordered = optimizedOrder.map((id: string) => 
-        pedidos.find(p => p.id === id)
+      const reordered = optimized.map(wp => 
+        pedidos.find(p => p.id === wp.id)
       ).filter(Boolean);
 
       setPedidos(reordered);
-      toast.success('Rota otimizada com sucesso!');
+      toast.success(`Rota otimizada! ${reordered.length} entregas ordenadas.`);
       
     } catch (error) {
       console.error('Erro ao otimizar rota:', error);
-      toast.error('Erro ao otimizar rota. Verifique a configuração da API Key.');
+      toast.error('Erro ao otimizar rota.');
     }
+  };
+
+  // Função auxiliar para calcular distância entre dois pontos (Haversine)
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Raio da Terra em km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const toRad = (degrees: number) => {
+    return degrees * (Math.PI / 180);
   };
 
   const fetchPedidos = useCallback(async () => {
