@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
-  Truck, Loader2, Package, XCircle, Phone, MessageCircle,
+  Loader2, Package, XCircle, Phone, MessageCircle,
   Clock, Hash, UserPlus, ChevronUp, ChevronDown, GripVertical, Route
 } from "lucide-react";
 import { format } from "date-fns";
