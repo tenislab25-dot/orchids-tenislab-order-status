@@ -41,6 +41,7 @@ export default function EntregasPage() {
   const [rotaAtiva, setRotaAtiva] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
+  const [pedidoCoords, setPedidoCoords] = useState<Record<string, {lat: number, lng: number}>>({});
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -293,6 +294,14 @@ export default function EntregasPage() {
       ).filter(Boolean);
 
       setPedidos(reordered);
+      
+      // Armazenar coordenadas de todos os pedidos para cálculo de distância
+      const coords: Record<string, {lat: number, lng: number}> = {};
+      for (const wp of optimized) {
+        coords[wp.id] = { lat: wp.lat, lng: wp.lng };
+      }
+      setPedidoCoords(coords);
+      
       setRotaAtiva(true);
       startGPSTracking();
       toast.success(`Rota iniciada! ${reordered.length} entregas | Melhoria: ${improvement}%`);
@@ -616,25 +625,15 @@ export default function EntregasPage() {
                     <div className="flex-1 flex justify-between items-start">
                       <div className="space-y-1">
                         {/* Distância GPS */}
-                        {rotaAtiva && userLocation && pedido.clients?.coordinates && (() => {
-                          const coords = pedido.clients.coordinates;
-                          let lat, lng;
-                          if (typeof coords === 'string' && coords.includes(',')) {
-                            [lat, lng] = coords.split(',').map(c => parseFloat(c.trim()));
-                          } else if (typeof coords === 'object' && coords.lat && coords.lng) {
-                            lat = parseFloat(coords.lat);
-                            lng = parseFloat(coords.lng);
-                          }
-                          if (lat && lng) {
-                            const dist = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
-                            return (
-                              <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg mb-1">
-                                <Navigation className="w-3 h-3" />
-                                <span className="text-xs font-bold">{dist.toFixed(1)} km de você</span>
-                              </div>
-                            );
-                          }
-                          return null;
+                        {rotaAtiva && userLocation && pedidoCoords[pedido.id] && (() => {
+                          const coords = pedidoCoords[pedido.id];
+                          const dist = calculateDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+                          return (
+                            <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg mb-1">
+                              <Navigation className="w-3 h-3" />
+                              <span className="text-xs font-bold">{dist.toFixed(1)} km de você</span>
+                            </div>
+                          );
                         })()}
                         <div className="flex items-center gap-2 text-slate-400">
                           <span className="text-sm font-black text-blue-600">#{index + 1}</span>
