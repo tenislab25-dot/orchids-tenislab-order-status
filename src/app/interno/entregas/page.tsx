@@ -24,12 +24,33 @@ export default function EntregasPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const [showColetaModal, setShowColetaModal] = useState(false);
+  const getTodayDate = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  };
+
+  const addBusinessDays = (startDate: string, days: number) => {
+    const date = new Date(startDate + 'T00:00:00');
+    let addedDays = 0;
+    
+    while (addedDays < days) {
+      date.setDate(date.getDate() + 1);
+      const dayOfWeek = date.getDay();
+      // 0 = Domingo, 6 = Sábado
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        addedDays++;
+      }
+    }
+    
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
   const [coletaForm, setColetaForm] = useState({
     name: '',
     phone: '',
     plusCode: '',
     complement: '',
-    deliveryDate: '',
+    deliveryDate: getTodayDate(),
     returnDate: ''
   });
   const [savingColeta, setSavingColeta] = useState(false);
@@ -110,7 +131,7 @@ export default function EntregasPage() {
       phone: cliente.phone,
       plusCode: cliente.plus_code || '',
       complement: cliente.complement || '',
-      deliveryDate: '',
+      deliveryDate: getTodayDate(),
       returnDate: ''
     });
     setShowSuggestions(false);
@@ -1025,6 +1046,21 @@ export default function EntregasPage() {
                   onChange={(e) => setColetaForm({ ...coletaForm, returnDate: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
                 />
+                <div className="flex gap-2 mt-2">
+                  {[1, 3, 5, 7].map(days => (
+                    <button
+                      key={days}
+                      type="button"
+                      onClick={() => {
+                        const returnDate = addBusinessDays(coletaForm.deliveryDate, days);
+                        setColetaForm({ ...coletaForm, returnDate });
+                      }}
+                      className="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    >
+                      {days} dia{days > 1 ? 's' : ''}
+                    </button>
+                  ))}
+                </div>
               </div>
 
             </div>
@@ -1164,7 +1200,7 @@ export default function EntregasPage() {
                   console.log('[CADASTRO] OS criada com sucesso!');
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
-                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: '', returnDate: '' });
+                  setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: getTodayDate(), returnDate: '' });
                   setSelectedClient(null);
                   setShowSuggestions(false);
                   setClienteSuggestions([]);
