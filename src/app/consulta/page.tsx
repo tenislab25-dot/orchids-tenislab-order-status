@@ -176,7 +176,7 @@ const statusConfig = {
                 asChild
                 className="h-12 rounded-2xl text-slate-400 font-bold"
               >
-                <Link href="/">
+                <Link href="/" prefetch={false}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar para página inicial
                 </Link>
@@ -518,7 +518,7 @@ function OrderContent() {
                     asChild
                     className="h-12 rounded-2xl text-slate-400 font-bold"
                   >
-                    <Link href="/">
+                    <Link href="/" prefetch={false}>
                       Voltar para página inicial
                     </Link>
                   </Button>
@@ -581,7 +581,7 @@ export default function StatusPage() {
           asChild
           className="text-slate-400 hover:text-slate-600 text-[10px] font-bold uppercase tracking-widest"
         >
-          <Link href="/">Voltar para página inicial</Link>
+          <Link href="/" prefetch={false}>Voltar para página inicial</Link>
         </Button>
       </div>
 

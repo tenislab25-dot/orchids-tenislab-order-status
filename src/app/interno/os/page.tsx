@@ -528,7 +528,7 @@ interface OSItem {
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
         <div className="grid grid-cols-3 items-center max-w-md mx-auto">
-          <Link href="/interno/dashboard" className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
+          <Link href="/interno/dashboard" prefetch={false} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           
@@ -1093,7 +1093,7 @@ interface OSItem {
           className="w-full h-14 rounded-2xl text-slate-500 font-bold"
           asChild
         >
-          <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
+          <Link href="/interno/dashboard" prefetch={false}>Voltar ao Dashboard</Link>
         </Button>
       </section>
 

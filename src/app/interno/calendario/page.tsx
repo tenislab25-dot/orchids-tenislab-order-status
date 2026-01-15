@@ -241,7 +241,7 @@ export default function CalendarioPage() {
     <div className="flex flex-col gap-6 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex flex-col gap-4 pt-8">
         <div className="flex items-center gap-4">
-          <Link href="/interno/dashboard">
+          <Link href="/interno/dashboard" prefetch={false}>
             <Button variant="ghost" size="icon" className="rounded-xl">
               <ArrowLeft className="w-5 h-5" />
             </Button>

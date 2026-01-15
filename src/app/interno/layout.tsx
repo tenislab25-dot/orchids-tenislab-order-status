@@ -28,7 +28,7 @@ export default function InternoLayout({
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
         {!isLoginPage && user && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-              <Link href="/interno" className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto hover:bg-slate-50 p-1 rounded-xl transition-colors">
+              <Link href="/interno" prefetch={false} className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto hover:bg-slate-50 p-1 rounded-xl transition-colors">
                 <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
                   <User className="w-5 h-5 text-slate-400" />
                 </div>
@@ -43,7 +43,7 @@ export default function InternoLayout({
               </Link>
               <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                          {role !== 'ENTREGADOR' && (
-                <Link href="/interno" className="flex-1 sm:flex-initial">
+                <Link href="/interno" prefetch={false} className="flex-1 sm:flex-initial">
                   <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
                     <LayoutGrid className="w-4 h-4" />
                     <span className="hidden xs:inline">Menu</span>
@@ -51,7 +51,7 @@ export default function InternoLayout({
                 </Link>
               )}
 
-              <Link href="/" className="flex-1 sm:flex-initial">
+              <Link href="/" prefetch={false} className="flex-1 sm:flex-initial">
                 <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
                   <Home className="w-4 h-4" />
                   <span className="hidden xs:inline">Site</span>

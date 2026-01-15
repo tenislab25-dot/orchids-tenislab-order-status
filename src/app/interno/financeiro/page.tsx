@@ -337,7 +337,7 @@ export default function FinanceiroPage() {
     return (
       <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
         <header className="flex items-center gap-4 mb-12">
-          <Link href="/interno/dashboard">
+          <Link href="/interno/dashboard" prefetch={false}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ArrowLeft className="w-6 h-6" />
             </Button>
@@ -365,7 +365,7 @@ export default function FinanceiroPage() {
         <header className="flex flex-col gap-4 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/interno/dashboard">
+              <Link href="/interno/dashboard" prefetch={false}>
                 <Button variant="ghost" size="icon" className="rounded-full -ml-2">
                   <ArrowLeft className="w-5 h-5 text-slate-600" />
                 </Button>
@@ -382,7 +382,7 @@ export default function FinanceiroPage() {
               <FileDown className="w-4 h-4 mr-2" />
               {exportingPdf ? "..." : "PDF"}
             </Button>
-            <Link href="/interno/financeiro/relatorio" className="flex-1 md:flex-none">
+            <Link href="/interno/financeiro/relatorio" prefetch={false} className="flex-1 md:flex-none">
               <Button className="w-full rounded-full bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold px-4">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Relatório

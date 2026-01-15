@@ -650,7 +650,7 @@ export default function DashboardPage() {
       <header className="flex flex-col gap-4 pt-6 sm:pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6">
           <div className="flex flex-col gap-2 sm:gap-4">
-            <Link href="/interno">
+            <Link href="/interno" prefetch={false}>
               <h1 className="font-black text-xl sm:text-2xl hover:text-blue-600 transition-colors cursor-pointer">Tenislab</h1>
             </Link>
             <div>
@@ -688,14 +688,14 @@ export default function DashboardPage() {
             )}
 
 {(role === "ADMIN") && (
-                <Link href="/interno/financeiro">
+                <Link href="/interno/financeiro" prefetch={false}>
                   <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
                     <DollarSign className="w-4 h-4" />
                     <span className="hidden sm:inline">Financeiro</span>
                   </Button>
                 </Link>
               )}
-              <Link href="/interno/calendario">
+              <Link href="/interno/calendario" prefetch={false}>
                 <Button variant="outline" className="border-purple-200 text-purple-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
                   <Calendar className="w-4 h-4" />
                   <span className="hidden sm:inline">Calendário</span>
@@ -703,13 +703,13 @@ export default function DashboardPage() {
               </Link>
             {(role === "ADMIN" || role === "ATENDENTE") && (
               <>
-                <Link href="/interno/clientes">
+                <Link href="/interno/clientes" prefetch={false}>
                   <Button variant="outline" className="border-blue-200 text-blue-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
                     <UserIcon className="w-4 h-4" />
                     <span className="hidden sm:inline">Clientes</span>
                   </Button>
                 </Link>
-                <Link href="/interno/os">
+                <Link href="/interno/os" prefetch={false}>
                   <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-10 sm:h-11 px-4 sm:px-6 shadow-lg shadow-slate-200 text-xs sm:text-sm">
                     <Plus className="w-4 h-4" />
                     Nova OS
@@ -742,7 +742,7 @@ export default function DashboardPage() {
                         Você tem coletas agendadas que precisam ser realizadas. Acesse a página de Entregas para visualizar.
                       </p>
                     </div>
-                    <Link href="/interno/entregas">
+                    <Link href="/interno/entregas" prefetch={false}>
                       <Button className="bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl h-12 px-6">
                         Ver Coletas
                       </Button>
@@ -773,7 +773,7 @@ export default function DashboardPage() {
                         Tênis já coletado! Complete o cadastro da OS com serviços, fotos e valores.
                       </p>
                     </div>
-                    <Link href="/interno/dashboard">
+                    <Link href="/interno/dashboard" prefetch={false}>
                       <Button 
                         className="bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl h-12 px-6"
                         onClick={() => {
@@ -1002,7 +1002,7 @@ export default function DashboardPage() {
             Mostrando {sortedAndFilteredOrders.length} ordens recentes
           </p>
           {(role === "ADMIN" || role === "ATENDENTE") && (
-            <Link href="/interno/todos">
+            <Link href="/interno/todos" prefetch={false}>
               <Button variant="outline" className="rounded-xl sm:rounded-2xl font-black text-[9px] sm:text-[10px] uppercase tracking-widest h-10 sm:h-12 px-6 sm:px-8 gap-2 sm:gap-3 border-slate-200 bg-white hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shadow-sm w-full sm:w-auto">
                 <History className="w-4 h-4" />
                 Ver Todas as OS

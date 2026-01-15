@@ -271,7 +271,7 @@ function OrderContent() {
                     asChild
                     className="text-slate-300 hover:text-slate-500 text-[10px] font-bold uppercase tracking-widest"
                   >
-                    <Link href="/">Voltar para Homepage</Link>
+                    <Link href="/" prefetch={false}>Voltar para Homepage</Link>
                   </Button>
                 </div>
               </div>

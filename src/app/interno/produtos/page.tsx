@@ -202,7 +202,7 @@ export default function ProductsManagement() {
       <div className="p-4 md:p-8 max-w-6xl mx-auto">
         <div className="flex flex-col gap-6 md:gap-8 mb-8">
           <div className="flex justify-between items-start">
-            <Link href="/interno" className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
+            <Link href="/interno" prefetch={false} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors font-bold uppercase text-[10px] tracking-widest">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Voltar ao Painel</span>
               <span className="sm:hidden">Voltar</span>

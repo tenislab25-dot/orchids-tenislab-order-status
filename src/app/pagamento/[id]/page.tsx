@@ -109,7 +109,7 @@ export default function PaymentPage() {
         <h1 className="text-xl font-bold text-slate-900">Pedido não encontrado</h1>
         <p className="text-slate-500">Verifique o link ou entre em contato conosco.</p>
         <Button asChild variant="outline" className="rounded-2xl">
-          <Link href="/consulta">Consultar Status</Link>
+          <Link href="/consulta" prefetch={false}>Consultar Status</Link>
         </Button>
       </div>
     );
@@ -126,7 +126,7 @@ export default function PaymentPage() {
           <p className="text-slate-500">Obrigado pela preferência, {order.clients?.name}!</p>
         </div>
             <Button asChild variant="outline" className="rounded-2xl h-12 px-8">
-              <Link href="/">Voltar para página inicial</Link>
+              <Link href="/" prefetch={false}>Voltar para página inicial</Link>
             </Button>
       </div>
     );
@@ -216,7 +216,7 @@ export default function PaymentPage() {
               asChild
               className="h-12 rounded-2xl text-slate-400 font-bold"
             >
-                <Link href="/">
+                <Link href="/" prefetch={false}>
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar para página inicial
                 </Link>

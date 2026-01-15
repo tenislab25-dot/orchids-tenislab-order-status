@@ -723,7 +723,7 @@ export default function OSViewPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
         <h1 className="text-xl font-bold">OS não encontrada</h1>
         <Button asChild>
-          <Link href="/interno/dashboard">Voltar ao Dashboard</Link>
+          <Link href="/interno/dashboard" prefetch={false}>Voltar ao Dashboard</Link>
         </Button>
       </div>
     );
@@ -732,7 +732,7 @@ export default function OSViewPage() {
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
         <div className="grid grid-cols-3 items-center max-w-6xl mx-auto">
-          <Link href="/interno/dashboard" className="w-fit">
+          <Link href="/interno/dashboard" prefetch={false} className="w-fit">
             <Button variant="ghost" size="icon" className="rounded-full -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </Button>

@@ -260,7 +260,7 @@ export default function ClientsPage() {
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/interno/dashboard">
+          <Link href="/interno/dashboard" prefetch={false}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="w-6 h-6" />
             </Button>
