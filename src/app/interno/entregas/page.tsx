@@ -744,11 +744,19 @@ export default function EntregasPage() {
                         <h2 className="text-lg font-black text-slate-900 leading-tight">
                           {pedido.clients?.name || "Cliente não identificado"}
                         </h2>
-                        {pedido.delivery_date && (
-                          <div className="flex items-center gap-1 text-slate-400 mt-1">
+                        {pedido.status === 'Coleta' && pedido.pickup_date && (
+                          <div className="flex items-center gap-1 text-purple-500 mt-1">
                             <Clock className="w-3 h-3" />
-                            <span className="text-xs font-medium">
-                              {pedido.delivery_date.split('-').reverse().join('/')}
+                            <span className="text-xs font-bold">
+                              Coleta: {pedido.pickup_date.split('-').reverse().join('/')}
+                            </span>
+                          </div>
+                        )}
+                        {pedido.delivery_date && (
+                          <div className="flex items-center gap-1 text-green-600 mt-1">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-xs font-bold">
+                              Entrega: {pedido.delivery_date.split('-').reverse().join('/')}
                             </span>
                           </div>
                         )}
@@ -1187,6 +1195,7 @@ export default function EntregasPage() {
                       client_id: clientData.id,
                       status: 'Coleta',
                       entry_date: entryDate,
+                      pickup_date: coletaForm.deliveryDate || null,
                       delivery_date: coletaForm.returnDate || null,
                       items: [],
                       total: 0
