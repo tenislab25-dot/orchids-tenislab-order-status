@@ -114,7 +114,7 @@ export default function EditOSPage() {
         .from('photos')
         .getPublicUrl(filePath);
       
-      setItems(items.map(it => {
+      setItems(prevItems => prevItems.map(it => {
         if (it.id === itemId) {
           const currentPhotos = it.photosBefore || [];
           return { ...it, photosBefore: [...currentPhotos, publicUrl] };
