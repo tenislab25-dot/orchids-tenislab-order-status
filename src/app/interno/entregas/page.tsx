@@ -626,16 +626,14 @@ export default function EntregasPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!rotaAtiva && (
-              <Button
-                onClick={() => setShowColetaModal(true)}
-                size="sm"
-                className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
-              >
-                <UserPlus className="w-4 h-4 mr-1" />
-                Coleta
-              </Button>
-            )}
+            <Button
+              onClick={() => setShowColetaModal(true)}
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
+            >
+              <UserPlus className="w-4 h-4 mr-1" />
+              Coleta
+            </Button>
             {!rotaAtiva ? (
               <Button
                 onClick={handleOptimizeRoute}
