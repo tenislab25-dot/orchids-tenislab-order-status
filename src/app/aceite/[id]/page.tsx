@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image"; // Adicione esta linha para importar o componente Image
 import { 
   CheckCircle2, 
   Package, 
@@ -364,13 +363,11 @@ if (error) {
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
         <div className="relative h-28 w-64">
-          <Image 
+          <img 
             src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
             alt="TENISLAB Logo" 
-            fill
-            priority
-            className="object-contain"
-            sizes="(max-width: 768px ) 100vw, 400px"
+            loading="eager"
+            className="w-full h-full object-contain"
           />
         </div>
         <div className="h-px w-12 bg-slate-200" />
@@ -393,13 +390,11 @@ if (error) {
       return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95">
           <div className="relative h-40 w-64 mb-8">
-            <Image 
+            <img 
               src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
               alt="TENISLAB Logo" 
-              fill
-              priority
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 400px"
+              loading="eager"
+              className="w-full h-full object-contain"
             />
           </div>
           <div className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mb-6">
@@ -442,13 +437,11 @@ if (error) {
       <div className="min-h-screen bg-slate-50 pb-20">
         <header className="bg-white border-b border-slate-200 px-6 py-8 flex flex-col items-center gap-4 shadow-sm sticky top-0 z-30">
             <div className="relative h-28 w-64">
-              <Image 
+              <img 
                 src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766845000340.PNG" 
                 alt="TENISLAB Logo" 
-                fill
-                priority
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 400px"
+                loading="eager"
+                className="w-full h-full object-contain"
               />
             </div>
           <p className="text-slate-500 text-xs font-bold text-center leading-tight max-w-[200px]">

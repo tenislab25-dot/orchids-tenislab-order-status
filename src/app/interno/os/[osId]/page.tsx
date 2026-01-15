@@ -48,7 +48,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -931,7 +930,7 @@ export default function OSViewPage() {
                               className="relative aspect-square rounded-2xl overflow-hidden border-2 border-blue-200 cursor-pointer group"
                               onClick={() => setSelectedImage(photo)}
                             >
-                              <Image src={photo} alt={`Foto ${pIdx + 1}`} fill className="object-cover" />
+                              <img src={photo} alt={`Foto ${pIdx + 1}`}className="w-full h-full object-cover" loading="lazy" />
                               <div className="absolute top-1 left-1">
                                 <Badge className="bg-blue-500 text-white text-[8px] font-bold">ANTES</Badge>
                               </div>
@@ -954,7 +953,7 @@ export default function OSViewPage() {
                                 className="relative aspect-square rounded-2xl overflow-hidden border-2 border-green-200 cursor-pointer group"
                                 onClick={() => setSelectedImage(photo)}
                               >
-                                <Image src={photo} alt={`Foto depois ${pIdx + 1}`} fill className="object-cover" />
+                                <img src={photo} alt={`Foto depois ${pIdx + 1}`}className="w-full h-full object-cover" loading="lazy" />
                                 <div className="absolute top-1 left-1">
                                   <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
                                 </div>
@@ -972,13 +971,11 @@ export default function OSViewPage() {
                             ))}
                             {(!item.photosAfter || item.photosAfter.length === 0) && (
                               <div className="relative aspect-square rounded-2xl overflow-hidden border-2 border-slate-100 bg-slate-50 flex items-center justify-center opacity-40 grayscale">
-                                <Image 
-                                  src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=200&height=200&resize=contain" 
+                                <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/logo-1766879913032.PNG?width=200&height=200&resize=contain" 
                                   alt="Sem foto" 
                                   width={60} 
                                   height={60} 
-                                  className="object-contain opacity-20"
-                                />
+                                  className="w-full h-full object-contain opacity-20" loading="lazy" />
                                 <span className="absolute bottom-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest">Sem Foto Depois</span>
                               </div>
                             )}
@@ -1300,7 +1297,7 @@ export default function OSViewPage() {
             </DialogHeader>
             <div className="relative aspect-square w-full">
             {selectedImage && (
-              <Image src={selectedImage} alt="Foto ampliada" fill className="object-contain" />
+              <img src={selectedImage} alt="Foto ampliada"className="w-full h-full object-contain" loading="lazy" />
             )}
           </div>
           <Button 

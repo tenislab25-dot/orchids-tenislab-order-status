@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { 
   Search, 
@@ -80,14 +79,8 @@ export default function Home() {
       {/* SECTION 1 — BRAND / HEADER */}
           <header className="flex flex-col items-center gap-1 mb-8">
             <div className="relative w-64 h-48">
-              <Image 
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-                alt="TENISLAB Logo" 
-                fill
-                priority
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 400px"
-              />
+              <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+                alt="TENISLAB Logo"className="w-full h-full object-contain" loading="eager" />
             </div>
 
           {processedCount !== null && (

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -722,7 +721,7 @@ interface OSItem {
                                 key={pIdx} 
                                 className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 group cursor-pointer active:scale-[0.98] transition-all"
                               >
-                                <Image src={photo} alt="Foto do par" fill className="object-cover" />
+                                <img src={photo} alt="Foto do par"className="w-full h-full object-cover" loading="lazy" />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                                   <button 
                                     type="button"

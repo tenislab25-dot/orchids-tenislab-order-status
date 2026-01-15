@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, Package, Clock, CheckCircle2, Truck, ArrowLeft, AlertCircle } from "lucide-react";
@@ -287,14 +286,8 @@ export default function StatusPage() {
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
     <header className="flex flex-col items-center gap-6 mb-8">
           <div className="relative h-48 w-64">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-              alt="Tenislab Logo" 
-              fill
-              priority
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 400px"
-            />
+            <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+              alt="Tenislab Logo"className="w-full h-full object-contain" loading="eager" />
           </div>
     </header>
 

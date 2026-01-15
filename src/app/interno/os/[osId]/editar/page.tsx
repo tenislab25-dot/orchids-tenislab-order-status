@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -434,7 +433,7 @@ export default function EditOSPage() {
                           <div className="grid grid-cols-2 gap-2">
                             {item.photos?.map((photo: string, pIdx: number) => (
                               <div key={`photo-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-amber-200 group">
-                                <Image src={photo} alt="Foto antes" fill className="object-cover" />
+                                <img src={photo} alt="Foto antes" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                                 <div className="absolute top-2 left-2">
                                   <Badge className="bg-amber-500 text-white text-[8px] font-bold">ANTES</Badge>
                                 </div>
@@ -458,7 +457,7 @@ export default function EditOSPage() {
                             ))}
                             {item.photosBefore?.map((photo: string, pIdx: number) => (
                               <div key={`before-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-amber-200 group">
-                                <Image src={photo} alt="Foto antes" fill className="object-cover" />
+                                <img src={photo} alt="Foto antes" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                                 <div className="absolute top-2 left-2">
                                   <Badge className="bg-amber-500 text-white text-[8px] font-bold">ANTES</Badge>
                                 </div>
@@ -521,7 +520,7 @@ export default function EditOSPage() {
                             <div className="grid grid-cols-2 gap-2">
                               {item.photosAfter.map((photo: string, pIdx: number) => (
                                 <div key={`after-${pIdx}`} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 group">
-                                  <Image src={photo} alt="Foto depois" fill className="object-cover" />
+                                  <img src={photo} alt="Foto depois" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                                   <div className="absolute top-2 left-2">
                                     <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
                                   </div>

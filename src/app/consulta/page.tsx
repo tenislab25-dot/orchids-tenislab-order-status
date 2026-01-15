@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { formatDate, isDateBefore } from "@/lib/date-utils";
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -442,14 +441,9 @@ function OrderContent() {
                                             className="relative w-full aspect-square rounded-xl overflow-hidden border border-slate-200 cursor-pointer group active:scale-[0.98] transition-all bg-slate-100"
                                             onClick={() => setSelectedImage(photo)}
                                           >
-                                            <Image 
-                                              src={photo} 
-                                              alt={`Antes ${pIdx + 1}`} 
-                                              fill
-                                              unoptimized
-                                              className="object-cover"
-                                              sizes="(max-width: 768px) 50vw, 33vw"
-                                            />
+                                            <img src={photo} 
+                                              alt={`Antes ${pIdx + 1}`}unoptimized
+                                              className="w-full h-full object-cover" loading="lazy" />
                                             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                                               <ZoomIn className="w-5 h-5 text-white" />
                                             </div>
@@ -469,14 +463,9 @@ function OrderContent() {
                                         className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border-2 border-emerald-200 cursor-pointer group active:scale-[0.98] transition-all bg-emerald-50"
                                         onClick={() => setSelectedImage(afterPhotos[0])}
                                       >
-                                        <Image 
-                                          src={afterPhotos[0]} 
-                                          alt="Resultado final" 
-                                          fill
-                                          unoptimized
-                                          className="object-cover"
-                                          sizes="(max-width: 768px) 100vw, 50vw"
-                                        />
+                                        <img src={afterPhotos[0]} 
+                                          alt="Resultado final"unoptimized
+                                          className="w-full h-full object-cover" loading="lazy" />
                                         <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[8px] font-bold uppercase px-2 py-1 rounded-full shadow-lg">
                                           Resultado
                                         </div>
@@ -494,14 +483,9 @@ function OrderContent() {
                                               className="relative w-full aspect-square rounded-lg overflow-hidden border border-emerald-200 cursor-pointer group active:scale-[0.98] transition-all bg-emerald-50"
                                               onClick={() => setSelectedImage(photo)}
                                             >
-                                              <Image 
-                                                src={photo} 
-                                                alt={`Depois ${pIdx + 2}`} 
-                                                fill
-                                                unoptimized
-                                                className="object-cover"
-                                                sizes="(max-width: 768px) 33vw, 20vw"
-                                              />
+                                              <img src={photo} 
+                                                alt={`Depois ${pIdx + 2}`}unoptimized
+                                                className="w-full h-full object-cover" loading="lazy" />
                                               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                                                 <ZoomIn className="w-4 h-4 text-white" />
                                               </div>
@@ -578,14 +562,8 @@ export default function StatusPage() {
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
     <header className="flex flex-col items-center gap-6 mb-8">
           <div className="relative h-48 w-64">
-            <Image 
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-              alt="TENISLAB Logo" 
-              fill
-              priority
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 400px"
-            />
+            <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
+              alt="TENISLAB Logo"className="w-full h-full object-contain" loading="eager" />
           </div>
     </header>
 
