@@ -155,11 +155,14 @@ export default function EntregasPage() {
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       console.log('Data de hoje:', todayStr);
       
-      // Filtrar apenas pedidos do dia atual
+      // Filtrar apenas pedidos do dia atual (coletas OU entregas)
       const pedidosDoDia = pedidos.filter(p => {
+        const pickupDate = (p as any).pickup_date;
         const deliveryDate = p.delivery_date;
-        const isToday = deliveryDate === todayStr;
-        console.log(`OS ${p.os_number}: delivery_date=${deliveryDate}, isToday=${isToday}`);
+        const isPickupToday = pickupDate === todayStr;
+        const isDeliveryToday = deliveryDate === todayStr;
+        const isToday = isPickupToday || isDeliveryToday;
+        console.log(`OS ${p.os_number}: pickup_date=${pickupDate}, delivery_date=${deliveryDate}, isToday=${isToday}`);
         return isToday;
       });
       
