@@ -231,13 +231,17 @@ export default function DashboardPage() {
     const { data, error } = await supabase
       .from("service_orders")
       .select(`
-        *,
+        id, os_number, status, entry_date, delivery_date,
+        total, payment_method, payment_confirmed, pay_on_entry,
+        priority, updated_at, created_at, items,
         clients (
           name,
           phone
         )
       `)
-      .order("updated_at", { ascending: false });
+      .gte('updated_at', thirtyDaysAgo.toISOString())
+      .order("updated_at", { ascending: false })
+      .limit(200);
 
     if (error) {
       toast.error("Erro ao buscar ordens: " + error.message);

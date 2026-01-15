@@ -164,7 +164,11 @@ interface OSItem {
   }, []);
 
   const fetchClients = useCallback(async () => {
-    const { data } = await supabase.from("clients").select("*").order("name");
+    const { data } = await supabase
+      .from("clients")
+      .select("id, name, phone")
+      .order("name")
+      .limit(100);
     if (data) setClients(data);
   }, []);
 
