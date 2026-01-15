@@ -405,10 +405,10 @@ export default function DashboardPage() {
     if (filter === "pendentes") {
       result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
     } else if (filter === "cadastro_pendente") {
-      // OS coletadas mas sem cadastro completo (sem serviços, fotos ou valores)
+      // OS recebidas mas sem cadastro completo (sem serviços/items)
       result = result.filter(o => 
-        o.status === "Coletado" && 
-        (!o.items || o.items.length === 0 || o.total === 0)
+        o.status === "Recebido" && 
+        (!o.items || o.items.length === 0)
       );
     } else if (filter !== "all") {
       result = result.filter(o => o.status === filter);
