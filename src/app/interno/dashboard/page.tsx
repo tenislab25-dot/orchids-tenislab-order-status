@@ -128,7 +128,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
-  const [filter, setFilter] = useState<Status | "all" | "pendentes">("all");
+  const [filter, setFilter] = useState<Status | "all" | "pendentes" | "cadastro_pendente">("all");
   const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -404,6 +404,12 @@ export default function DashboardPage() {
 
     if (filter === "pendentes") {
       result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
+    } else if (filter === "cadastro_pendente") {
+      // OS coletadas mas sem cadastro completo (sem serviços, fotos ou valores)
+      result = result.filter(o => 
+        o.status === "Coletado" && 
+        (!o.items || o.items.length === 0 || o.total === 0)
+      );
     } else if (filter !== "all") {
       result = result.filter(o => o.status === filter);
     }
@@ -773,22 +779,22 @@ export default function DashboardPage() {
                         Tênis já coletado! Complete o cadastro da OS com serviços, fotos e valores.
                       </p>
                     </div>
-                    <Link href="/interno/dashboard" prefetch={false}>
-                      <Button 
-                        className="bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl h-12 px-6"
-                        onClick={() => {
-                          // Rola até a lista de OS
-                          setTimeout(() => {
-                            const osList = document.querySelector('[data-os-list]');
-                            if (osList) {
-                              osList.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                          }, 100);
-                        }}
-                      >
-                        Concluir Cadastro
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl h-12 px-6"
+                      onClick={() => {
+                        // Ativa filtro de cadastro pendente
+                        setFilter('cadastro_pendente');
+                        // Rola até a lista de OS
+                        setTimeout(() => {
+                          const osList = document.querySelector('[data-os-list]');
+                          if (osList) {
+                            osList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
+                      }}
+                    >
+                      Concluir Cadastro
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
