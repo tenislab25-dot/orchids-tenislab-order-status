@@ -204,14 +204,27 @@ if (error) {
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text("TENISLAB", pageWidth / 2, y, { align: "center" });
-    y += 8;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("O Laboratorio do Seu Tenis", pageWidth / 2, y, { align: "center" });
-    y += 15;
+    // Adicionar logo
+    try {
+      const logoImg = new Image();
+      logoImg.src = '/tenislab-logo.png';
+      // Logo: 902x271 pixels, proporção ~3.3:1
+      const logoWidth = 50;
+      const logoHeight = logoWidth / 3.3;
+      const logoX = (pageWidth - logoWidth) / 2;
+      doc.addImage(logoImg, 'PNG', logoX, y, logoWidth, logoHeight);
+      y += logoHeight + 10;
+    } catch (error) {
+      // Se falhar ao carregar logo, usa texto como fallback
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("TENISLAB", pageWidth / 2, y, { align: "center" });
+      y += 8;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("O Laboratorio do Seu Tenis", pageWidth / 2, y, { align: "center" });
+      y += 15;
+    }
 
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
