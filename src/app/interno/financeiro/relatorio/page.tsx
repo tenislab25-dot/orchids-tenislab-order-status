@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from "recharts";
 
@@ -243,7 +244,7 @@ export default function RelatorioFinanceiroPage() {
       const rows = dataToExport.map(o => ({
         OS: o.os_number,
         Cliente: o.clients?.name || "N/A",
-        Data: new Date(o.entry_date).toLocaleDateString("pt-BR"),
+        Data: formatDate(o.entry_date),
         Valor: Number(o.total || 0).toFixed(2),
         Pagamento: o.payment_method || "N/A",
         Status: o.status
@@ -329,7 +330,7 @@ export default function RelatorioFinanceiroPage() {
                     <tr>
                       <td>${o.os_number}</td>
                       <td>${o.clients?.name || "N/A"}</td>
-                      <td>${new Date(o.entry_date).toLocaleDateString("pt-BR")}</td>
+                      <td>${formatDate(o.entry_date)}</td>
                       <td style="text-align: right;">R$ ${Number(o.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     </tr>
                   `).join('')}

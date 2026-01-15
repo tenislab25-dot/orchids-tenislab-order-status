@@ -46,6 +46,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { formatDateTime, formatDateShort } from "@/lib/date-utils";
 import { 
   playNotificationSound, 
   playAcceptedSound,
@@ -523,7 +524,7 @@ export default function DashboardPage() {
               <div className="flex flex-col">
                 <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   {order.status === "Recebido" ? "ENTRADA: " : "ACEITO EM: "}
-                  {new Date(order.accepted_at || order.entry_date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  {formatDateTime(order.accepted_at || order.entry_date)}
                 </span>
                 <span className="text-xl sm:text-2xl font-black text-blue-600 tracking-tight mt-1">{order.os_number}</span>
               </div>
@@ -540,7 +541,7 @@ export default function DashboardPage() {
                 )}
                 {order.delivery_date && (
                   <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-tight flex items-center gap-1 ${isOverdue ? 'text-red-500 animate-pulse' : 'text-slate-900'}`}>
-                    ENTREGA: {new Date(order.delivery_date).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+                    ENTREGA: {formatDateShort(order.delivery_date)}
                   </span>
                 )}
               </div>

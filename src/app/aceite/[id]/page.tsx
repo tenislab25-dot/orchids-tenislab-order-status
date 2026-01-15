@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 import {
   Dialog,
   DialogContent,
@@ -233,11 +234,11 @@ if (error) {
     y += 6;
     doc.text(`Telefone: ${order.clients?.phone}`, 20, y);
     y += 6;
-    doc.text(`Data de Entrada: ${new Date(order.entry_date).toLocaleDateString('pt-BR')}`, 20, y);
+    doc.text(`Data de Entrada: ${formatDate(order.entry_date)}`, 20, y);
     y += 6;
-    doc.text(`Data de Aceite: ${order.accepted_at ? new Date(order.accepted_at).toLocaleDateString('pt-BR') + ' as ' + new Date(order.accepted_at).toLocaleTimeString('pt-BR') : new Date().toLocaleDateString('pt-BR')}`, 20, y);
+    doc.text(`Data de Aceite: ${order.accepted_at ? formatDateTime(order.accepted_at) : formatDateTime(new Date().toISOString())}`, 20, y);
     y += 6;
-    doc.text(`Previsao de Entrega: ${order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'A definir'}`, 20, y);
+    doc.text(`Previsao de Entrega: ${order.delivery_date ? formatDate(order.delivery_date) : 'A definir'}`, 20, y);
     y += 12;
 
     doc.line(20, y, pageWidth - 20, y);
@@ -328,7 +329,7 @@ if (error) {
     y += splitTerms.length * 5 + 10;
 
     doc.setFontSize(10);
-    doc.text(`Aceito digitalmente em: ${order.accepted_at ? new Date(order.accepted_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR')}`, 20, y);
+    doc.text(`Aceito digitalmente em: ${order.accepted_at ? formatDateTime(order.accepted_at) : formatDateTime(new Date().toISOString())}`, 20, y);
     y += 6;
     doc.text(`IP/Dispositivo: Aceite via navegador web`, 20, y);
     y += 15;
@@ -498,7 +499,7 @@ if (error) {
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrada</span>
                   <span className="text-sm font-bold text-slate-800">
-                    {new Date(order.entry_date).toLocaleDateString('pt-BR')}
+                    {formatDate(order.entry_date)}
                   </span>
                 </div>
               </div>
@@ -509,7 +510,7 @@ if (error) {
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Entrega Prevista</span>
                     <span className="text-sm font-bold text-slate-800">
-                      {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'Será calculada após o aceite'}
+                      {order.delivery_date ? formatDate(order.delivery_date) : 'Será calculada após o aceite'}
                     </span>
                     {!order.delivery_date && (
                       <span className="text-[10px] text-blue-500 font-medium mt-0.5">

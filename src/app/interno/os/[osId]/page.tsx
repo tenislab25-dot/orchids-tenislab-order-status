@@ -52,6 +52,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { canChangeToStatus, getAllowedStatuses, type UserRole } from "@/lib/auth";
 import { compressImage } from "@/lib/image-utils";
@@ -779,7 +780,7 @@ export default function OSViewPage() {
                     <div className="flex items-center gap-2 text-blue-700">
                       <CheckCircle2 className="w-4 h-4" />
                       <span className="text-[10px] font-black uppercase tracking-wider">
-                        OS aceita em: {new Date(order.accepted_at).toLocaleString('pt-BR')}
+                        OS aceita em: {formatDateTime(order.accepted_at)}
                       </span>
                     </div>
                   </div>
@@ -847,7 +848,7 @@ export default function OSViewPage() {
                       <Calendar className="w-3 h-3 text-blue-500" /> Entrada
                     </span>
                     <span className="text-xs font-bold text-slate-700">
-                      {new Date(order.entry_date).toLocaleDateString('pt-BR')}
+                      {formatDate(order.entry_date)}
                     </span>
                   </div>
                     {order.delivery_date && (
@@ -856,7 +857,7 @@ export default function OSViewPage() {
                           <Package className="w-3 h-3 text-blue-500" /> Prev. Entrega
                         </span>
                         <span className={`text-xs font-bold ${getDeadlineStatus(order.delivery_date).color}`}>
-                          {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                          {formatDate(order.delivery_date)}
                         </span>
                       </div>
                     )}

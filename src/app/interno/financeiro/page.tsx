@@ -22,6 +22,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import {
   Table,
@@ -110,7 +111,7 @@ export default function FinanceiroPage() {
       const transactionsData = confirmedOrders.slice(0, 30).map(o => [
         o.os_number,
         o.clients?.name || "N/A",
-        new Date(o.entry_date).toLocaleDateString("pt-BR"),
+        formatDate(o.entry_date),
         o.payment_method || "N/A",
         `R$ ${Number(o.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
       ]);

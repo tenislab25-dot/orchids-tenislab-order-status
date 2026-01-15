@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { formatDateTime, formatDate } from "@/lib/date-utils";
 import {
   Search,
   Database,
@@ -163,7 +164,7 @@ export default function BancoDadosPage() {
                       <TableCell className="pl-8 font-mono font-bold text-slate-500">#{order.os_number}</TableCell>
                       <TableCell className="font-bold text-slate-700">{order.clients?.name}</TableCell>
                       <TableCell className="text-slate-500 text-xs font-bold">
-                        {new Date(order.updated_at || order.entry_date).toLocaleDateString("pt-BR")}
+                        {formatDateTime(order.updated_at) || formatDate(order.entry_date)}
                       </TableCell>
                       <TableCell className="font-black text-slate-400 text-sm">
                         {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.total || 0)}

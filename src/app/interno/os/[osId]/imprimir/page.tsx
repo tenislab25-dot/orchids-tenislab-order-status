@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/date-utils";
 import { Printer, ArrowLeft, Smartphone, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -141,7 +142,7 @@ export default function PrintOSPage() {
               </div>
               <div className="text-right">
                 <p className="text-[8px] text-slate-500">ENTRADA</p>
-                <p className="text-xs font-bold">{order.entry_date ? new Date(order.entry_date).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                <p className="text-xs font-bold">{formatDate(order.entry_date)}</p>
               </div>
             </div>
           </div>
@@ -156,7 +157,7 @@ export default function PrintOSPage() {
           <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
             <p className="text-[8px] text-slate-500 uppercase mb-1">PREVISÃO DE ENTREGA</p>
             <p className="text-sm font-bold">
-              {order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('pt-BR') : 'A definir'}
+              {order.delivery_date ? formatDate(order.delivery_date) : 'A definir'}
             </p>
           </div>
 

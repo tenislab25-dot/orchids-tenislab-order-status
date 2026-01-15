@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 
 type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";
@@ -307,7 +308,7 @@ export default function TodosPedidosPage() {
                             </div>
                           </TableCell>
                         <TableCell className="text-slate-500 text-xs font-bold">
-                          {new Date(order.entry_date).toLocaleDateString("pt-BR")}
+                          {formatDate(order.entry_date)}
                         </TableCell>
                         <TableCell>
                           {order.delivery_date ? (
@@ -316,7 +317,7 @@ export default function TodosPedidosPage() {
                               ? "text-red-500" 
                               : "text-slate-500"
                             }`}>
-                              {new Date(order.delivery_date).toLocaleDateString("pt-BR")}
+                              {formatDate(order.delivery_date)}
                             </span>
                           ) : "--/--"}
                         </TableCell>

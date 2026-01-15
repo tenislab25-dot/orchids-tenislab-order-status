@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { formatDate, isDateBefore } from "@/lib/date-utils";
 import Image from "next/image";
 import {
   Dialog,
@@ -337,11 +338,11 @@ function OrderContent() {
                   <div className="flex flex-col items-center gap-1 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Previsão de Entrega</span>
                     <span className={`text-sm font-black ${
-                      new Date(order.delivery_date) < new Date(new Date().setHours(0,0,0,0)) 
+                      isDateBefore(order.delivery_date) 
                       ? "text-red-500 animate-pulse" 
                       : "text-slate-700"
                     }`}>
-                      {new Date(order.delivery_date).toLocaleDateString('pt-BR')}
+                      {formatDate(order.delivery_date)}
                     </span>
                   </div>
                 )}
