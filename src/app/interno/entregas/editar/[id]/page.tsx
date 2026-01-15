@@ -19,6 +19,7 @@ export default function EditarEntregaPage() {
   const [pedido, setPedido] = useState<any>(null);
   const [form, setForm] = useState({
     observations: '',
+    pickup_date: '',
     delivery_date: '',
     client_name: '',
     client_phone: '',
@@ -60,6 +61,7 @@ export default function EditarEntregaPage() {
       setPedido(data);
       setForm({
         observations: data.observations || '',
+        pickup_date: data.pickup_date ? data.pickup_date.split('T')[0] : '',
         delivery_date: data.delivery_date ? data.delivery_date.split('T')[0] : '',
         client_name: data.clients?.name || '',
         client_phone: data.clients?.phone || '',
@@ -107,6 +109,7 @@ export default function EditarEntregaPage() {
         .from('service_orders')
         .update({
           observations: form.observations,
+          pickup_date: form.pickup_date || null,
           delivery_date: form.delivery_date || null
         })
         .eq('id', params.id);
@@ -185,15 +188,29 @@ export default function EditarEntregaPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-black text-slate-900">Informações da Entrega</h2>
               
+              {pedido?.status === 'Coleta' && (
+                <div>
+                  <label className="block text-sm font-bold text-purple-700 mb-2">
+                    Data da Coleta (quando vai buscar)
+                  </label>
+                  <input
+                    type="date"
+                    value={form.pickup_date}
+                    onChange={(e) => setForm({ ...form, pickup_date: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+              )}
+              
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Data da Entrega/Coleta
+                <label className="block text-sm font-bold text-green-700 mb-2">
+                  Data de Entrega (quando vai devolver)
                 </label>
                 <input
                   type="date"
                   value={form.delivery_date}
                   onChange={(e) => setForm({ ...form, delivery_date: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-green-200 focus:border-green-500 focus:outline-none"
                 />
               </div>
 
