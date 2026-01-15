@@ -805,15 +805,17 @@ export default function EntregasPage() {
                 </div>
 
                 {/* Botões de Navegação e Comunicação */}
-                <div className="grid grid-cols-3 gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
-                    onClick={() => router.push(`/interno/entregas/editar/${pedido.id}`)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500 mr-1"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                    Editar
-                  </Button>
+                <div className={`grid ${rotaAtiva ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+                  {!rotaAtiva && (
+                    <Button 
+                      variant="outline" 
+                      className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                      onClick={() => router.push(`/interno/entregas/editar/${pedido.id}`)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500 mr-1"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                      Editar
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
