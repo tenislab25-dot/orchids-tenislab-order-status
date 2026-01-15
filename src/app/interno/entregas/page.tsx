@@ -1187,7 +1187,7 @@ export default function EntregasPage() {
                       client_id: clientData.id,
                       status: 'Coleta',
                       entry_date: entryDate,
-                      delivery_date: coletaForm.deliveryDate || null,
+                      delivery_date: coletaForm.returnDate || null,
                       items: [],
                       total: 0
                     });
