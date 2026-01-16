@@ -59,6 +59,7 @@ export default function ClientsPage() {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -138,7 +139,7 @@ export default function ClientsPage() {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     const formattedName = formData.name.toUpperCase();
     const cleanPhone = formData.phone.replace(/\D/g, "");
     const finalPhone = cleanPhone.startsWith("55") ? cleanPhone.slice(2) : cleanPhone;
@@ -169,7 +170,7 @@ export default function ClientsPage() {
     } catch (error: any) {
       toast.error("Erro ao salvar cliente: " + (error.message || "Tente novamente"));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -385,9 +386,9 @@ export default function ClientsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={loading}>Cancelar</Button>
-            <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700" disabled={loading}>
-              {loading ? (
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700" disabled={saving}>
+              {saving ? (
                 <span className="flex items-center gap-2">
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
