@@ -66,7 +66,6 @@ export async function refreshSession(): Promise<boolean> {
 // Função para reconectar todos os canais Realtime
 export async function reconnectRealtime(): Promise<void> {
   try {
-    // Remover todos os canais existentes
     const channels = supabase.getChannels();
     for (const channel of channels) {
       await supabase.removeChannel(channel);
@@ -77,52 +76,48 @@ export async function reconnectRealtime(): Promise<void> {
   }
 }
 
-// Inicializar listener de visibilidade para reconectar quando volta ao foco
+// Inicializar listener de visibilidade para recarregar página quando volta do background
 if (typeof window !== 'undefined') {
-  let wasHidden = false;
+  let hiddenTime: number | null = null;
+  const RELOAD_THRESHOLD = 30000; // 30 segundos - se ficou mais que isso em background, recarrega
   
-  document.addEventListener('visibilitychange', async () => {
+  document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-      wasHidden = true;
-    } else if (document.visibilityState === 'visible' && wasHidden) {
-      wasHidden = false;
-      console.log('App voltou ao foco - reconectando...');
+      // Guardar o momento em que a página foi para background
+      hiddenTime = Date.now();
+      console.log('Página foi para background');
+    } else if (document.visibilityState === 'visible') {
+      console.log('Página voltou ao foco');
       
-      // Pequeno delay para garantir que a conexão de rede está estável
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Verificar sessão
-      const isValid = await ensureValidSession();
-      if (!isValid) {
-        const renewed = await refreshSession();
-        if (!renewed) {
-          console.warn('Sessão expirada após voltar ao foco');
-          // Não redirecionar aqui, deixar o useAuth fazer isso
+      // Se ficou mais de 30 segundos em background, recarregar a página
+      if (hiddenTime !== null) {
+        const timeInBackground = Date.now() - hiddenTime;
+        console.log(`Tempo em background: ${timeInBackground}ms`);
+        
+        if (timeInBackground > RELOAD_THRESHOLD) {
+          console.log('Tempo em background excedeu limite, recarregando página...');
+          // Usar location.reload() para garantir que tudo seja reinicializado
+          window.location.reload();
+          return;
         }
       }
       
-      // Forçar reconexão do Realtime removendo canais antigos
-      // Os componentes vão recriar os canais quando re-renderizarem
-      await reconnectRealtime();
+      hiddenTime = null;
     }
   });
 
   // Para iOS/Safari que pode não disparar visibilitychange corretamente
-  window.addEventListener('focus', async () => {
-    if (wasHidden) {
-      wasHidden = false;
-      console.log('Window focus após hidden - reconectando...');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await ensureValidSession();
-      await reconnectRealtime();
+  window.addEventListener('pageshow', (event) => {
+    // Se a página foi restaurada do cache (bfcache), recarregar
+    if (event.persisted) {
+      console.log('Página restaurada do cache, recarregando...');
+      window.location.reload();
     }
   });
 
   // Detectar quando a conexão de rede volta
-  window.addEventListener('online', async () => {
-    console.log('Conexão de rede restaurada - reconectando...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await ensureValidSession();
-    await reconnectRealtime();
+  window.addEventListener('online', () => {
+    console.log('Conexão de rede restaurada, recarregando página...');
+    window.location.reload();
   });
 }

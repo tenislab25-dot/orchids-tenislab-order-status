@@ -205,7 +205,7 @@ function OrderContent() {
   useEffect(() => {
     if (!order) return;
 
-    let channel = supabase
+    const channel = supabase
       .channel(`os-customer-${order.os_number}`)
       .on(
         "postgres_changes",
@@ -227,41 +227,7 @@ function OrderContent() {
       )
       .subscribe();
 
-    // Reconectar canal quando volta do background (WhatsApp, etc)
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === "visible" && order) {
-        console.log("Consulta: voltou ao foco, reconectando...");
-        
-        try {
-          await supabase.removeChannel(channel);
-          channel = supabase
-            .channel(`os-customer-${order.os_number}-${Date.now()}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "service_orders",
-                filter: `os_number=eq.${order.os_number}`
-              },
-              (payload) => {
-                setOrder(prev => {
-                  if (!prev) return prev;
-                  return { ...prev, ...(payload.new as OrderData) };
-                });
-              }
-            )
-            .subscribe();
-        } catch (err) {
-          console.error("Erro ao reconectar canal:", err);
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
       supabase.removeChannel(channel);
     };
   }, [order?.os_number]);
