@@ -79,7 +79,7 @@ export async function reconnectRealtime(): Promise<void> {
 // Inicializar listener de visibilidade para recarregar página quando volta do background
 if (typeof window !== 'undefined') {
   let hiddenTime: number | null = null;
-  const RELOAD_THRESHOLD = 30000; // 30 segundos - se ficou mais que isso em background, recarrega
+  const RELOAD_THRESHOLD = 1000; // 1 segundo - se ficou mais que isso em background, recarrega
   
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
