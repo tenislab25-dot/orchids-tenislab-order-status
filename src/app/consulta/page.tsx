@@ -236,54 +236,74 @@ function OrderContent() {
       setLoading(true);
       setError(null);
       
-      let searchOs = os.trim();
-      if (searchOs.includes("/")) {
-        const [num, year] = searchOs.split("/");
-        searchOs = `${num.padStart(3, "0")}/${year || new Date().getFullYear()}`;
-      } else if (searchOs.length > 0) {
-        const year = new Date().getFullYear();
-        searchOs = `${searchOs.padStart(3, "0")}/${year}`;
-      }
+      try {
+        let searchOs = os.trim();
+        if (searchOs.includes("/")) {
+          const [num, year] = searchOs.split("/");
+          searchOs = `${num.padStart(3, "0")}/${year || new Date().getFullYear()}`;
+        } else if (searchOs.length > 0) {
+          const year = new Date().getFullYear();
+          searchOs = `${searchOs.padStart(3, "0")}/${year}`;
+        }
 
-    const searchPhone = phone.replace(/\D/g, "");
+        const searchPhone = phone.replace(/\D/g, "");
 
-    const { data, error: sbError } = await supabase
-      .from("service_orders")
-      .select(`
-        os_number,
-        status,
-        items,
-        delivery_date,
-        total,
-        discount_percent,
-        machine_fee,
-        delivery_fee,
-        clients!inner (
-          phone
-        )
-      `)
-      .eq("os_number", searchOs)
-      .single();
+        // Função para buscar com retry automático
+        const fetchWithRetry = async (retries = 2): Promise<any> => {
+          const { data, error: sbError } = await supabase
+            .from("service_orders")
+            .select(`
+              os_number,
+              status,
+              items,
+              delivery_date,
+              total,
+              discount_percent,
+              machine_fee,
+              delivery_fee,
+              clients!inner (
+                phone
+              )
+            `)
+            .eq("os_number", searchOs)
+            .single();
 
-      if (sbError || !data) {
-        setError("Pedido não encontrado. Verifique o número digitado.");
+          if (sbError && retries > 0) {
+            // Aguarda 500ms antes de tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return fetchWithRetry(retries - 1);
+          }
+
+          return { data, error: sbError };
+        };
+
+        const { data, error: sbError } = await fetchWithRetry();
+
+        if (sbError || !data) {
+          if (sbError?.message?.includes("network") || sbError?.message?.includes("fetch")) {
+            setError("Erro de conexão. Verifique sua internet e tente novamente.");
+          } else {
+            setError("Pedido não encontrado. Verifique o número digitado.");
+          }
+          return;
+        }
+
+        const dbPhone = data.clients?.phone?.replace(/\D/g, "") || "";
+        const last4Db = dbPhone.slice(-4);
+        const last4Search = searchPhone.slice(-4);
+        
+        if (!dbPhone || last4Db !== last4Search) {
+          setError("Telefone não confere com o cadastro.");
+          return;
+        }
+
+        setOrder(data as any);
+      } catch (err: any) {
+        setError("Erro ao consultar. Tente novamente.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-    const dbPhone = data.clients?.phone?.replace(/\D/g, "") || "";
-    const last4Db = dbPhone.slice(-4);
-    const last4Search = searchPhone.slice(-4);
-    
-    if (!dbPhone || last4Db !== last4Search) {
-      setError("Telefone não confere com o cadastro.");
-      setLoading(false);
-      return;
-    }
-
-    setOrder(data as any);
-    setLoading(false);
-  };
+    };
 
   const reset = () => {
     setOrder(null);

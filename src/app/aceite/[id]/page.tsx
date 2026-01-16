@@ -106,8 +106,8 @@ export default function CustomerAcceptancePage() {
   const [confirming, setConfirming] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-    // Função memoizada para melhor performance
-  const fetchOrder = useCallback(async () => {
+    // Função memoizada para melhor performance com retry automático
+  const fetchOrder = useCallback(async (retries = 2) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -123,17 +123,27 @@ export default function CustomerAcceptancePage() {
         .single();
 
       if (error) {
+        // Retry em caso de erro de conexão
+        if (retries > 0 && (error.message?.includes("network") || error.message?.includes("fetch"))) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          return fetchOrder(retries - 1);
+        }
         toast.error("Ordem de serviço não encontrada ou sem permissão de acesso.");
-        setOrderFound(false); // Adicionado
+        setOrderFound(false);
       } else {
         setOrder(data);
-        setOrderFound(true); // Adicionado
+        setOrderFound(true);
         if (data.status !== "Recebido" && data.status !== "Cancelado") {
           setIsConfirmed(true);
         }
       }
-    } catch (err) {
-      console.error("Erro ao buscar OS (verifique RLS no Supabase):", err);
+    } catch (err: any) {
+      // Retry em caso de erro de conexão
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return fetchOrder(retries - 1);
+      }
+      toast.error("Erro de conexão. Tente novamente.");
     } finally {
       setLoading(false);
     }
