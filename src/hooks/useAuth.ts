@@ -118,6 +118,52 @@ export function useAuth(): AuthContextValue {
       }, 4 * 60 * 1000);
     }
 
+    // Detectar quando o app volta ao foco (ex: voltando do WhatsApp)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        console.log("App voltou ao foco, verificando sessão...");
+        
+        // Verificar se a sessão ainda é válida
+        const isValid = await ensureValidSession();
+        if (!isValid) {
+          console.warn("Sessão inválida após voltar ao foco, tentando renovar...");
+          const renewed = await refreshSession();
+          if (!renewed && pathname?.startsWith("/interno") && pathname !== "/interno/login") {
+            console.error("Falha ao renovar sessão após voltar ao foco");
+            window.location.href = "/interno/login";
+          }
+        }
+      }
+    };
+
+    // Detectar quando o app volta ao foco (para iOS/Safari)
+    const handleFocus = async () => {
+      console.log("Window focus detectado, verificando sessão...");
+      const isValid = await ensureValidSession();
+      if (!isValid) {
+        const renewed = await refreshSession();
+        if (!renewed && pathname?.startsWith("/interno") && pathname !== "/interno/login") {
+          window.location.href = "/interno/login";
+        }
+      }
+    };
+
+    // Detectar quando a página é "descongelada" (Page Lifecycle API)
+    const handleResume = async () => {
+      console.log("Página resumida do estado congelado, verificando sessão...");
+      const isValid = await ensureValidSession();
+      if (!isValid) {
+        const renewed = await refreshSession();
+        if (!renewed && pathname?.startsWith("/interno") && pathname !== "/interno/login") {
+          window.location.href = "/interno/login";
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("resume", handleResume);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
@@ -161,12 +207,15 @@ export function useAuth(): AuthContextValue {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("resume", handleResume);
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
       }
     };
-  }, []); // Removido pathname e router das dependências
+  }, []);
 
   // Efeito separado para verificar permissões quando pathname muda
   useEffect(() => {
