@@ -21,7 +21,7 @@ import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import {

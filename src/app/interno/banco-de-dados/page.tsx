@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { toast } from "sonner";
 
 type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Entregue" | "Cancelado";

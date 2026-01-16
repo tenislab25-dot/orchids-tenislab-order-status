@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 

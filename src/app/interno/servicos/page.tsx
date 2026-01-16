@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Edit2, LayoutGrid, Search, ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export default function ServicesManagement() {

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from "recharts";

@@ -46,7 +46,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { toast } from "sonner";
 
 interface SelectedService {
@@ -351,12 +351,13 @@ export default function EditOSPage() {
     }, 15000);
 
     try {
-      // Verificar sessão antes de salvar
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
+      // Verificar e renovar sessão antes de salvar
+      const isSessionValid = await ensureValidSession();
+      if (!isSessionValid) {
         clearTimeout(timeoutId);
         setSaving(false);
         toast.error("Sessão expirada. Por favor, faça login novamente.");
+        window.location.href = "/interno/login";
         return;
       }
 

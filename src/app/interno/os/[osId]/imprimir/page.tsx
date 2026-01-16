@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { Printer, ArrowLeft, Smartphone, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";

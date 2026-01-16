@@ -46,7 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { INITIAL_SERVICES } from "@/lib/services-data";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { compressImage } from "@/lib/image-utils";
 import { toast } from "sonner";
 
@@ -448,12 +448,13 @@ interface OSItem {
       }, 30000);
 
       try {
-        // Verificar sessão antes de salvar
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !sessionData.session) {
+        // Verificar e renovar sessão antes de salvar
+        const isSessionValid = await ensureValidSession();
+        if (!isSessionValid) {
           clearTimeout(timeoutId);
           setIsCreating(false);
           toast.error("Sessão expirada. Por favor, faça login novamente.", { id: "creating-os" });
+          window.location.href = "/interno/login";
           return;
         }
 

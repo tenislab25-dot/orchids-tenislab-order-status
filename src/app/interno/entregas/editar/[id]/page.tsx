@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft, Loader2, Save, Trash2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -94,12 +94,13 @@ export default function EditarEntregaPage() {
     }, 15000);
 
     try {
-      // Verificar sessão antes de salvar
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
+      // Verificar e renovar sessão antes de salvar
+      const isSessionValid = await ensureValidSession();
+      if (!isSessionValid) {
         clearTimeout(timeoutId);
         setSaving(false);
         toast.error("Sessão expirada. Por favor, faça login novamente.");
+        window.location.href = "/interno/login";
         return;
       }
 

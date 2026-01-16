@@ -49,7 +49,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, ensureValidSession } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDate, formatDateTime } from "@/lib/date-utils";
 import { useAuth } from "@/hooks/useAuth";
