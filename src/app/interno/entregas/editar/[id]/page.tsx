@@ -79,15 +79,14 @@ export default function EditarEntregaPage() {
   };
 
   const handleSave = async () => {
+    // Validações antes de iniciar loading
+    if (!form.client_name.trim()) {
+      toast.error('Nome do cliente é obrigatório');
+      return;
+    }
+
+    setSaving(true);
     try {
-      setSaving(true);
-
-      // Validações
-      if (!form.client_name.trim()) {
-        toast.error('Nome do cliente é obrigatório');
-        return;
-      }
-
       // Atualizar dados do cliente
       if (pedido.clients?.id) {
         const { error: clientError } = await supabase
@@ -119,8 +118,7 @@ export default function EditarEntregaPage() {
       toast.success('Entrega atualizada com sucesso!');
       router.push('/interno/entregas');
     } catch (error: any) {
-      console.error('Erro ao salvar:', error);
-      toast.error('Erro ao salvar alterações: ' + error.message);
+      toast.error('Erro ao salvar alterações: ' + (error.message || 'Tente novamente'));
     } finally {
       setSaving(false);
     }

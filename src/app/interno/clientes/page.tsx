@@ -142,8 +142,7 @@ export default function ClientsPage() {
       return;
     }
 
-    console.log('[CLIENTE] Iniciando loading...');
-    setLoading(true); // Inicia o carregamento
+    setLoading(true);
     const formattedName = formData.name.toUpperCase();
     const cleanPhone = formData.phone.replace(/\D/g, "");
     const finalPhone = cleanPhone.startsWith("55") ? cleanPhone.slice(2) : cleanPhone;
@@ -156,41 +155,25 @@ export default function ClientsPage() {
 
     try {
       if (editingClient) {
-        console.log('[CLIENTE] Atualizando cliente existente...');
         const { error } = await supabase
           .from("clients")
           .update(finalData)
           .eq("id", editingClient.id);
-        if (error) {
-          console.error('[CLIENTE] Erro ao atualizar:', error);
-          throw error;
-        }
-        console.log('[CLIENTE] Cliente atualizado com sucesso!');
+        if (error) throw error;
         toast.success("Cliente atualizado com sucesso");
       } else {
-        console.log('[CLIENTE] Criando novo cliente...');
         const { error } = await supabase
           .from("clients")
           .insert([finalData]);
-        if (error) {
-          console.error('[CLIENTE] Erro ao criar:', error);
-          throw error;
-        }
-        console.log('[CLIENTE] Cliente criado com sucesso!');
+        if (error) throw error;
         toast.success("Cliente cadastrado com sucesso");
       }
-      console.log('[CLIENTE] Fechando modal...');
       setIsDialogOpen(false);
-      console.log('[CLIENTE] Recarregando lista...');
       fetchClients();
-      console.log('[CLIENTE] Processo concluído!');
     } catch (error: any) {
-      console.error('[CLIENTE] ERRO CAPTURADO:', error);
-      console.error('[CLIENTE] Stack trace:', error.stack);
-      toast.error("Erro ao salvar cliente: " + error.message);
+      toast.error("Erro ao salvar cliente: " + (error.message || "Tente novamente"));
     } finally {
-      console.log('[CLIENTE] Finalizando (setLoading = false)');
-      setLoading(false); // Destrava o botão SEMPRE ao final
+      setLoading(false);
     }
   };
 

@@ -436,12 +436,11 @@ interface OSItem {
 
       setIsCreating(true);
       try {
-        toast.loading("Salvando cliente...", { id: "creating-os" });
+        toast.loading("Salvando...", { id: "creating-os" });
 
-      let clientId = selectedClientId;
-
-      const formattedName = clientName.toUpperCase().trim();
-      const formattedPhone = clientPhone.replace(/\D/g, "").replace(/^55/, "");
+        let clientId = selectedClientId;
+        const formattedName = clientName.toUpperCase().trim();
+        const formattedPhone = clientPhone.replace(/\D/g, "").replace(/^55/, "");
 
         if (selectedClientId === "new") {
           const { data: newClient, error: clientError } = await supabase
@@ -460,7 +459,7 @@ interface OSItem {
           if (clientError) throw clientError;
           clientId = newClient.id;
         } else {
-          await supabase
+          const { error: updateError } = await supabase
             .from("clients")
             .update({ 
               name: formattedName, 
@@ -471,43 +470,43 @@ interface OSItem {
               complement: clientComplement.trim() || null
             })
             .eq("id", selectedClientId);
+          if (updateError) throw updateError;
         }
 
-      const itemsWithPhotosBefore = items.map(item => ({
-        ...item,
-        photosBefore: item.photos || [],
-        photos: undefined
-      }));
+        const itemsWithPhotosBefore = items.map(item => ({
+          ...item,
+          photosBefore: item.photos || [],
+          photos: undefined
+        }));
 
-      toast.loading("Criando ordem de serviço...", { id: "creating-os" });
-      const { data: newOS, error: osError } = await supabase
-        .from("service_orders")
-        .insert([{
-          os_number: osNumber,
-          client_id: clientId,
-          entry_date: entryDate,
-          delivery_date: deliveryDate || null,
-          delivery_fee: deliveryFee,
-          discount_percent: discountPercent,
-          payment_method: paymentMethod,
-          pay_on_entry: payOnEntry,
-          total: finalTotal,
-          items: itemsWithPhotosBefore,
-          status: "Recebido",
-          tipo_entrega: tipoEntrega
-        }])
-        .select()
-        .single();
+        const { data: newOS, error: osError } = await supabase
+          .from("service_orders")
+          .insert([{
+            os_number: osNumber,
+            client_id: clientId,
+            entry_date: entryDate,
+            delivery_date: deliveryDate || null,
+            delivery_fee: deliveryFee,
+            discount_percent: discountPercent,
+            payment_method: paymentMethod,
+            pay_on_entry: payOnEntry,
+            total: finalTotal,
+            items: itemsWithPhotosBefore,
+            status: "Recebido",
+            tipo_entrega: tipoEntrega
+          }])
+          .select()
+          .single();
 
         if (osError) throw osError;
 
-        setIsCreating(false);
         setCreatedOS(newOS);
         setShowSuccessDialog(true);
         toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
       } catch (error: any) {
+        toast.error("Erro ao criar OS: " + (error.message || "Tente novamente"), { id: "creating-os" });
+      } finally {
         setIsCreating(false);
-        toast.error("Erro ao criar OS: " + error.message, { id: "creating-os" });
       }
     };
 

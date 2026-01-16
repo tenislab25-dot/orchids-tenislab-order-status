@@ -358,7 +358,7 @@ export default function EditOSPage() {
       toast.success("OS atualizada com sucesso!");
       router.push(`/interno/os/${osIdRaw}`);
     } catch (error: any) {
-      toast.error("Erro ao salvar: " + error.message);
+      toast.error("Erro ao salvar: " + (error.message || "Tente novamente"));
     } finally {
       setSaving(false);
     }
