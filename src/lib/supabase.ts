@@ -79,8 +79,12 @@ export async function reconnectRealtime(): Promise<void> {
 // Sistema de detecção de retorno do background e reload automático
 if (typeof window !== 'undefined') {
   let lastActiveTime = Date.now();
+  let backgroundStartTime: number | null = null;
   let isReloading = false;
-  let wasInBackground = false;
+  
+  // Tempo mínimo em background antes de considerar reload (5 segundos)
+  // Isso evita reload quando o usuário apenas clica em um link do WhatsApp
+  const MIN_BACKGROUND_TIME = 5000;
   
   // Função para forçar reload
   const forceReload = (reason: string) => {
@@ -90,46 +94,55 @@ if (typeof window !== 'undefined') {
     window.location.reload();
   };
 
-  // Marcar que foi para background
-  const markAsBackground = () => {
-    wasInBackground = true;
-    console.log('Página foi para background');
-  };
-
   // Verificar se precisa reload após voltar do background
   const checkAndReload = (eventName: string) => {
     const now = Date.now();
-    const timeSinceLastActive = now - lastActiveTime;
     
-    console.log(`${eventName}: timeSinceLastActive=${timeSinceLastActive}ms, wasInBackground=${wasInBackground}`);
-    
-    // Se estava em background OU se passou mais de 2 segundos, força reload
-    if (wasInBackground || timeSinceLastActive > 2000) {
-      forceReload(`${eventName} após ${timeSinceLastActive}ms de inatividade`);
+    // Se não estava em background, apenas atualizar tempo
+    if (backgroundStartTime === null) {
+      lastActiveTime = now;
       return;
     }
     
+    const timeInBackground = now - backgroundStartTime;
+    console.log(`${eventName}: ficou ${timeInBackground}ms em background`);
+    
+    // Só força reload se ficou mais de 5 segundos em background
+    if (timeInBackground > MIN_BACKGROUND_TIME) {
+      forceReload(`${eventName} após ${timeInBackground}ms em background`);
+      return;
+    }
+    
+    // Se ficou menos de 5 segundos, apenas resetar e continuar
+    backgroundStartTime = null;
     lastActiveTime = now;
   };
 
-  // Heartbeat: verifica a cada 1 segundo
+  // Heartbeat: verifica a cada 2 segundos
   setInterval(() => {
     const now = Date.now();
     const timeSinceLastActive = now - lastActiveTime;
     
-    // Se passou mais de 3 segundos desde a última atualização, significa que ficou em background
-    if (timeSinceLastActive > 3000) {
-      forceReload(`Heartbeat detectou ${timeSinceLastActive}ms de inatividade`);
-      return;
+    // Se passou mais de 10 segundos desde a última atualização, significa que ficou em background
+    if (timeSinceLastActive > 10000 && backgroundStartTime !== null) {
+      const timeInBackground = now - backgroundStartTime;
+      if (timeInBackground > MIN_BACKGROUND_TIME) {
+        forceReload(`Heartbeat detectou ${timeInBackground}ms em background`);
+        return;
+      }
     }
     
-    lastActiveTime = now;
-  }, 1000);
+    // Só atualiza se não estiver em background
+    if (backgroundStartTime === null) {
+      lastActiveTime = now;
+    }
+  }, 2000);
 
   // 1. visibilitychange - quando a aba muda de visibilidade
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-      markAsBackground();
+      backgroundStartTime = Date.now();
+      console.log('Página foi para background');
     } else if (document.visibilityState === 'visible') {
       checkAndReload('visibilitychange');
     }
@@ -137,7 +150,10 @@ if (typeof window !== 'undefined') {
 
   // 2. blur/focus - quando a janela perde/ganha foco
   window.addEventListener('blur', () => {
-    markAsBackground();
+    if (backgroundStartTime === null) {
+      backgroundStartTime = Date.now();
+      console.log('Janela perdeu foco');
+    }
   });
   
   window.addEventListener('focus', () => {
@@ -155,32 +171,23 @@ if (typeof window !== 'undefined') {
 
   // 4. pagehide - quando a página vai ser escondida
   window.addEventListener('pagehide', () => {
-    markAsBackground();
-  });
-
-  // 5. touchstart - quando o usuário toca na tela (mobile)
-  let firstTouchAfterBackground = true;
-  document.addEventListener('touchstart', () => {
-    if (wasInBackground && firstTouchAfterBackground) {
-      firstTouchAfterBackground = false;
-      checkAndReload('touchstart');
+    if (backgroundStartTime === null) {
+      backgroundStartTime = Date.now();
     }
-    lastActiveTime = Date.now();
-  }, { passive: true });
-
-  // 6. online - quando a internet volta
-  window.addEventListener('online', () => {
-    forceReload('conexão restaurada');
   });
 
-  // Resetar flag de primeiro toque quando voltar do background
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      firstTouchAfterBackground = true;
+  // 5. online - quando a internet volta
+  window.addEventListener('online', () => {
+    // Só recarrega se estava em background por mais de 5 segundos
+    if (backgroundStartTime !== null) {
+      const timeInBackground = Date.now() - backgroundStartTime;
+      if (timeInBackground > MIN_BACKGROUND_TIME) {
+        forceReload('conexão restaurada após background');
+      }
     }
   });
 
   // Inicializar
   lastActiveTime = Date.now();
-  console.log('Sistema de detecção de background inicializado (v2)');
+  console.log('Sistema de detecção de background inicializado (v3 - com delay de 5s)');
 }
