@@ -136,27 +136,32 @@ export default function EditOSPage() {
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`*, clients (name, phone)`)
-      .eq("os_number", osNumber)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`*, clients (name, phone)`)
+        .eq("os_number", osNumber)
+        .single();
 
-    if (error) {
-      toast.error("Erro ao carregar OS");
-      router.push("/interno/dashboard");
-    } else {
-      setOrder(data);
-      setEntryDate(data.entry_date || "");
-      setDeliveryDate(data.delivery_date || "");
-      setDeliveryFee(data.delivery_fee || 0);
-      setDiscountPercent(data.discount_percent || 0);
-      setPaymentMethod(data.payment_method || "Pix");
-      setPayOnEntry(data.pay_on_entry || false);
-      setItems(data.items || []);
-      setTipoEntrega(data.tipo_entrega || 'entrega');
+      if (error) {
+        toast.error("Erro ao carregar OS. Tente novamente.");
+        router.push("/interno/dashboard");
+      } else {
+        setOrder(data);
+        setEntryDate(data.entry_date || "");
+        setDeliveryDate(data.delivery_date || "");
+        setDeliveryFee(data.delivery_fee || 0);
+        setDiscountPercent(data.discount_percent || 0);
+        setPaymentMethod(data.payment_method || "Pix");
+        setPayOnEntry(data.pay_on_entry || false);
+        setItems(data.items || []);
+        setTipoEntrega(data.tipo_entrega || 'entrega');
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [osNumber, router]);
 
   // 2. Agora, usamos as funções no useEffect, que verifica a segurança

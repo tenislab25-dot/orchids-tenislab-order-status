@@ -225,41 +225,46 @@ export default function DashboardPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        id, os_number, status, entry_date, delivery_date,
-        total, payment_method, payment_confirmed, pay_on_entry,
-        priority, updated_at, created_at, items,
-        clients (
-          name,
-          phone
-        )
-      `)
-      .gte('updated_at', thirtyDaysAgo.toISOString())
-      .order("updated_at", { ascending: false })
-      .limit(200);
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          id, os_number, status, entry_date, delivery_date,
+          total, payment_method, payment_confirmed, pay_on_entry,
+          priority, updated_at, created_at, items,
+          clients (
+            name,
+            phone
+          )
+        `)
+        .gte('updated_at', thirtyDaysAgo.toISOString())
+        .order("updated_at", { ascending: false })
+        .limit(200);
 
-    if (error) {
-      toast.error("Erro ao buscar ordens: " + error.message);
-    } else {
-      const dashboardOrders = data?.filter((o: any) => {
-        const isDone = o.status === "Entregue" || o.status === "Cancelado";
-        if (!isDone) return true;
-        const updatedAt = new Date(o.updated_at || o.created_at);
-        return updatedAt > thirtyDaysAgo;
-      });
-      setOrders(dashboardOrders as Order[]);
-      
-      const orderAlerts = checkOrderAlerts(dashboardOrders || []);
-      setAlerts(orderAlerts);
-      
-      previousOrdersRef.current = dashboardOrders as Order[];
+      if (error) {
+        toast.error("Erro ao buscar ordens: " + (error.message || "Tente novamente"));
+      } else {
+        const dashboardOrders = data?.filter((o: any) => {
+          const isDone = o.status === "Entregue" || o.status === "Cancelado";
+          if (!isDone) return true;
+          const updatedAt = new Date(o.updated_at || o.created_at);
+          return updatedAt > thirtyDaysAgo;
+        });
+        setOrders(dashboardOrders as Order[]);
+        
+        const orderAlerts = checkOrderAlerts(dashboardOrders || []);
+        setAlerts(orderAlerts);
+        
+        previousOrdersRef.current = dashboardOrders as Order[];
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleExportCSV = async (type: 'clients' | 'services' | 'finance') => {

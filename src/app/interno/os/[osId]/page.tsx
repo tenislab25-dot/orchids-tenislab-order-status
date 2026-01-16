@@ -129,24 +129,29 @@ export default function OSViewPage() {
     // 1. Primeiro definimos a função fetchOrder
   const fetchOrder = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        *,
-        clients (
-          name,
-          phone
-        )
-      `)
-      .eq("os_number", osNumber)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          *,
+          clients (
+            name,
+            phone
+          )
+        `)
+        .eq("os_number", osNumber)
+        .single();
 
-    if (error) {
-      toast.error("Erro ao carregar OS: " + error.message);
-    } else {
-      setOrder(data as OrderData);
+      if (error) {
+        toast.error("Erro ao carregar OS: " + (error.message || "Tente novamente"));
+      } else {
+        setOrder(data as OrderData);
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [osNumber]);
 
   // 2. Depois usamos ela dentro do useEffect

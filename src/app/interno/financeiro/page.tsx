@@ -155,33 +155,38 @@ export default function FinanceiroPage() {
 
     const fetchOrders = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("service_orders")
-        .select(`
-          id,
-          os_number,
-          status,
-          entry_date,
-          total,
-          payment_method,
-          pay_on_entry,
-          payment_confirmed,
-          machine_fee,
-          discount_percent,
-          items,
-          clients (
-            name
-          )
-        `)
-        .order("entry_date", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("service_orders")
+          .select(`
+            id,
+            os_number,
+            status,
+            entry_date,
+            total,
+            payment_method,
+            pay_on_entry,
+            payment_confirmed,
+            machine_fee,
+            discount_percent,
+            items,
+            clients (
+              name
+            )
+          `)
+          .order("entry_date", { ascending: false });
 
-    if (error) {
-      toast.error("Erro ao buscar dados financeiros: " + error.message);
-    } else {
-      setOrders(data as unknown as Order[]);
-    }
-    setLoading(false);
-  };
+        if (error) {
+          toast.error("Erro ao buscar dados financeiros: " + (error.message || "Tente novamente"));
+        } else {
+          setOrders(data as unknown as Order[]);
+        }
+      } catch (err: any) {
+        toast.error("Erro de conexão. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     const stats = useMemo(() => {
       const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);

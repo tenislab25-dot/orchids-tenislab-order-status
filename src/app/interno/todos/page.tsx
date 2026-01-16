@@ -127,41 +127,46 @@ export default function TodosPedidosPage() {
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const from = (currentPage - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
+    try {
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
 
-    let query = supabase
-      .from("service_orders")
-      .select(`
-        *,
-        clients (
-          name,
-          phone
-        )
-      `, { count: 'exact' });
+      let query = supabase
+        .from("service_orders")
+        .select(`
+          *,
+          clients (
+            name,
+            phone
+          )
+        `, { count: 'exact' });
 
-    if (debouncedSearch) {
-      query = query.or(`os_number.ilike.%${debouncedSearch}%,clients.name.ilike.%${debouncedSearch}%`);
+      if (debouncedSearch) {
+        query = query.or(`os_number.ilike.%${debouncedSearch}%,clients.name.ilike.%${debouncedSearch}%`);
+      }
+
+      if (sortConfig.key && sortConfig.direction) {
+        const column = sortConfig.key === 'client' ? 'clients(name)' : sortConfig.key;
+        query = query.order(sortConfig.key, { ascending: sortConfig.direction === 'asc' });
+      } else {
+        query = query.order('updated_at', { ascending: false });
+      }
+
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        toast.error("Erro ao buscar ordens: " + (error.message || "Tente novamente"));
+      } else {
+        setOrders(data as Order[]);
+        setTotalCount(count || 0);
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    if (sortConfig.key && sortConfig.direction) {
-      const column = sortConfig.key === 'client' ? 'clients(name)' : sortConfig.key;
-      query = query.order(sortConfig.key, { ascending: sortConfig.direction === 'asc' });
-    } else {
-      query = query.order('updated_at', { ascending: false });
-    }
-
-    query = query.range(from, to);
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      toast.error("Erro ao buscar ordens: " + error.message);
-    } else {
-      setOrders(data as Order[]);
-      setTotalCount(count || 0);
-    }
-    setLoading(false);
   }, [currentPage, debouncedSearch, sortConfig]);
 
   useEffect(() => {

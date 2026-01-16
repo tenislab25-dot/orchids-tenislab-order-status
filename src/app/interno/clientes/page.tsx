@@ -133,11 +133,7 @@ export default function ClientsPage() {
   };
 
     const handleSubmit = async () => {
-    console.log('[CLIENTE] Iniciando cadastro/edição...');
-    console.log('[CLIENTE] Dados do formulário:', formData);
-    
     if (!formData.name || !formData.phone) {
-      console.log('[CLIENTE] Validação falhou');
       toast.error("Nome e telefone são obrigatórios");
       return;
     }

@@ -61,35 +61,40 @@ export default function CalendarioPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        id,
-        os_number,
-        status,
-        delivery_date,
-        total,
-        items,
-        clients (name)
-      `)
-      .not("delivery_date", "is", null)
-      .not("status", "eq", "Cancelado")
-      .order("delivery_date", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          id,
+          os_number,
+          status,
+          delivery_date,
+          total,
+          items,
+          clients (name)
+        `)
+        .not("delivery_date", "is", null)
+        .not("status", "eq", "Cancelado")
+        .order("delivery_date", { ascending: true });
 
-    if (error) {
-      toast.error("Erro ao buscar pedidos: " + error.message);
-    } else {
-      setOrders(data as Order[]);
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const overdue = (data as Order[]).filter(order => {
-        const deliveryDate = new Date(order.delivery_date + 'T12:00:00');
-        return deliveryDate < today && order.status !== "Entregue";
-      });
-      setOverdueOrders(overdue);
+      if (error) {
+        toast.error("Erro ao buscar pedidos: " + (error.message || "Tente novamente"));
+      } else {
+        setOrders(data as Order[]);
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const overdue = (data as Order[]).filter(order => {
+          const deliveryDate = new Date(order.delivery_date + 'T12:00:00');
+          return deliveryDate < today && order.status !== "Entregue";
+        });
+        setOverdueOrders(overdue);
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const getDaysInMonth = (year: number, month: number) => {

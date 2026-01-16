@@ -61,29 +61,34 @@ export default function RelatorioFinanceiroPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        id,
-        os_number,
-        status,
-        entry_date,
-        total,
-        payment_method,
-        pay_on_entry,
-        payment_confirmed,
-        clients (
-          name
-        )
-      `)
-      .order("entry_date", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          id,
+          os_number,
+          status,
+          entry_date,
+          total,
+          payment_method,
+          pay_on_entry,
+          payment_confirmed,
+          clients (
+            name
+          )
+        `)
+        .order("entry_date", { ascending: false });
 
-    if (error) {
-      toast.error("Erro ao buscar dados: " + error.message);
-    } else {
-      setOrders(data as unknown as Order[]);
+      if (error) {
+        toast.error("Erro ao buscar dados: " + (error.message || "Tente novamente"));
+      } else {
+        setOrders(data as unknown as Order[]);
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const availableYears = useMemo(() => {

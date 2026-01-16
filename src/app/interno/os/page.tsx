@@ -151,17 +151,22 @@ interface OSItem {
      // 1. Primeiro definimos as funções
   const fetchServices = useCallback(async () => {
     setLoadingServices(true);
-    const { data, error } = await supabase
-      .from("services")
-      .select("*")
-      .eq("status", "Active");
-    
-    if (error) {
-      toast.error("Erro ao carregar serviços");
-    } else {
-      setServices(data || []);
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("status", "Active");
+      
+      if (error) {
+        toast.error("Erro ao carregar serviços. Tente novamente.");
+      } else {
+        setServices(data || []);
+      }
+    } catch (err: any) {
+      toast.error("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoadingServices(false);
     }
-    setLoadingServices(false);
   }, []);
 
   const fetchClients = useCallback(async () => {

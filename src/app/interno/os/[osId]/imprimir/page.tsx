@@ -18,29 +18,32 @@ export default function PrintOSPage() {
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("service_orders")
-      .select(`
-        *,
-        clients (
-          name,
-          phone,
-          plus_code,
-          coordinates,
-          complement
-        )
-      `)
-      .eq("os_number", osNumber)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`
+          *,
+          clients (
+            name,
+            phone,
+            plus_code,
+            coordinates,
+            complement
+          )
+        `)
+        .eq("os_number", osNumber)
+        .single();
 
-    if (error) {
-      console.error("Erro ao carregar OS:", error);
-      // Não redireciona automaticamente, apenas mostra erro
+      if (error) {
+        setOrder(null);
+      } else {
+        setOrder(data);
+      }
+    } catch (err: any) {
       setOrder(null);
-    } else {
-      setOrder(data);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [osNumber, router]);
 
   useEffect(() => {
