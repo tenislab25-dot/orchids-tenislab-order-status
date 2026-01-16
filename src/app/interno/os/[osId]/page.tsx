@@ -161,7 +161,7 @@ export default function OSViewPage() {
     
     fetchOrder();
 
-    const channel = supabase
+    let channel = supabase
       .channel(`os-${osIdRaw}`)
       .on(
         "postgres_changes",
@@ -187,7 +187,45 @@ export default function OSViewPage() {
       )
       .subscribe();
 
+    // Reconectar canal quando volta do background (WhatsApp, etc)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        console.log("OS Detail: voltou ao foco, reconectando...");
+        fetchOrder();
+        
+        try {
+          await supabase.removeChannel(channel);
+          channel = supabase
+            .channel(`os-${osIdRaw}-${Date.now()}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "service_orders",
+                filter: `os_number=eq.${osNumber}`
+              },
+              (payload) => {
+                setOrder(prev => {
+                  if (!prev) return prev;
+                  return { ...prev, ...payload.new as OrderData };
+                });
+                if ((payload.new as any).accepted_at && !(payload.old as any).accepted_at) {
+                  toast.success("O cliente acabou de aceitar a OS!", { duration: 5000 });
+                }
+              }
+            )
+            .subscribe();
+        } catch (err) {
+          console.error("Erro ao reconectar canal:", err);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       supabase.removeChannel(channel);
     };
   }, [osNumber, osIdRaw, authLoading, role, fetchOrder]);

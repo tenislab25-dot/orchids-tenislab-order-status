@@ -187,7 +187,7 @@ export default function DashboardPage() {
     requestNotificationPermission();
     fetchOrders();
 
-    const channel = supabase
+    let channel = supabase
       .channel("dashboard_orders")
       .on(
         "postgres_changes",
@@ -218,7 +218,53 @@ export default function DashboardPage() {
       )
       .subscribe();
 
+    // Reconectar canal quando volta do background (WhatsApp, etc)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        console.log("Dashboard: voltou ao foco, reconectando...");
+        // Recarregar dados
+        fetchOrders();
+        
+        // Recriar canal se necessário
+        try {
+          await supabase.removeChannel(channel);
+          channel = supabase
+            .channel("dashboard_orders_" + Date.now())
+            .on(
+              "postgres_changes",
+              { event: "*", table: "service_orders" },
+              (payload) => {
+                if (payload.eventType === "INSERT" && soundEnabledRef.current) {
+                  playNotificationSound();
+                  showBrowserNotification("Nova OS Criada", `OS ${(payload.new as any).os_number} foi criada`);
+                  toast.success("Nova OS criada!", { duration: 5000 });
+                }
+                if (payload.eventType === "UPDATE" && soundEnabledRef.current) {
+                  const newData = payload.new as any;
+                  const oldData = payload.old as any;
+                  if (oldData.status === "Recebido" && newData.status !== "Recebido" && newData.accepted_at) {
+                    playAcceptedSound();
+                    showBrowserNotification("Cliente Aceitou!", `OS ${newData.os_number} foi aceita pelo cliente`);
+                    toast.success(`OS ${newData.os_number} aceita pelo cliente!`, { 
+                      duration: 8000,
+                      style: { background: '#22c55e', color: 'white' }
+                    });
+                  }
+                }
+                fetchOrders();
+              }
+            )
+            .subscribe();
+        } catch (err) {
+          console.error("Erro ao reconectar canal:", err);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       supabase.removeChannel(channel);
     };
   }, []);
