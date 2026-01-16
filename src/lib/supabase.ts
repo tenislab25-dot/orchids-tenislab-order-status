@@ -76,48 +76,107 @@ export async function reconnectRealtime(): Promise<void> {
   }
 }
 
-// Inicializar listener de visibilidade para recarregar página quando volta do background
+// Sistema de detecção de retorno do background e reload automático
 if (typeof window !== 'undefined') {
-  let hiddenTime: number | null = null;
-  const RELOAD_THRESHOLD = 1000; // 1 segundo - se ficou mais que isso em background, recarrega
+  let lastActiveTime = Date.now();
+  let isReloading = false;
   
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      // Guardar o momento em que a página foi para background
-      hiddenTime = Date.now();
-      console.log('Página foi para background');
-    } else if (document.visibilityState === 'visible') {
-      console.log('Página voltou ao foco');
-      
-      // Se ficou mais de 30 segundos em background, recarregar a página
-      if (hiddenTime !== null) {
-        const timeInBackground = Date.now() - hiddenTime;
-        console.log(`Tempo em background: ${timeInBackground}ms`);
-        
-        if (timeInBackground > RELOAD_THRESHOLD) {
-          console.log('Tempo em background excedeu limite, recarregando página...');
-          // Usar location.reload() para garantir que tudo seja reinicializado
-          window.location.reload();
-          return;
-        }
-      }
-      
-      hiddenTime = null;
-    }
-  });
-
-  // Para iOS/Safari que pode não disparar visibilitychange corretamente
-  window.addEventListener('pageshow', (event) => {
-    // Se a página foi restaurada do cache (bfcache), recarregar
-    if (event.persisted) {
-      console.log('Página restaurada do cache, recarregando...');
-      window.location.reload();
-    }
-  });
-
-  // Detectar quando a conexão de rede volta
-  window.addEventListener('online', () => {
-    console.log('Conexão de rede restaurada, recarregando página...');
+  // Função para forçar reload
+  const forceReload = () => {
+    if (isReloading) return;
+    isReloading = true;
+    console.log('Forçando reload da página...');
     window.location.reload();
+  };
+
+  // Atualizar tempo ativo constantemente
+  const updateActiveTime = () => {
+    lastActiveTime = Date.now();
+  };
+
+  // Heartbeat: verifica a cada 2 segundos se houve "salto" no tempo (indica que ficou em background)
+  setInterval(() => {
+    const now = Date.now();
+    const timeSinceLastActive = now - lastActiveTime;
+    
+    // Se passou mais de 5 segundos desde a última atualização, significa que ficou em background
+    if (timeSinceLastActive > 5000) {
+      console.log(`Detectado retorno do background (${timeSinceLastActive}ms de inatividade)`);
+      forceReload();
+    }
+    
+    lastActiveTime = now;
+  }, 2000);
+
+  // Múltiplos eventos para detectar retorno
+  
+  // 1. visibilitychange - padrão
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      console.log('visibilitychange: visible');
+      const timeSinceLastActive = Date.now() - lastActiveTime;
+      if (timeSinceLastActive > 3000) {
+        forceReload();
+      }
+      updateActiveTime();
+    }
   });
+
+  // 2. focus - quando a janela ganha foco
+  window.addEventListener('focus', () => {
+    console.log('window focus');
+    const timeSinceLastActive = Date.now() - lastActiveTime;
+    if (timeSinceLastActive > 3000) {
+      forceReload();
+    }
+    updateActiveTime();
+  });
+
+  // 3. pageshow - quando a página é mostrada (inclui bfcache)
+  window.addEventListener('pageshow', (event) => {
+    console.log('pageshow, persisted:', event.persisted);
+    if (event.persisted) {
+      forceReload();
+    }
+    const timeSinceLastActive = Date.now() - lastActiveTime;
+    if (timeSinceLastActive > 3000) {
+      forceReload();
+    }
+    updateActiveTime();
+  });
+
+  // 4. touchstart - quando o usuário toca na tela (mobile)
+  document.addEventListener('touchstart', () => {
+    const timeSinceLastActive = Date.now() - lastActiveTime;
+    if (timeSinceLastActive > 5000) {
+      console.log('touchstart após inatividade');
+      forceReload();
+    }
+    updateActiveTime();
+  }, { passive: true });
+
+  // 5. click - quando o usuário clica
+  document.addEventListener('click', () => {
+    const timeSinceLastActive = Date.now() - lastActiveTime;
+    if (timeSinceLastActive > 5000) {
+      console.log('click após inatividade');
+      forceReload();
+    }
+    updateActiveTime();
+  });
+
+  // 6. online - quando a internet volta
+  window.addEventListener('online', () => {
+    console.log('Conexão restaurada');
+    forceReload();
+  });
+
+  // 7. scroll - quando o usuário rola a página
+  document.addEventListener('scroll', () => {
+    updateActiveTime();
+  }, { passive: true });
+
+  // Inicializar
+  updateActiveTime();
+  console.log('Sistema de detecção de background inicializado');
 }
