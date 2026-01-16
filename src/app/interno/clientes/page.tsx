@@ -158,6 +158,15 @@ export default function ClientsPage() {
     };
 
     try {
+      // Verificar e renovar sessão antes de salvar
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        clearTimeout(timeoutId);
+        setSaving(false);
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        return;
+      }
+
       if (editingClient) {
         const { error } = await supabase
           .from("clients")
@@ -177,6 +186,7 @@ export default function ClientsPage() {
       fetchClients();
     } catch (error: any) {
       clearTimeout(timeoutId);
+      console.error("Erro ao salvar cliente:", error);
       toast.error("Erro ao salvar cliente: " + (error.message || "Tente novamente"));
     } finally {
       setSaving(false);

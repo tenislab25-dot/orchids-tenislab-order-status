@@ -448,6 +448,15 @@ interface OSItem {
       }, 30000);
 
       try {
+        // Verificar sessão antes de salvar
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) {
+          clearTimeout(timeoutId);
+          setIsCreating(false);
+          toast.error("Sessão expirada. Por favor, faça login novamente.", { id: "creating-os" });
+          return;
+        }
+
         toast.loading("Salvando...", { id: "creating-os" });
 
         let clientId = selectedClientId;

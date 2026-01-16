@@ -351,6 +351,15 @@ export default function EditOSPage() {
     }, 15000);
 
     try {
+      // Verificar sessão antes de salvar
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        clearTimeout(timeoutId);
+        setSaving(false);
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        return;
+      }
+
       const { error } = await supabase
         .from("service_orders")
         .update({

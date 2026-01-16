@@ -94,6 +94,15 @@ export default function EditarEntregaPage() {
     }, 15000);
 
     try {
+      // Verificar sessão antes de salvar
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        clearTimeout(timeoutId);
+        setSaving(false);
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        return;
+      }
+
       // Atualizar dados do cliente
       if (pedido.clients?.id) {
         const { error: clientError } = await supabase
