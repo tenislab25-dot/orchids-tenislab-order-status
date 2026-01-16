@@ -19,10 +19,10 @@ export function useAuth(): AuthContextValue {
   const router = useRouter();
   const pathname = usePathname();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasInitialized = useRef(false);
 
   const signOut = useCallback(async () => {
     try {
-      // Limpar intervalo de refresh
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
       }
@@ -37,10 +37,17 @@ export function useAuth(): AuthContextValue {
     }
   }, []);
 
+  // Efeito principal - roda apenas uma vez na montagem
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
+      // Se já inicializou e tem usuário, não precisa verificar novamente
+      if (hasInitialized.current && user) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -52,6 +59,16 @@ export function useAuth(): AuthContextValue {
           return;
         }
 
+        // Tentar usar role do localStorage primeiro para evitar loading
+        const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
+        if (cachedRole && isMounted) {
+          setUser({ id: session.user.id, email: session.user.email || "" });
+          setRole(cachedRole);
+          setLoading(false);
+          hasInitialized.current = true;
+        }
+
+        // Buscar role atualizado do banco em background
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
@@ -63,15 +80,22 @@ export function useAuth(): AuthContextValue {
           setUser({ id: session.user.id, email: session.user.email || "" });
           setRole(userRole);
           localStorage.setItem("tenislab_role", userRole);
+          hasInitialized.current = true;
 
           if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
             router.push("/interno");
           }
-        } else if (isMounted) {
+        } else if (!cachedRole && isMounted) {
           router.push("/login");
         }
       } catch {
-        if (isMounted) router.push("/login");
+        if (isMounted) {
+          // Se tiver cache, mantém o usuário logado
+          const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
+          if (!cachedRole) {
+            router.push("/login");
+          }
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -80,17 +104,19 @@ export function useAuth(): AuthContextValue {
     checkAuth();
 
     // Configurar renovação automática de sessão a cada 4 minutos
-    refreshIntervalRef.current = setInterval(async () => {
-      const isValid = await ensureValidSession();
-      if (!isValid && pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-        console.warn("Sessão expirada, tentando renovar...");
-        const renewed = await refreshSession();
-        if (!renewed) {
-          console.error("Falha ao renovar sessão, redirecionando para login");
-          window.location.href = "/interno/login";
+    if (!refreshIntervalRef.current) {
+      refreshIntervalRef.current = setInterval(async () => {
+        const isValid = await ensureValidSession();
+        if (!isValid && pathname?.startsWith("/interno") && pathname !== "/interno/login") {
+          console.warn("Sessão expirada, tentando renovar...");
+          const renewed = await refreshSession();
+          if (!renewed) {
+            console.error("Falha ao renovar sessão, redirecionando para login");
+            window.location.href = "/interno/login";
+          }
         }
-      }
-    }, 4 * 60 * 1000); // 4 minutos
+      }, 4 * 60 * 1000);
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
@@ -99,6 +125,7 @@ export function useAuth(): AuthContextValue {
         setUser(null);
         setRole(null);
         localStorage.removeItem("tenislab_role");
+        hasInitialized.current = false;
         router.push("/interno/login");
       } else if (event === "SIGNED_IN" && session) {
         const { data: profile } = await supabase
@@ -111,12 +138,12 @@ export function useAuth(): AuthContextValue {
           setUser({ id: session.user.id, email: session.user.email || "" });
           setRole(profile.role as UserRole);
           localStorage.setItem("tenislab_role", profile.role);
+          hasInitialized.current = true;
+          setLoading(false);
         }
       } else if (event === "TOKEN_REFRESHED" && session) {
-        // Token renovado com sucesso - manter usuário logado
         console.log("Token renovado automaticamente");
       } else if (event === "USER_UPDATED" && session) {
-        // Usuário atualizado - recarregar dados
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
@@ -136,9 +163,17 @@ export function useAuth(): AuthContextValue {
       subscription.unsubscribe();
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
       }
     };
-  }, [pathname, router]);
+  }, []); // Removido pathname e router das dependências
+
+  // Efeito separado para verificar permissões quando pathname muda
+  useEffect(() => {
+    if (role && pathname?.startsWith("/interno") && !canAccessPage(role, pathname)) {
+      router.push("/interno");
+    }
+  }, [pathname, role, router]);
 
   return { user, role, loading, signOut };
 }
