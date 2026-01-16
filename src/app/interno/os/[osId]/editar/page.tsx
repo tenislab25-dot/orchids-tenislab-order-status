@@ -343,6 +343,13 @@ export default function EditOSPage() {
     }
 
     setSaving(true);
+    
+    // Timeout de segurança - destrava o botão após 15 segundos
+    const timeoutId = setTimeout(() => {
+      setSaving(false);
+      toast.error("Operação demorou muito. Verifique sua conexão e tente novamente.");
+    }, 15000);
+
     try {
       const { error } = await supabase
         .from("service_orders")
@@ -360,9 +367,11 @@ export default function EditOSPage() {
         .eq("os_number", osNumber);
 
       if (error) throw error;
+      clearTimeout(timeoutId);
       toast.success("OS atualizada com sucesso!");
       router.push(`/interno/os/${osIdRaw}`);
     } catch (error: any) {
+      clearTimeout(timeoutId);
       toast.error("Erro ao salvar: " + (error.message || "Tente novamente"));
     } finally {
       setSaving(false);

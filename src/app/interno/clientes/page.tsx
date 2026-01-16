@@ -140,6 +140,13 @@ export default function ClientsPage() {
     }
 
     setSaving(true);
+    
+    // Timeout de segurança - destrava o botão após 15 segundos
+    const timeoutId = setTimeout(() => {
+      setSaving(false);
+      toast.error("Operação demorou muito. Verifique sua conexão e tente novamente.");
+    }, 15000);
+
     const formattedName = formData.name.toUpperCase();
     const cleanPhone = formData.phone.replace(/\D/g, "");
     const finalPhone = cleanPhone.startsWith("55") ? cleanPhone.slice(2) : cleanPhone;
@@ -165,9 +172,11 @@ export default function ClientsPage() {
         if (error) throw error;
         toast.success("Cliente cadastrado com sucesso");
       }
+      clearTimeout(timeoutId);
       setIsDialogOpen(false);
       fetchClients();
     } catch (error: any) {
+      clearTimeout(timeoutId);
       toast.error("Erro ao salvar cliente: " + (error.message || "Tente novamente"));
     } finally {
       setSaving(false);

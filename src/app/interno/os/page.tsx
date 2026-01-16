@@ -440,6 +440,13 @@ interface OSItem {
       }
 
       setIsCreating(true);
+      
+      // Timeout de segurança - destrava o botão após 30 segundos
+      const timeoutId = setTimeout(() => {
+        setIsCreating(false);
+        toast.error("Operação demorou muito. Verifique sua conexão e tente novamente.", { id: "creating-os" });
+      }, 30000);
+
       try {
         toast.loading("Salvando...", { id: "creating-os" });
 
@@ -505,10 +512,12 @@ interface OSItem {
 
         if (osError) throw osError;
 
+        clearTimeout(timeoutId);
         setCreatedOS(newOS);
         setShowSuccessDialog(true);
         toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
       } catch (error: any) {
+        clearTimeout(timeoutId);
         toast.error("Erro ao criar OS: " + (error.message || "Tente novamente"), { id: "creating-os" });
       } finally {
         setIsCreating(false);

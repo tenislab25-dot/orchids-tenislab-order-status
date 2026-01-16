@@ -86,6 +86,13 @@ export default function EditarEntregaPage() {
     }
 
     setSaving(true);
+    
+    // Timeout de segurança - destrava o botão após 15 segundos
+    const timeoutId = setTimeout(() => {
+      setSaving(false);
+      toast.error("Operação demorou muito. Verifique sua conexão e tente novamente.");
+    }, 15000);
+
     try {
       // Atualizar dados do cliente
       if (pedido.clients?.id) {
@@ -115,9 +122,11 @@ export default function EditarEntregaPage() {
 
       if (osError) throw osError;
 
+      clearTimeout(timeoutId);
       toast.success('Entrega atualizada com sucesso!');
       router.push('/interno/entregas');
     } catch (error: any) {
+      clearTimeout(timeoutId);
       toast.error('Erro ao salvar alterações: ' + (error.message || 'Tente novamente'));
     } finally {
       setSaving(false);
