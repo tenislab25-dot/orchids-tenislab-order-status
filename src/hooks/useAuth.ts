@@ -114,6 +114,9 @@ export function useAuth(): AuthContextValue {
         if (timeAway > 3000) {
           console.log(`Voltou após ${Math.round(timeAway/1000)}s, reconectando...`);
           
+          // FORÇAR loading = false para destravar a interface
+          setLoading(false);
+          
           try {
             // Tentar renovar a sessão do Supabase
             await supabase.auth.refreshSession();
