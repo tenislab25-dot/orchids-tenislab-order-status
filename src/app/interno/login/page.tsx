@@ -26,13 +26,21 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const timeoutId = setTimeout(() => setIsChecking(false), 3000);
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        clearTimeout(timeoutId);
         if (session) {
-          router.push("/interno");
-          return;
+          // Verificar se o usuário tem um perfil válido
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single();
+          
+          if (profile) {
+            localStorage.setItem("tenislab_role", profile.role);
+            router.push("/interno");
+            return;
+          }
         }
       } catch (err) {
         console.error("Erro ao verificar sessão:", err);
