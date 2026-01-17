@@ -6,6 +6,7 @@ import { Home, LayoutGrid, LogOut, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/auth";
+import { useEffect, useRef } from "react";
 
 export default function InternoLayout({
   children,
@@ -15,6 +16,29 @@ export default function InternoLayout({
   const pathname = usePathname();
   const { user, role, loading, signOut } = useAuth();
   const isLoginPage = pathname === "/interno/login";
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Timeout de segurança: se ficar em loading por mais de 10s, força reload
+  useEffect(() => {
+    if (loading && !isLoginPage) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        console.warn('Loading por mais de 10s, forçando reload...');
+        window.location.reload();
+      }, 10000);
+    } else {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    }
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [loading, isLoginPage]);
 
   if (loading && !isLoginPage) {
     return (

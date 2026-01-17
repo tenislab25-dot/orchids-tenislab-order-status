@@ -20,6 +20,7 @@ export function useAuth(): AuthContextValue {
   const pathname = usePathname();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasInitialized = useRef(false);
+  const lastActiveTime = useRef<number>(Date.now());
 
   const signOut = useCallback(async () => {
     try {
@@ -103,18 +104,37 @@ export function useAuth(): AuthContextValue {
 
     checkAuth();
 
-    // Detectar quando a página é restaurada do cache (Safari iOS)
-    const handlePageShow = async (event: PageTransitionEvent) => {
-      // persisted = true significa que a página veio do bfcache (back-forward cache)
-      if (event.persisted) {
-        console.log('Página restaurada do cache, reconectando...');
+    // Detectar quando volta do background e reconectar
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        const timeAway = now - lastActiveTime.current;
         
-        // Forçar reload da página para reconectar tudo
-        window.location.reload();
+        // Se ficou mais de 3 segundos fora, reconectar
+        if (timeAway > 3000) {
+          console.log(`Voltou após ${Math.round(timeAway/1000)}s, reconectando...`);
+          
+          try {
+            // Tentar renovar a sessão do Supabase
+            await supabase.auth.refreshSession();
+            
+            // Limpar canais Realtime antigos
+            const channels = supabase.getChannels();
+            for (const channel of channels) {
+              await supabase.removeChannel(channel);
+            }
+            
+            console.log('Reconexão concluída');
+          } catch (err) {
+            console.error('Erro ao reconectar:', err);
+          }
+        }
+      } else {
+        lastActiveTime.current = Date.now();
       }
     };
 
-    window.addEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Configurar renovação automática de sessão a cada 4 minutos
     if (!refreshIntervalRef.current) {
@@ -174,7 +194,7 @@ export function useAuth(): AuthContextValue {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
-      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
