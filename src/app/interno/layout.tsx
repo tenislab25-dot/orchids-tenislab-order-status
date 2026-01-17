@@ -6,6 +6,7 @@ import { Home, LayoutGrid, LogOut, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/auth";
+import { LoadingWatchdog } from "@/components/LoadingWatchdog";
 
 export default function InternoLayout({
   children,
@@ -25,7 +26,9 @@ export default function InternoLayout({
   }
 
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
+      <>
+        <LoadingWatchdog />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
         {!isLoginPage && user && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
               <Link href="/interno" prefetch={false} className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto hover:bg-slate-50 p-1 rounded-xl transition-colors">
@@ -70,7 +73,8 @@ export default function InternoLayout({
           </div>
         )}
         {children}
-      </div>
+        </div>
+      </>
     );
 
 }
