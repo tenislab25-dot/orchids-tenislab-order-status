@@ -103,6 +103,19 @@ export function useAuth(): AuthContextValue {
 
     checkAuth();
 
+    // Detectar quando a página é restaurada do cache (Safari iOS)
+    const handlePageShow = async (event: PageTransitionEvent) => {
+      // persisted = true significa que a página veio do bfcache (back-forward cache)
+      if (event.persisted) {
+        console.log('Página restaurada do cache, reconectando...');
+        
+        // Forçar reload da página para reconectar tudo
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+
     // Configurar renovação automática de sessão a cada 4 minutos
     if (!refreshIntervalRef.current) {
       refreshIntervalRef.current = setInterval(async () => {
@@ -161,6 +174,7 @@ export function useAuth(): AuthContextValue {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      window.removeEventListener('pageshow', handlePageShow);
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
