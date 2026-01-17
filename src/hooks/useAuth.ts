@@ -20,7 +20,6 @@ export function useAuth(): AuthContextValue {
   const pathname = usePathname();
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasInitialized = useRef(false);
-  const lastActiveTime = useRef<number>(Date.now());
 
   const signOut = useCallback(async () => {
     try {
@@ -104,40 +103,14 @@ export function useAuth(): AuthContextValue {
 
     checkAuth();
 
-    // Detectar quando volta do background e reconectar
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
-        const now = Date.now();
-        const timeAway = now - lastActiveTime.current;
-        
-        // Se ficou mais de 3 segundos fora, reconectar
-        if (timeAway > 3000) {
-          console.log(`Voltou após ${Math.round(timeAway/1000)}s, reconectando...`);
-          
-          // FORÇAR loading = false para destravar a interface
-          setLoading(false);
-          
-          try {
-            // Tentar renovar a sessão do Supabase
-            await supabase.auth.refreshSession();
-            
-            // Limpar canais Realtime antigos
-            const channels = supabase.getChannels();
-            for (const channel of channels) {
-              await supabase.removeChannel(channel);
-            }
-            
-            console.log('Reconexão concluída');
-          } catch (err) {
-            console.error('Erro ao reconectar:', err);
-          }
-        }
-      } else {
-        lastActiveTime.current = Date.now();
-      }
+    // Listener para reidratação global (disparado pelo GlobalRehydrator)
+    const handleAppRehydrate = () => {
+      console.log('[useAuth] Reidratando após evento global');
+      setLoading(false); // Destravar loading
+      checkAuth(); // Re-verificar autenticação
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('app-rehydrate', handleAppRehydrate);
 
     // Configurar renovação automática de sessão a cada 4 minutos
     if (!refreshIntervalRef.current) {
@@ -197,7 +170,7 @@ export function useAuth(): AuthContextValue {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('app-rehydrate', handleAppRehydrate);
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
