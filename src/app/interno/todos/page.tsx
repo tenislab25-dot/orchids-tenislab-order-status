@@ -142,7 +142,7 @@ export default function TodosPedidosPage() {
         `, { count: 'exact' });
 
       if (debouncedSearch) {
-        query = query.or(`os_number.ilike.%${debouncedSearch}%,clients.name.ilike.%${debouncedSearch}%`);
+        query = query.or(`os_number.ilike.%${debouncedSearch}%,clients(name).ilike.%${debouncedSearch}%`);
       }
 
       if (sortConfig.key && sortConfig.direction) {
