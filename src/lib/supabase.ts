@@ -6,7 +6,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
-    autoRefreshToken: true,
+    autoRefreshToken: false, // Desabilitar para controlar manualmente
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     flowType: 'pkce',
@@ -23,6 +23,44 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// Detectar quando volta do background e resetar Supabase
+if (typeof window !== 'undefined') {
+  let lastVisibilityChange = Date.now();
+  
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible') {
+      const timeAway = Date.now() - lastVisibilityChange;
+      
+      // Se ficou mais de 3 segundos fora, resetar Supabase
+      if (timeAway > 3000) {
+        console.log('[Supabase] Detectado retorno do background, resetando conexões...');
+        
+        try {
+          // 1. Remover TODOS os canais Realtime
+          const channels = supabase.getChannels();
+          for (const channel of channels) {
+            await supabase.removeChannel(channel);
+          }
+          
+          // 2. Renovar sessão de autenticação
+          const { data, error } = await supabase.auth.refreshSession();
+          if (error) {
+            console.warn('[Supabase] Erro ao renovar sessão:', error);
+          } else {
+            console.log('[Supabase] Sessão renovada com sucesso');
+          }
+          
+          console.log('[Supabase] Reset completo!');
+        } catch (err) {
+          console.error('[Supabase] Erro ao resetar:', err);
+        }
+      }
+    } else {
+      lastVisibilityChange = Date.now();
+    }
+  });
+}
+
 // Função helper para verificar e renovar sessão
 export async function ensureValidSession(): Promise<boolean> {
   try {
@@ -37,8 +75,8 @@ export async function ensureValidSession(): Promise<boolean> {
       const now = Math.floor(Date.now() / 1000);
       const timeUntilExpiry = expiresAt - now;
       
-      // Se falta menos de 5 minutos para expirar, renova
-      if (timeUntilExpiry < 300) {
+      // Se falta menos de 10 minutos para expirar, renova
+      if (timeUntilExpiry < 600) {
         const { data, error: refreshError } = await supabase.auth.refreshSession();
         if (refreshError || !data.session) {
           console.warn('Falha ao renovar sessão:', refreshError);
