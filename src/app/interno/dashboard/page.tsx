@@ -411,6 +411,11 @@ export default function DashboardPage() {
       );
     });
 
+    // Filtro para OPERACIONAL: ocultar OS com status Pronto
+    if (role === "OPERACIONAL") {
+      result = result.filter(o => o.status !== "Pronto");
+    }
+
     if (filter === "pendentes") {
       result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
     } else if (filter === "cadastro_pendente") {
@@ -466,7 +471,7 @@ export default function DashboardPage() {
     }
 
     return result.slice(0, 20);
-  }, [orders, globalSearch, sortConfig, filter]);
+  }, [orders, globalSearch, sortConfig, filter, role]);
 
   const getStatusBadge = (status: Status) => {
     const styles = {
