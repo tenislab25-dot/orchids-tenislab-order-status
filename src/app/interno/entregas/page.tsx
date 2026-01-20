@@ -952,8 +952,26 @@ export default function EntregasPage() {
                       EXCLUIR
                     </Button>
                   ) : pedido.status === "Coleta" && !pedido._falhado ? (
-                    // Rota ativa + Coleta: botões FALHOU e COLETADO
-                    <div className="flex gap-2">
+                    // Rota ativa + Coleta: botão A CAMINHO + FALHOU + COLETADO
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
+                        onClick={() => {
+                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                          const message = encodeURIComponent(
+                            `Olá ${pedido.clients?.name}! 🚚\n\n` +
+                            `Estamos a caminho para buscar seus tênis! Nosso motoboy está indo até você agora. \u2728\n\n` +
+                            `Em breve chegaremos! Qualquer dúvida, estamos à disposição.`
+                          );
+                          window.open(`https://wa.me/${whatsapp}?text=${message}`, "_blank");
+                          toast.success("Mensagem enviada!");
+                        }}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        A CAMINHO
+                      </Button>
+                      <div className="flex gap-2">
                       <Button 
                         variant="outline"
                         className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
@@ -975,6 +993,7 @@ export default function EntregasPage() {
                         {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                         COLETADO
                       </Button>
+                      </div>
                     </div>
                   ) : (pedido.status === "Coleta" || pedido.status === "Pronto") && rotaAtiva && pedido._falhado ? (
                     // Pedido que falhou - mostrar botão para incluir na rota novamente
