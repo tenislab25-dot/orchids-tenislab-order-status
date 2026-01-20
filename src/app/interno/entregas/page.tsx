@@ -65,6 +65,12 @@ export default function EntregasPage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const [pedidoCoords, setPedidoCoords] = useState<Record<string, {lat: number, lng: number}>>({});
+  
+  // Estados para configuração de rota
+  const [showRouteConfigModal, setShowRouteConfigModal] = useState(false);
+  const [endPointType, setEndPointType] = useState<'current' | 'tenislab' | 'custom' | 'none'>('current');
+  const [customEndPoint, setCustomEndPoint] = useState('');
+  const [startLocation, setStartLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -139,6 +145,37 @@ export default function EntregasPage() {
   };
 
   const handleOptimizeRoute = async () => {
+    // Primeiro, obter localização atual
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setStartLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          // Abrir modal de configuração
+          setShowRouteConfigModal(true);
+        },
+        (error) => {
+          console.error('Erro ao obter localização:', error);
+          toast.error('Não foi possível obter sua localização. Verifique as permissões.');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      toast.error('GPS não disponível neste dispositivo');
+    }
+  };
+
+  const executeOptimizeRoute = async () => {
     try {
       toast.info('Otimizando rota...');
 
@@ -146,10 +183,18 @@ export default function EntregasPage() {
       const { OpenLocationCode } = await import('open-location-code');
       const olc = new OpenLocationCode();
 
-      // Coordenadas da loja (ponto de partida E retorno)
-      // Plus Code: 97JR+27 São Jorge, Maceió - AL
+      // Coordenadas da loja (para referência)
       const LOJA_LAT = -9.619938;
       const LOJA_LNG = -35.709313;
+      
+      // Usar localização atual como ponto de partida
+      if (!startLocation) {
+        toast.error('Localização de início não disponível');
+        return;
+      }
+      
+      const START_LAT = startLocation.lat;
+      const START_LNG = startLocation.lng;
 
       // Obter data de hoje no formato YYYY-MM-DD
       const today = new Date();
@@ -254,8 +299,8 @@ export default function EntregasPage() {
       console.log('\n=== PASSO 1: Vizinho mais próximo ===');
       let route = [];
       const remaining = [...waypoints];
-      let currentLat = LOJA_LAT;
-      let currentLng = LOJA_LNG;
+      let currentLat = START_LAT;
+      let currentLng = START_LNG;
 
       while (remaining.length > 0) {
         // Encontrar o ponto mais próximo
@@ -277,13 +322,42 @@ export default function EntregasPage() {
         currentLng = nearest.lng;
       }
 
-      // Calcular distância total inicial (incluindo retorno à loja)
-      let initialDistance = calculateDistance(LOJA_LAT, LOJA_LNG, route[0].lat, route[0].lng);
+      // Determinar ponto final
+      let END_LAT = START_LAT;
+      let END_LNG = START_LNG;
+      
+      if (endPointType === 'tenislab') {
+        END_LAT = LOJA_LAT;
+        END_LNG = LOJA_LNG;
+      } else if (endPointType === 'custom' && customEndPoint) {
+        // Tentar decodificar Plus Code customizado
+        try {
+          let code = customEndPoint.split(' ')[0];
+          if (code.length < 10) {
+            code = olc.recoverNearest(code, LOJA_LAT, LOJA_LNG);
+          }
+          const decoded = olc.decode(code);
+          END_LAT = decoded.latitudeCenter;
+          END_LNG = decoded.longitudeCenter;
+        } catch (error) {
+          console.error('Erro ao decodificar ponto final:', error);
+          toast.error('Ponto final inválido, usando localização atual');
+        }
+      } else if (endPointType === 'none') {
+        // Não há retorno
+        END_LAT = route[route.length - 1].lat;
+        END_LNG = route[route.length - 1].lng;
+      }
+      
+      // Calcular distância total inicial
+      let initialDistance = calculateDistance(START_LAT, START_LNG, route[0].lat, route[0].lng);
       for (let i = 0; i < route.length - 1; i++) {
         initialDistance += calculateDistance(route[i].lat, route[i].lng, route[i + 1].lat, route[i + 1].lng);
       }
-      initialDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, LOJA_LAT, LOJA_LNG);
-      console.log('Distância inicial (com retorno):', initialDistance.toFixed(2), 'km');
+      if (endPointType !== 'none') {
+        initialDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, END_LAT, END_LNG);
+      }
+      console.log('Distância inicial:', initialDistance.toFixed(2), 'km');
 
       // Passo 2: Otimização 2-opt (eliminar cruzamentos)
       console.log('\n=== PASSO 2: Otimização 2-opt ===');
@@ -298,7 +372,7 @@ export default function EntregasPage() {
         for (let i = 0; i < route.length - 1; i++) {
           for (let j = i + 2; j < route.length; j++) {
             // Calcular distância atual
-            const before_i = i === 0 ? { lat: LOJA_LAT, lng: LOJA_LNG } : route[i - 1];
+            const before_i = i === 0 ? { lat: START_LAT, lng: START_LNG } : route[i - 1];
             const after_j = j === route.length - 1 ? null : route[j + 1];
 
             let currentDist = calculateDistance(before_i.lat, before_i.lng, route[i].lat, route[i].lng);
@@ -320,12 +394,14 @@ export default function EntregasPage() {
         }
       }
 
-      // Calcular distância total final (incluindo retorno à loja)
-      let finalDistance = calculateDistance(LOJA_LAT, LOJA_LNG, route[0].lat, route[0].lng);
+      // Calcular distância total final
+      let finalDistance = calculateDistance(START_LAT, START_LNG, route[0].lat, route[0].lng);
       for (let i = 0; i < route.length - 1; i++) {
         finalDistance += calculateDistance(route[i].lat, route[i].lng, route[i + 1].lat, route[i + 1].lng);
       }
-      finalDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, LOJA_LAT, LOJA_LNG);
+      if (endPointType !== 'none') {
+        finalDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, END_LAT, END_LNG);
+      }
       
       const improvement = ((initialDistance - finalDistance) / initialDistance * 100).toFixed(1);
       console.log('\nDistância final (com retorno):', finalDistance.toFixed(2), 'km');
@@ -1334,6 +1410,113 @@ export default function EntregasPage() {
             >
               {savingColeta ? <Loader2 className="animate-spin" /> : '🏠 Cadastrar Cliente'}
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Configuração de Rota */}
+      {showRouteConfigModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowRouteConfigModal(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-slate-900">📍 Configurar Rota</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowRouteConfigModal(false)}>
+                <XCircle className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                <p className="text-sm text-blue-700">
+                  <strong>📍 Início:</strong> Sua localização atual<br/>
+                  <span className="text-xs">{startLocation ? `${startLocation.lat.toFixed(6)}, ${startLocation.lng.toFixed(6)}` : 'Obtendo...'}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700 mb-2 block">Onde terminar a rota?</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" style={{ borderColor: endPointType === 'current' ? '#3b82f6' : '#e2e8f0' }}>
+                    <input
+                      type="radio"
+                      name="endPoint"
+                      value="current"
+                      checked={endPointType === 'current'}
+                      onChange={(e) => setEndPointType(e.target.value as any)}
+                      className="w-4 h-4"
+                    />
+                    <div>
+                      <div className="font-bold text-slate-900">📍 Voltar para onde estou agora</div>
+                      <div className="text-xs text-slate-500">Retornar à localização atual</div>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" style={{ borderColor: endPointType === 'tenislab' ? '#3b82f6' : '#e2e8f0' }}>
+                    <input
+                      type="radio"
+                      name="endPoint"
+                      value="tenislab"
+                      checked={endPointType === 'tenislab'}
+                      onChange={(e) => setEndPointType(e.target.value as any)}
+                      className="w-4 h-4"
+                    />
+                    <div>
+                      <div className="font-bold text-slate-900">🏢 Voltar para Tenislab</div>
+                      <div className="text-xs text-slate-500">Terminar na loja</div>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" style={{ borderColor: endPointType === 'custom' ? '#3b82f6' : '#e2e8f0' }}>
+                    <input
+                      type="radio"
+                      name="endPoint"
+                      value="custom"
+                      checked={endPointType === 'custom'}
+                      onChange={(e) => setEndPointType(e.target.value as any)}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <div className="font-bold text-slate-900">📍 Outro endereço</div>
+                      {endPointType === 'custom' && (
+                        <input
+                          type="text"
+                          value={customEndPoint}
+                          onChange={(e) => setCustomEndPoint(e.target.value)}
+                          placeholder="Plus Code ou lat,lng"
+                          className="mt-2 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                        />
+                      )}
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" style={{ borderColor: endPointType === 'none' ? '#3b82f6' : '#e2e8f0' }}>
+                    <input
+                      type="radio"
+                      name="endPoint"
+                      value="none"
+                      checked={endPointType === 'none'}
+                      onChange={(e) => setEndPointType(e.target.value as any)}
+                      className="w-4 h-4"
+                    />
+                    <div>
+                      <div className="font-bold text-slate-900">❌ Não voltar</div>
+                      <div className="text-xs text-slate-500">Terminar no último ponto</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => {
+                  setShowRouteConfigModal(false);
+                  executeOptimizeRoute();
+                }}
+                className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold"
+              >
+                <Route className="w-4 h-4 mr-2" />
+                Iniciar Rota
+              </Button>
+            </div>
           </div>
         </div>
       )}
