@@ -294,12 +294,22 @@ export default function OSViewPage() {
       setStatusUpdating(newStatus);
 
       try {
+        // Preparar dados para atualização
+        const updateData: any = { 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        };
+        
+        // Se mudar para "Pronto", atualizar delivery_date para hoje
+        if (newStatus === "Pronto") {
+          const today = new Date();
+          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          updateData.delivery_date = todayStr;
+        }
+        
         const { error } = await supabase
           .from("service_orders")
-          .update({ 
-            status: newStatus,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq("id", order.id);
 
         if (error) throw error;

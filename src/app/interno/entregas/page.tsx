@@ -514,9 +514,20 @@ export default function EntregasPage() {
   const atualizarStatus = async (pedido: any, novoStatus: string) => {
     try {
       setUpdating(pedido.id);
+      
+      // Preparar dados para atualização
+      const updateData: any = { status: novoStatus };
+      
+      // Se mudar para "Pronto", atualizar delivery_date para hoje
+      if (novoStatus === "Pronto") {
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        updateData.delivery_date = todayStr;
+      }
+      
       const { error } = await supabase
         .from("service_orders")
-        .update({ status: novoStatus })
+        .update(updateData)
         .eq("id", pedido.id);
 
       if (error) throw error;
@@ -871,7 +882,47 @@ export default function EntregasPage() {
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
-                  {!rotaAtiva ? (
+                  {rotaAtiva && pedido.status === "Pronto" && !pedido._falhado ? (
+                    // Rota ativa + Pronto: botão A CAMINHO + FALHOU + ENTREGUE
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
+                        onClick={() => {
+                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                          const message = encodeURIComponent(
+                            `Olá ${pedido.clients?.name}! 🚚\n\n` +
+                            `Seus tênis estão a caminho! Nosso motoboy está indo até você agora. \u2728\n\n` +
+                            `Em breve chegaremos! Qualquer dúvida, estamos à disposição.`
+                          );
+                          window.open(`https://wa.me/${whatsapp}?text=${message}`, "_blank");
+                          toast.success("Mensagem enviada!");
+                        }}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        A CAMINHO
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline"
+                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
+                          onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
+                          disabled={updating === pedido.id}
+                        >
+                          <XCircle className="w-4 h-4" />
+                          FALHOU
+                        </Button>
+                        <Button 
+                          className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg"
+                          onClick={() => atualizarStatus(pedido, "Entregue")}
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                          ENTREGUE
+                        </Button>
+                      </div>
+                    </div>
+                  ) : !rotaAtiva ? (
                     // Rota inativa: apenas botão EXCLUIR
                     <Button 
                       variant="outline"

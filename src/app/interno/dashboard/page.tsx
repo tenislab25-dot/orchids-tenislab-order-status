@@ -345,9 +345,19 @@ export default function DashboardPage() {
     }
     setChangedOrderId(orderId);
     
+    // Preparar dados para atualização
+    const updateData: any = { status: newStatus };
+    
+    // Se mudar para "Pronto", atualizar delivery_date para hoje
+    if (newStatus === "Pronto") {
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      updateData.delivery_date = todayStr;
+    }
+    
     const { error, data: dataArray } = await supabase
       .from("service_orders")
-      .update({ status: newStatus })
+      .update(updateData)
       .eq("id", orderId)
       .select(`*, clients(name, phone)`);
     
