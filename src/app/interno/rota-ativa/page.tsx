@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, Package, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Package, Loader2, CheckCircle2, XCircle, AlertCircle, Edit, Save, X as XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -13,6 +13,8 @@ export default function RotaAtivaPage() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [notesText, setNotesText] = useState("");
   const router = useRouter();
   const { role, loading: loadingAuth } = useAuth();
 
@@ -32,6 +34,7 @@ export default function RotaAtivaPage() {
           )
         `)
         .in("status", ["Pronto", "Coleta", "Em Rota"])
+        .order("failed_delivery", { ascending: true }) // Pedidos sem falha primeiro
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
@@ -46,9 +49,7 @@ export default function RotaAtivaPage() {
 
   useEffect(() => {
     fetchPedidos();
-    // Atualizar a cada 10 segundos
-    const interval = setInterval(fetchPedidos, 10000);
-    return () => clearInterval(interval);
+    // REMOVIDO: Atualização automática
   }, []);
 
   const atualizarStatus = async (pedido: any, novoStatus: string) => {
@@ -59,6 +60,7 @@ export default function RotaAtivaPage() {
       const updateData: any = { status: novoStatus };
       if (novoStatus === "Em Rota") {
         updateData.previous_status = pedido.status;
+        updateData.failed_delivery = false; // Limpar flag de falha ao tentar novamente
       }
 
       const { error } = await supabase
@@ -89,6 +91,50 @@ export default function RotaAtivaPage() {
       toast.error("Erro ao atualizar status");
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const marcarComoFalhou = async (pedido: any) => {
+    try {
+      setUpdating(pedido.id);
+
+      // Voltar ao status anterior e marcar como falha
+      const { error } = await supabase
+        .from("service_orders")
+        .update({
+          status: pedido.previous_status || "Pronto",
+          failed_delivery: true,
+        })
+        .eq("id", pedido.id);
+
+      if (error) throw error;
+
+      toast.success("Entrega marcada como falha. Pedido movido para o final da fila.");
+      fetchPedidos();
+    } catch (error: any) {
+      console.error("Erro ao marcar falha:", error);
+      toast.error("Erro ao marcar falha");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const salvarObservacoes = async (pedidoId: string) => {
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ delivery_notes: notesText })
+        .eq("id", pedidoId);
+
+      if (error) throw error;
+
+      toast.success("Observações salvas!");
+      setEditingNotes(null);
+      setNotesText("");
+      fetchPedidos();
+    } catch (error: any) {
+      console.error("Erro ao salvar observações:", error);
+      toast.error("Erro ao salvar observações");
     }
   };
 
@@ -126,6 +172,7 @@ export default function RotaAtivaPage() {
 
   const pedidosEmRota = pedidos.filter(p => p.status === "Em Rota");
   const pedidosAguardando = pedidos.filter(p => p.status === "Pronto" || p.status === "Coleta");
+  const canEditNotes = role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -195,6 +242,19 @@ export default function RotaAtivaPage() {
                     </div>
                   </div>
 
+                  {/* Observações */}
+                  {pedido.delivery_notes && (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-amber-800">Observações:</p>
+                          <p className="text-sm text-amber-700">{pedido.delivery_notes}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -209,7 +269,7 @@ export default function RotaAtivaPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => atualizarStatus(pedido, pedido.previous_status || "Pronto")}
+                        onClick={() => marcarComoFalhou(pedido)}
                         className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
                         disabled={updating === pedido.id}
                       >
@@ -257,15 +317,24 @@ export default function RotaAtivaPage() {
                 <div
                   key={pedido.id}
                   className={`border-2 rounded-xl p-4 ${
-                    index === 0
+                    pedido.failed_delivery
+                      ? "border-red-300 bg-red-50"
+                      : index === 0
                       ? "border-green-400 bg-green-50 shadow-lg"
                       : "border-amber-100"
                   }`}
                 >
-                  {index === 0 && (
+                  {index === 0 && !pedido.failed_delivery && (
                     <div className="mb-2">
                       <Badge className="bg-green-600 text-white font-bold">
                         🎯 PRÓXIMA ENTREGA
+                      </Badge>
+                    </div>
+                  )}
+                  {pedido.failed_delivery && (
+                    <div className="mb-2">
+                      <Badge className="bg-red-600 text-white font-bold">
+                        ⚠️ FALHA NA ENTREGA
                       </Badge>
                     </div>
                   )}
@@ -287,6 +356,77 @@ export default function RotaAtivaPage() {
                     </div>
                   </div>
 
+                  {/* Observações */}
+                  {editingNotes === pedido.id ? (
+                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <textarea
+                        value={notesText}
+                        onChange={(e) => setNotesText(e.target.value)}
+                        placeholder="Ex: Cliente só pode receber até as 16h"
+                        className="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2"
+                        rows={3}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => salvarObservacoes(pedido.id)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Save className="w-4 h-4 mr-1" />
+                          Salvar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingNotes(null);
+                            setNotesText("");
+                          }}
+                        >
+                          <XIcon className="w-4 h-4 mr-1" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : pedido.delivery_notes ? (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-amber-800">Observações:</p>
+                          <p className="text-sm text-amber-700">{pedido.delivery_notes}</p>
+                        </div>
+                        {canEditNotes && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingNotes(pedido.id);
+                              setNotesText(pedido.delivery_notes || "");
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ) : canEditNotes ? (
+                    <div className="mb-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingNotes(pedido.id);
+                          setNotesText("");
+                        }}
+                        className="w-full border-dashed"
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Adicionar Observações
+                      </Button>
+                    </div>
+                  ) : null}
+
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -301,7 +441,11 @@ export default function RotaAtivaPage() {
                       <Button
                         size="sm"
                         onClick={() => atualizarStatus(pedido, "Em Rota")}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        className={`flex-1 ${
+                          pedido.failed_delivery
+                            ? "bg-orange-600 hover:bg-orange-700"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        }`}
                         disabled={updating === pedido.id}
                       >
                         {updating === pedido.id ? (
@@ -309,7 +453,7 @@ export default function RotaAtivaPage() {
                         ) : (
                           <>
                             <MapPin className="w-4 h-4 mr-1" />
-                            A CAMINHO
+                            {pedido.failed_delivery ? "NOVA TENTATIVA" : "A CAMINHO"}
                           </>
                         )}
                       </Button>
