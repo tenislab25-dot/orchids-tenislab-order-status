@@ -1078,8 +1078,8 @@ export default function EntregasPage() {
                           const isColeta = pedido.status === 'Coleta';
                           const message = encodeURIComponent(
                             isColeta 
-                              ? `Olá ${pedido.clients?.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso motoboy está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.`
-                              : `Olá ${pedido.clients?.name}! 🚚\n\nSeus tênis estão a caminho! Nosso motoboy está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.`
+                              ? `Olá ${pedido.clients?.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.`
+                              : `Olá ${pedido.clients?.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.`
                           );
                           window.open(`https://wa.me/${whatsapp}?text=${message}`, "_blank");
                           toast.success("Mensagem enviada!");

@@ -388,7 +388,7 @@ export default function DashboardPage() {
         const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
         const message = encodeURIComponent(
           `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tenislab. ✨\n\n` +
-          `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+          `Já estão aguardando sua retirada ou serão entregues pelo nosso entregador em breve.\n\n` +
           `Qualquer dúvida, estamos à disposição!`
         );
         window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");

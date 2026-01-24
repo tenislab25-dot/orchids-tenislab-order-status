@@ -255,7 +255,7 @@ export default function OSViewPage() {
           
       const message = encodeURIComponent(
         `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
-        `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+        `Já estão aguardando sua retirada ou serão entregues pelo nosso entregador em breve.\n\n` +
         `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
         `Qualquer dúvida, estamos à disposição!`
       );
@@ -272,7 +272,7 @@ export default function OSViewPage() {
       
       const message = encodeURIComponent(
         `Olá ${order.clients?.name}! Seus tênis estão prontinhos e limpos na Tenislab.\n\n` +
-        `Já estão aguardando sua retirada ou serão entregues pelo nosso motoboy em breve.\n\n` +
+        `Já estão aguardando sua retirada ou serão entregues pelo nosso entregador em breve.\n\n` +
         `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
         `Qualquer dúvida, estamos à disposição!`
       );

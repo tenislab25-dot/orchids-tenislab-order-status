@@ -82,15 +82,26 @@ export default function RotaAtivaPage() {
 
       if (error) throw error;
 
-      // Abrir WhatsApp se for A CAMINHO
+      // Abrir WhatsApp se for A CAMINHO ou NOVA TENTATIVA
       if (novoStatus === "Em Rota") {
         const phone = pedido.clients?.phone?.replace(/\D/g, "");
         if (phone) {
           const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
           const isColeta = pedido.status === "Coleta";
-          const mensagem = isColeta
-            ? `Olá ${pedido.clients.name}! Nosso entregador está *A CAMINHO DO SEU ENDEREÇO* para *COLETAR* seu tênis! 👟\n\nAguarde, em breve ele chegará para buscar seu tênis.\n\n*OS #${pedido.os_number}*`
-            : `Olá ${pedido.clients.name}! Seu pedido está *A CAMINHO DO SEU ENDEREÇO*! 🚚\n\nNosso entregador já saiu para realizar a *ENTREGA*. Aguarde, em breve ele chegará!\n\n*OS #${pedido.os_number}*`;
+          const isNovaTentativa = pedido.failed_delivery;
+          
+          let mensagem;
+          if (isNovaTentativa) {
+            // Mensagens para NOVA TENTATIVA
+            mensagem = isColeta
+              ? `Olá ${pedido.clients.name}! 🔄\n\nEstamos fazendo uma *NOVA TENTATIVA DE COLETA*! Nosso entregador está a caminho do seu endereço novamente para buscar seus tênis. ✨\n\nAguarde, em breve ele chegará!\n\n*OS #${pedido.os_number}*`
+              : `Olá ${pedido.clients.name}! 🔄\n\nEstamos fazendo uma *NOVA TENTATIVA DE ENTREGA*! Nosso entregador está a caminho do seu endereço novamente com seus tênis. ✨\n\nAguarde, em breve ele chegará!\n\n*OS #${pedido.os_number}*`;
+          } else {
+            // Mensagens para primeira tentativa (A CAMINHO)
+            mensagem = isColeta
+              ? `Olá ${pedido.clients.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`
+              : `Olá ${pedido.clients.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`;
+          }
           
           window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
         }
