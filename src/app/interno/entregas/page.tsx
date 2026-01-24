@@ -151,23 +151,40 @@ export default function EntregasPage() {
 
   const handleOptimizeRoute = async () => {
     // Primeiro, obter localização atual
+    toast.info('📍 Obtendo sua localização GPS...');
+    
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setStartLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          console.log('✅ GPS obtido com sucesso!');
+          console.log(`📍 Sua localização: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          
+          setStartLocation({ lat, lng });
+          setUserLocation({ lat, lng });
+          
+          toast.success(`✅ Localização obtida! Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+          
           // Abrir modal de configuração
           setShowRouteConfigModal(true);
         },
         (error) => {
-          console.error('Erro ao obter localização:', error);
-          toast.error('Não foi possível obter sua localização. Verifique as permissões.');
+          console.error('❌ Erro ao obter localização:', error);
+          console.error('Código do erro:', error.code);
+          console.error('Mensagem:', error.message);
+          
+          let errorMsg = 'Não foi possível obter sua localização.';
+          if (error.code === 1) {
+            errorMsg = 'Permissão de localização negada. Ative nas configurações do navegador.';
+          } else if (error.code === 2) {
+            errorMsg = 'Localização indisponível. Verifique se o GPS está ativo.';
+          } else if (error.code === 3) {
+            errorMsg = 'Tempo esgotado ao obter localização. Tente novamente.';
+          }
+          
+          toast.error(errorMsg);
         },
         {
           enableHighAccuracy: true,
@@ -182,7 +199,8 @@ export default function EntregasPage() {
 
   const executeOptimizeRoute = async () => {
     try {
-      toast.info('Otimizando rota...');
+      console.log('\n🚀 INICIANDO OTIMIZAÇÃO DE ROTA');
+      toast.info('🧮 Otimizando rota...');
 
       // Importar biblioteca de Plus Code
       const { OpenLocationCode } = await import('open-location-code');
@@ -194,12 +212,19 @@ export default function EntregasPage() {
       
       // Usar localização atual como ponto de partida
       if (!startLocation) {
+        console.error('❌ Localização de início não disponível');
         toast.error('Localização de início não disponível');
         return;
       }
       
       const START_LAT = startLocation.lat;
       const START_LNG = startLocation.lng;
+      
+      console.log(`📍 PONTO DE PARTIDA (sua localização):`);
+      console.log(`   Lat: ${START_LAT.toFixed(6)}`);
+      console.log(`   Lng: ${START_LNG.toFixed(6)}`);
+      console.log(`🏢 Loja Tenislab: ${LOJA_LAT}, ${LOJA_LNG}`);
+      console.log(`🎯 Ponto final escolhido: ${endPointType});
 
       // Obter data de hoje no formato YYYY-MM-DD
       const today = new Date();
