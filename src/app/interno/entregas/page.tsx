@@ -980,17 +980,19 @@ export default function EntregasPage() {
                         A CAMINHO
                       </Button>
                       <div className="flex gap-2">
+                        {role?.toLowerCase() === 'entregador' && (
+                          <Button 
+                            variant="outline"
+                            className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
+                            onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
+                            disabled={updating === pedido.id}
+                          >
+                            <XCircle className="w-4 h-4" />
+                            FALHOU
+                          </Button>
+                        )}
                         <Button 
-                          variant="outline"
-                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
-                          onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
-                          disabled={updating === pedido.id}
-                        >
-                          <XCircle className="w-4 h-4" />
-                          FALHOU
-                        </Button>
-                        <Button 
-                          className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg"
+                          className={`${role?.toLowerCase() === 'entregador' ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg`}
                           onClick={() => atualizarStatus(pedido, "Entregue")}
                           disabled={updating === pedido.id}
                         >
@@ -1049,21 +1051,23 @@ export default function EntregasPage() {
                         A CAMINHO
                       </Button>
                       <div className="flex gap-2">
+                      {role?.toLowerCase() === 'entregador' && (
+                        <Button 
+                          variant="outline"
+                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
+                          onClick={() => {
+                            if (confirm(`Confirmar que a coleta não foi realizada?`)) {
+                              atualizarStatus(pedido, "Coleta");
+                            }
+                          }}
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                          FALHOU
+                        </Button>
+                      )}
                       <Button 
-                        variant="outline"
-                        className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
-                        onClick={() => {
-                          if (confirm(`Confirmar que a coleta não foi realizada?`)) {
-                            atualizarStatus(pedido, "Coleta");
-                          }
-                        }}
-                        disabled={updating === pedido.id}
-                      >
-                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                        FALHOU
-                      </Button>
-                      <Button 
-                        className="flex-[2] h-12 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm shadow-lg"
+                        className={`${role?.toLowerCase() === 'entregador' ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm shadow-lg`}
                         onClick={() => atualizarStatus(pedido, "Recebido")}
                         disabled={updating === pedido.id}
                       >
@@ -1085,22 +1089,24 @@ export default function EntregasPage() {
                   ) : (
                     // Botões normais de Falhou e Entregue
                     <div className="flex gap-2">
+                      {role?.toLowerCase() === 'entregador' && (
+                        <Button 
+                          variant="outline"
+                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
+                          onClick={() => {
+                            const isColeta = pedido.status === 'Coleta' || (pedido.pickup_date && new Date(pedido.pickup_date) > new Date());
+                            const novoStatus = isColeta ? 'Coleta' : 'Pronto';
+                            const mensagem = isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?";
+                            confirm(mensagem) && atualizarStatus(pedido, novoStatus);
+                          }}
+                          disabled={updating === pedido.id}
+                        >
+                          <XCircle className="w-4 h-4" />
+                          FALHOU
+                        </Button>
+                      )}
                       <Button 
-                        variant="outline"
-                        className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
-                        onClick={() => {
-                          const isColeta = pedido.status === 'Coleta' || (pedido.pickup_date && new Date(pedido.pickup_date) > new Date());
-                          const novoStatus = isColeta ? 'Coleta' : 'Pronto';
-                          const mensagem = isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?";
-                          confirm(mensagem) && atualizarStatus(pedido, novoStatus);
-                        }}
-                        disabled={updating === pedido.id}
-                      >
-                        <XCircle className="w-4 h-4" />
-                        FALHOU
-                      </Button>
-                      <Button 
-                        className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg"
+                        className={`${role?.toLowerCase() === 'entregador' ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg`}
                         onClick={() => atualizarStatus(pedido, "Entregue")}
                         disabled={updating === pedido.id}
                       >
