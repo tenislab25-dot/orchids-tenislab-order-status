@@ -16,15 +16,6 @@ export default function RotaAtivaPage() {
   const router = useRouter();
   const { role, loading: loadingAuth } = useAuth();
 
-  // Mostrar loading enquanto carrega autenticação
-  if (loadingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-600" />
-      </div>
-    );
-  }
-
   const fetchPedidos = async () => {
     try {
       setLoadingPedidos(true);
@@ -121,7 +112,8 @@ export default function RotaAtivaPage() {
     }
   };
 
-  if (loadingPedidos) {
+  // Mostrar loading enquanto carrega autenticação
+  if (loadingAuth || loadingPedidos) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -284,52 +276,45 @@ export default function RotaAtivaPage() {
                         <Badge
                           className={
                             pedido.status === "Coleta"
-                              ? "bg-orange-500 text-white text-xs"
-                              : "bg-green-500 text-white text-xs"
+                              ? "bg-orange-500 text-white"
+                              : "bg-blue-500 text-white"
                           }
                         >
-                          {pedido.status === "Coleta" ? "📦 COLETA" : "✅ PRONTO"}
+                          {pedido.status === "Coleta" ? "📦 COLETA" : "🚚 ENTREGA"}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">OS #{pedido.os_number}</p>
                     </div>
                   </div>
 
-                  {role?.toLowerCase() === 'entregador' ? (
+                  <div className="flex gap-2">
                     <Button
-                      onClick={() => atualizarStatus(pedido, "Em Rota")}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={updating === pedido.id}
+                      size="sm"
+                      variant="outline"
+                      onClick={() => abrirMaps(pedido)}
+                      className="flex-1"
                     >
-                      {updating === pedido.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <MapPin className="w-4 h-4 mr-2" />
-                      )}
-                      A CAMINHO
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Maps
                     </Button>
-                  ) : (
-                    <div className="flex gap-2">
+                    {role?.toLowerCase() === 'entregador' && (
                       <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => abrirMaps(pedido)}
-                        className="flex-1"
-                      >
-                        <MapPin className="w-4 h-4 mr-1" />
-                        Maps
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => atualizarStatus(pedido, pedido.status === "Coleta" ? "Recebido" : "Entregue")}
-                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        onClick={() => atualizarStatus(pedido, "Em Rota")}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
                         disabled={updating === pedido.id}
                       >
-                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
-                        {pedido.status === "Coleta" ? "COLETADO" : "ENTREGUE"}
+                        {updating === pedido.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            <MapPin className="w-4 h-4 mr-1" />
+                            A CAMINHO
+                          </>
+                        )}
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
