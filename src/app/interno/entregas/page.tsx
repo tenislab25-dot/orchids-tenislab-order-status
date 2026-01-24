@@ -753,7 +753,7 @@ export default function EntregasPage() {
             </Button>
             {role === 'ENTREGADOR' && !rotaAtiva && (
               <Button
-                onClick={handleOptimizeRoute}
+                onClick={() => router.push('/interno/rota-ativa')}
                 disabled={pedidos.length === 0}
                 size="sm"
                 className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
@@ -999,8 +999,8 @@ export default function EntregasPage() {
                         </Button>
                       </div>
                     </div>
-                  ) : !rotaAtiva ? (
-                    // Rota inativa: apenas botão EXCLUIR
+                  ) : !rotaAtiva && (role === 'admin' || role === 'atendente') ? (
+                    // Rota inativa: apenas botão EXCLUIR (Admin e Atendente)
                     <Button 
                       variant="outline"
                       className="w-full h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
