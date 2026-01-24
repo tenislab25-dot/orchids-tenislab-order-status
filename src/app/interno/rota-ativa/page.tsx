@@ -74,25 +74,24 @@ export default function RotaAtivaPage() {
         
         // Se é Pronto ou Em Rota, verificar se é do dia E tem data
         if (s === "Pronto" || s === "Em Rota") {
-          // Se veio de coleta (previous_status = Coleta), usar pickup_date
-          if (pedido.previous_status === "Coleta") {
-            if (!pedido.pickup_date) {
-              console.log('  -> EXCLUÍDO (coleta em rota sem data)');
-              return false;
-            }
+          // Lógica mais robusta: se NÃO tem delivery_date, é coleta
+          const isColeta = !pedido.delivery_date && pedido.pickup_date;
+          
+          if (isColeta) {
+            // É coleta, usar pickup_date
             const isToday = pedido.pickup_date === todayStr;
             console.log(`  -> Coleta Em Rota ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.pickup_date})`);
             return isToday;
-          }
-          
-          // Senão, é entrega normal, usar delivery_date
-          if (!pedido.delivery_date) {
-            console.log('  -> EXCLUÍDO (entrega sem data)');
+          } else if (pedido.delivery_date) {
+            // É entrega, usar delivery_date
+            const isToday = pedido.delivery_date === todayStr;
+            console.log(`  -> Entrega ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.delivery_date})`);
+            return isToday;
+          } else {
+            // Sem data nenhuma, excluir
+            console.log('  -> EXCLUÍDO (sem data)');
             return false;
           }
-          const isToday = pedido.delivery_date === todayStr;
-          console.log(`  -> Entrega ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.delivery_date})`);
-          return isToday;
         }
         
         console.log('  -> EXCLUÍDO (status não compatível)');
