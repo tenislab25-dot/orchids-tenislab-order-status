@@ -742,7 +742,15 @@ export default function EntregasPage() {
               <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Logística Tenislab</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              onClick={() => setShowColetaModal(true)}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold"
+            >
+              <UserPlus className="w-4 h-4 mr-1" />
+              Coleta
+            </Button>
             {role === 'ENTREGADOR' && !rotaAtiva && (
               <Button
                 onClick={handleOptimizeRoute}
