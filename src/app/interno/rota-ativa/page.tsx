@@ -61,15 +61,23 @@ export default function RotaAtivaPage() {
           return false;
         }
         
-        // Se é coleta, verificar se é do dia
+        // Se é coleta, verificar se é do dia E tem data
         if (s === "Coleta") {
+          if (!pedido.pickup_date) {
+            console.log('  -> EXCLUÍDO (coleta sem data)');
+            return false;
+          }
           const isToday = pedido.pickup_date === todayStr;
           console.log(`  -> Coleta ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.pickup_date})`);
           return isToday;
         }
         
-        // Se é Pronto ou Em Rota, verificar se é do dia
+        // Se é Pronto ou Em Rota, verificar se é do dia E tem data
         if (s === "Pronto" || s === "Em Rota") {
+          if (!pedido.delivery_date) {
+            console.log('  -> EXCLUÍDO (entrega sem data)');
+            return false;
+          }
           const isToday = pedido.delivery_date === todayStr;
           console.log(`  -> Entrega ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.delivery_date})`);
           return isToday;
