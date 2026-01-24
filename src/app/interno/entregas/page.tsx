@@ -598,7 +598,13 @@ export default function EntregasPage() {
 
   useEffect(() => {
     fetchPedidos();
-  }, [fetchPedidos]);
+    
+    // Bloquear entregador de acessar entregas quando em rota ativa
+    if (role?.toLowerCase() === 'entregador' && rotaAtiva) {
+      toast.info('Você está em rota ativa! Redirecionando...');
+      router.push('/interno/rota-ativa');
+    }
+  }, [fetchPedidos, role, rotaAtiva, router]);
 
   const salvarObservacoes = async (pedidoId: string) => {
     try {

@@ -74,6 +74,18 @@ export default function RotaAtivaPage() {
         
         // Se é Pronto ou Em Rota, verificar se é do dia E tem data
         if (s === "Pronto" || s === "Em Rota") {
+          // Se veio de coleta (previous_status = Coleta), usar pickup_date
+          if (pedido.previous_status === "Coleta") {
+            if (!pedido.pickup_date) {
+              console.log('  -> EXCLUÍDO (coleta em rota sem data)');
+              return false;
+            }
+            const isToday = pedido.pickup_date === todayStr;
+            console.log(`  -> Coleta Em Rota ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.pickup_date})`);
+            return isToday;
+          }
+          
+          // Senão, é entrega normal, usar delivery_date
           if (!pedido.delivery_date) {
             console.log('  -> EXCLUÍDO (entrega sem data)');
             return false;
@@ -207,12 +219,29 @@ export default function RotaAtivaPage() {
     }
   };
 
-  const finalizarRota = () => {
-    if (confirm("Finalizar rota? Pedidos concluídos serão removidos da lista.")) {
+  const finalizarRota = async () => {
+    if (!confirm("Finalizar rota? Pedidos não concluídos voltarão para aguardando.")) {
+      return;
+    }
+    
+    try {
+      // Voltar pedidos "Em Rota" para status anterior
+      const pedidosEmRota = pedidos.filter(p => p.status === "Em Rota");
+      
+      for (const pedido of pedidosEmRota) {
+        await supabase
+          .from("service_orders")
+          .update({ status: pedido.previous_status || "Pronto" })
+          .eq("id", pedido.id);
+      }
+      
       localStorage.removeItem("tenislab_rota_ativa");
       localStorage.removeItem("tenislab_motoboy_name");
-      toast.success("Rota finalizada!");
+      toast.success("Rota finalizada! Pedidos não concluídos voltaram para aguardando.");
       router.push("/interno/entregas");
+    } catch (error: any) {
+      console.error("Erro ao finalizar rota:", error);
+      toast.error("Erro ao finalizar rota");
     }
   };
 
