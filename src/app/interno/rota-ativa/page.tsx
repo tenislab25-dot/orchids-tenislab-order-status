@@ -19,7 +19,7 @@ export default function RotaAtivaPage() {
   // Redirecionar se não for entregador
   useEffect(() => {
     // Só redireciona se o role já foi carregado E não é entregador
-    if (!loadingAuth && role && role !== "entregador") {
+    if (!loadingAuth && role && role.toLowerCase() !== "entregador") {
       toast.error("Acesso negado");
       router.push("/interno/entregas");
     }

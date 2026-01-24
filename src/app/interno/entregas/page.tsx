@@ -1112,7 +1112,7 @@ export default function EntregasPage() {
                 </div>
 
                 {/* Botão EXCLUIR - Sempre visível para Admin/Atendente */}
-                {(role === 'admin' || role === 'atendente') && (
+                {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (
                   <div className="mt-2 pt-2 border-t border-slate-100">
                     <Button 
                       variant="outline"
