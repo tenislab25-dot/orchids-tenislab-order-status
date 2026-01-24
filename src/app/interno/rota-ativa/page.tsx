@@ -38,69 +38,19 @@ export default function RotaAtivaPage() {
 
       if (error) throw error;
 
-      // Obter data de hoje no formato YYYY-MM-DD
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      
-      console.log('=== DEBUG ROTA ATIVA ===');
-      console.log('Data de hoje:', todayStr);
-      
-      // Filtrar apenas Coleta e entregas DO DIA (EXCLUIR retiradas)
+      // Filtrar apenas por status: Coleta, Pronto, Em Rota
+      // SEM filtro de data - se está nesses status, deve aparecer!
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
         
-        console.log(`\nPedido: ${pedido.clients?.name} (OS ${pedido.os_number})`);
-        console.log(`  Status: ${s}`);
-        console.log(`  Tipo: ${pedido.tipo_entrega || 'null'}`);
-        console.log(`  Delivery Date: ${pedido.delivery_date || 'null'}`);
-        console.log(`  Pickup Date: ${pedido.pickup_date || 'null'}`);
-        
-        // EXCLUIR explicitamente retiradas
+        // EXCLUIR retiradas
         if (pedido.tipo_entrega === 'retirada') {
-          console.log('  -> EXCLUÍDO (retirada)');
           return false;
         }
         
-        // Se é coleta, verificar se é do dia E tem data
-        if (s === "Coleta") {
-          if (!pedido.pickup_date) {
-            console.log('  -> EXCLUÍDO (coleta sem data)');
-            return false;
-          }
-          const isToday = pedido.pickup_date === todayStr;
-          console.log(`  -> Coleta ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.pickup_date})`);
-          return isToday;
-        }
-        
-        // Se é Pronto ou Em Rota, verificar se é do dia E tem data
-        if (s === "Pronto" || s === "Em Rota") {
-          // Lógica mais robusta: se NÃO tem delivery_date, é coleta
-          const isColeta = !pedido.delivery_date && pedido.pickup_date;
-          
-          if (isColeta) {
-            // É coleta, usar pickup_date
-            const isToday = pedido.pickup_date === todayStr;
-            console.log(`  -> Coleta Em Rota ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.pickup_date})`);
-            return isToday;
-          } else if (pedido.delivery_date) {
-            // É entrega, usar delivery_date
-            const isToday = pedido.delivery_date === todayStr;
-            console.log(`  -> Entrega ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.delivery_date})`);
-            return isToday;
-          } else {
-            // Sem data nenhuma, excluir
-            console.log('  -> EXCLUÍDO (sem data)');
-            return false;
-          }
-        }
-        
-        console.log('  -> EXCLUÍDO (status não compatível)');
-        return false;
+        // Incluir apenas: Coleta, Pronto, Em Rota
+        return s === "Coleta" || s === "Pronto" || s === "Em Rota";
       });
-      
-      console.log('\n=== RESULTADO ===');
-      console.log(`Total filtrado: ${filtrados?.length || 0} pedidos`);
-      console.log('========================\n');
 
       setPedidos(filtrados || []);
     } catch (error: any) {
