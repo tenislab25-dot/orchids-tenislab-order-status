@@ -565,28 +565,19 @@ export default function EntregasPage() {
 
       if (error) throw error;
 
-      // Obter data de hoje
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      
       // Filtra pedidos:
-      // 1. Status "Coleta" DO DIA - precisa ir buscar o tênis
-      // 2. Status "Pronto" ou "Em Rota" DO DIA + tipo_entrega = 'entrega' - precisa entregar
+      // 1. Status "Coleta" - precisa ir buscar o tênis
+      // 2. Status "Pronto" ou "Em Rota" + tipo_entrega = 'entrega' - precisa entregar
+      // SEM filtro de data - mostra todos para Admin/Atendente verem
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
         
-        // Se é coleta, verificar se é do dia
-        if (s === "Coleta") {
-          return pedido.pickup_date === todayStr;
-        }
+        // Se é coleta, sempre aparece
+        if (s === "Coleta") return true;
         
-        // Se é Pronto ou Em Rota, verifica se é entrega DO DIA
+        // Se é Pronto ou Em Rota, verifica se é entrega
         const isEntrega = pedido.tipo_entrega === 'entrega' || !pedido.tipo_entrega;
-        if ((s === "Pronto" || s === "Em Rota") && isEntrega) {
-          return pedido.delivery_date === todayStr;
-        }
-        
-        return false;
+        return (s === "Pronto" || s === "Em Rota") && isEntrega;
       });
 
       setPedidos(filtrados || []);
@@ -800,26 +791,15 @@ export default function EntregasPage() {
               Coleta
             </Button>
             {role?.toLowerCase() === 'entregador' && !rotaAtiva && (
-              <>
-                <Button
-                  onClick={handleOptimizeRoute}
-                  disabled={pedidos.length === 0}
-                  size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
-                >
-                  <Route className="w-4 h-4 mr-1" />
-                  Otimizar Rota
-                </Button>
-                <Button
-                  onClick={() => router.push('/interno/rota-ativa')}
-                  disabled={pedidos.length === 0}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
-                >
-                  <Route className="w-4 h-4 mr-1" />
-                  Iniciar Rota
-                </Button>
-              </>
+              <Button
+                onClick={handleOptimizeRoute}
+                disabled={pedidos.length === 0}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
+              >
+                <Route className="w-4 h-4 mr-1" />
+                Iniciar Rota
+              </Button>
             )}
             {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (
               <Button
