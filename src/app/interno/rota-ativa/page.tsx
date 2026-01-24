@@ -61,8 +61,13 @@ export default function RotaAtivaPage() {
 
   useEffect(() => {
     fetchPedidos();
-    // REMOVIDO: Atualização automática
-  }, []);
+    
+    // Atualização automática apenas para Admin/Atendente (modo observador)
+    if (role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') {
+      const interval = setInterval(fetchPedidos, 10000); // Atualiza a cada 10 segundos
+      return () => clearInterval(interval);
+    }
+  }, [role]);
 
   const atualizarStatus = async (pedido: any, novoStatus: string) => {
     try {
