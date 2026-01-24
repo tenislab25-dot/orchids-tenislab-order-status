@@ -999,8 +999,8 @@ export default function EntregasPage() {
                         </Button>
                       </div>
                     </div>
-                  ) : !rotaAtiva && (role === 'admin' || role === 'atendente') ? (
-                    // Rota inativa: apenas botão EXCLUIR (Admin e Atendente)
+                  ) : (role === 'admin' || role === 'atendente') && !rotaAtiva ? (
+                    // Rota inativa: botão EXCLUIR (Admin e Atendente)
                     <Button 
                       variant="outline"
                       className="w-full h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
@@ -1110,6 +1110,39 @@ export default function EntregasPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Botão EXCLUIR - Sempre visível para Admin/Atendente */}
+                {(role === 'admin' || role === 'atendente') && (
+                  <div className="mt-2 pt-2 border-t border-slate-100">
+                    <Button 
+                      variant="outline"
+                      className="w-full h-10 rounded-xl border-2 border-red-100 text-red-600 font-bold text-xs hover:bg-red-50"
+                      onClick={async () => {
+                        if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
+                          try {
+                            setUpdating(pedido.id);
+                            const { error } = await supabase
+                              .from('service_orders')
+                              .delete()
+                              .eq('id', pedido.id);
+                            
+                            if (error) throw error;
+                            toast.success('OS excluída com sucesso');
+                            fetchPedidos();
+                          } catch (error: any) {
+                            toast.error('Erro ao excluir: ' + error.message);
+                          } finally {
+                            setUpdating(null);
+                          }
+                        }
+                      }}
+                      disabled={updating === pedido.id}
+                    >
+                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                      EXCLUIR
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
             </div>

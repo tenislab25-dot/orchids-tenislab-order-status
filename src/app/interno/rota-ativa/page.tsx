@@ -11,22 +11,32 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function RotaAtivaPage() {
   const [pedidos, setPedidos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingPedidos, setLoadingPedidos] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
   const router = useRouter();
-  const { role } = useAuth();
+  const { role, loading: loadingAuth } = useAuth();
 
   // Redirecionar se não for entregador
   useEffect(() => {
-    if (role && role !== "entregador") {
+    // Só redireciona se o role já foi carregado E não é entregador
+    if (!loadingAuth && role && role !== "entregador") {
       toast.error("Acesso negado");
       router.push("/interno/entregas");
     }
-  }, [role, router]);
+  }, [role, loadingAuth, router]);
+
+  // Mostrar loading enquanto verifica permissões
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-600" />
+      </div>
+    );
+  }
 
   const fetchPedidos = async () => {
     try {
-      setLoading(true);
+      setLoadingPedidos(true);
       const { data, error } = await supabase
         .from("service_orders")
         .select(`
@@ -48,7 +58,7 @@ export default function RotaAtivaPage() {
       console.error("Erro ao carregar pedidos:", error);
       toast.error("Erro ao carregar pedidos");
     } finally {
-      setLoading(false);
+      setLoadingPedidos(false);
     }
   };
 
@@ -120,7 +130,7 @@ export default function RotaAtivaPage() {
     }
   };
 
-  if (loading) {
+  if (loadingPedidos) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
