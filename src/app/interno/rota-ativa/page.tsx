@@ -33,12 +33,24 @@ export default function RotaAtivaPage() {
             complement
           )
         `)
-        .in("status", ["Pronto", "Coleta", "Em Rota"])
         .order("failed_delivery", { ascending: true }) // Pedidos sem falha primeiro
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      setPedidos(data || []);
+
+      // Filtrar apenas Coleta e entregas (Pronto/Em Rota com tipo_entrega='entrega')
+      const filtrados = data?.filter(pedido => {
+        const s = pedido.status;
+        
+        // Se é coleta, sempre aparece
+        if (s === "Coleta") return true;
+        
+        // Se é Pronto ou Em Rota, verifica se é entrega (não retirada)
+        const isEntrega = pedido.tipo_entrega === 'entrega' || !pedido.tipo_entrega;
+        return (s === "Pronto" || s === "Em Rota") && isEntrega;
+      });
+
+      setPedidos(filtrados || []);
     } catch (error: any) {
       console.error("Erro ao carregar pedidos:", error);
       toast.error("Erro ao carregar pedidos");
@@ -255,37 +267,45 @@ export default function RotaAtivaPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-2">
+                  <div className="space-y-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => abrirMaps(pedido)}
-                      className="flex-1"
+                      className="w-full"
                     >
                       <MapPin className="w-4 h-4 mr-1" />
                       Maps
                     </Button>
                     {role?.toLowerCase() === 'entregador' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => marcarComoFalhou(pedido)}
-                        className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-                        disabled={updating === pedido.id}
-                      >
-                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
-                        FALHOU
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => marcarComoFalhou(pedido)}
+                          className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
+                          FALHOU
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const isColeta = pedido.previous_status === "Coleta";
+                            const action = isColeta ? "COLETADO" : "ENTREGUE";
+                            if (confirm(`Confirmar que o pedido foi ${action}?`)) {
+                              atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
+                            }
+                          }}
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                          {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
+                        </Button>
+                      </div>
                     )}
-                    <Button
-                      size="sm"
-                      onClick={() => atualizarStatus(pedido, pedido.previous_status === "Coleta" ? "Recebido" : "Entregue")}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      disabled={updating === pedido.id}
-                    >
-                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
-                      {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
-                    </Button>
                   </div>
                 </div>
               ))}
@@ -334,7 +354,7 @@ export default function RotaAtivaPage() {
                   {pedido.failed_delivery && (
                     <div className="mb-2">
                       <Badge className="bg-red-600 text-white font-bold">
-                        ⚠️ FALHA NA ENTREGA
+                        ⚠️ FALHA
                       </Badge>
                     </div>
                   )}

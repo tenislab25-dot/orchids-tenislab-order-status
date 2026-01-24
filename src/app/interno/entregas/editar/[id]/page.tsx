@@ -319,23 +319,25 @@ export default function EditarEntregaPage() {
 
         {/* Botões de Ação */}
         <div className="flex gap-3">
+          {role?.toLowerCase() !== 'entregador' && (
+            <Button
+              variant="outline"
+              className="flex-1 h-14 rounded-xl border-2 border-red-200 text-red-600 font-bold hover:bg-red-50"
+              onClick={handleDelete}
+              disabled={deleting || saving}
+            >
+              {deleting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Trash2 className="w-5 h-5 mr-2" />
+                  Excluir
+                </>
+              )}
+            </Button>
+          )}
           <Button
-            variant="outline"
-            className="flex-1 h-14 rounded-xl border-2 border-red-200 text-red-600 font-bold hover:bg-red-50"
-            onClick={handleDelete}
-            disabled={deleting || saving}
-          >
-            {deleting ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Trash2 className="w-5 h-5 mr-2" />
-                Excluir
-              </>
-            )}
-          </Button>
-          <Button
-            className="flex-[2] h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg"
+            className={`${role?.toLowerCase() === 'entregador' ? 'flex-1' : 'flex-[2]'} h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg`}
             onClick={handleSave}
             disabled={saving || deleting}
           >

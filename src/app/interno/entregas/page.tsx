@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
   Loader2, Package, XCircle, Phone, MessageCircle,
-  Clock, Hash, UserPlus, ChevronUp, ChevronDown, GripVertical, Route
+  Clock, Hash, UserPlus, ChevronUp, ChevronDown, GripVertical, Route,
+  AlertCircle, Edit, Save, X as XIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -71,6 +72,10 @@ export default function EntregasPage() {
   const [endPointType, setEndPointType] = useState<'current' | 'tenislab' | 'custom' | 'none'>('current');
   const [customEndPoint, setCustomEndPoint] = useState('');
   const [startLocation, setStartLocation] = useState<{lat: number, lng: number} | null>(null);
+  
+  // Estados para observações
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [notesText, setNotesText] = useState('');
 
   const moveUp = (index: number) => {
     if (index === 0) return;
@@ -587,6 +592,25 @@ export default function EntregasPage() {
     fetchPedidos();
   }, [fetchPedidos]);
 
+  const salvarObservacoes = async (pedidoId: string) => {
+    try {
+      const { error } = await supabase
+        .from("service_orders")
+        .update({ delivery_notes: notesText })
+        .eq("id", pedidoId);
+
+      if (error) throw error;
+
+      toast.success("Observações salvas!");
+      setEditingNotes(null);
+      setNotesText("");
+      fetchPedidos();
+    } catch (error: any) {
+      console.error("Erro ao salvar observações:", error);
+      toast.error("Erro ao salvar observações");
+    }
+  };
+
   const atualizarStatus = async (pedido: any, novoStatus: string) => {
     try {
       setUpdating(pedido.id);
@@ -928,6 +952,79 @@ export default function EntregasPage() {
                       <p className="text-slate-700 font-bold mt-0.5">{pedido.clients?.phone || "Sem telefone"}</p>
                     </div>
                   </div>
+
+                  {/* Observações */}
+                  {editingNotes === pedido.id ? (
+                    <div className="border-t border-slate-200 pt-2">
+                      <textarea
+                        value={notesText}
+                        onChange={(e) => setNotesText(e.target.value)}
+                        placeholder="Ex: Cliente só pode receber até as 16h"
+                        className="w-full p-2 border border-slate-300 rounded-lg text-sm mb-2"
+                        rows={2}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => salvarObservacoes(pedido.id)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 h-8 text-xs"
+                        >
+                          <Save className="w-3 h-3 mr-1" />
+                          Salvar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingNotes(null);
+                            setNotesText("");
+                          }}
+                          className="flex-1 h-8 text-xs"
+                        >
+                          <XIcon className="w-3 h-3 mr-1" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : pedido.delivery_notes ? (
+                    <div className="border-t border-slate-200 pt-2">
+                      <div className="flex items-start gap-2 bg-amber-50 p-2 rounded-lg">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-amber-800">Observações:</p>
+                          <p className="text-xs text-amber-700 break-words">{pedido.delivery_notes}</p>
+                        </div>
+                        {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingNotes(pedido.id);
+                              setNotesText(pedido.delivery_notes || "");
+                            }}
+                            className="h-6 w-6 p-0"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') ? (
+                    <div className="border-t border-slate-200 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingNotes(pedido.id);
+                          setNotesText("");
+                        }}
+                        className="w-full border-dashed h-8 text-xs"
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Adicionar Observações
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Botões de Navegação e Comunicação */}
