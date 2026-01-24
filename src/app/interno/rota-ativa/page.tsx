@@ -16,16 +16,7 @@ export default function RotaAtivaPage() {
   const router = useRouter();
   const { role, loading: loadingAuth } = useAuth();
 
-  // Redirecionar se não for entregador
-  useEffect(() => {
-    // Só redireciona se o role já foi carregado E não é entregador
-    if (!loadingAuth && role && role?.toLowerCase() !== "entregador") {
-      toast.error("Acesso negado");
-      router.push("/interno/entregas");
-    }
-  }, [role, loadingAuth, router]);
-
-  // Mostrar loading enquanto verifica permissões
+  // Mostrar loading enquanto carrega autenticação
   if (loadingAuth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -164,12 +155,14 @@ export default function RotaAtivaPage() {
                 {pedidosEmRota.length} em rota • {pedidosAguardando.length} aguardando
               </p>
             </div>
-            <Button
-              onClick={finalizarRota}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl"
-            >
-              Finalizar Rota
-            </Button>
+            {role?.toLowerCase() === 'entregador' && (
+              <Button
+                onClick={finalizarRota}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl"
+              >
+                Finalizar Rota
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -220,16 +213,18 @@ export default function RotaAtivaPage() {
                       <MapPin className="w-4 h-4 mr-1" />
                       Maps
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => atualizarStatus(pedido, pedido.previous_status || "Pronto")}
-                      className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-                      disabled={updating === pedido.id}
-                    >
-                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
-                      FALHOU
-                    </Button>
+                    {role?.toLowerCase() === 'entregador' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => atualizarStatus(pedido, pedido.previous_status || "Pronto")}
+                        className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
+                        FALHOU
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       onClick={() => atualizarStatus(pedido, pedido.previous_status === "Coleta" ? "Recebido" : "Entregue")}
@@ -266,11 +261,22 @@ export default function RotaAtivaPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {pedidosAguardando.map((pedido) => (
+              {pedidosAguardando.map((pedido, index) => (
                 <div
                   key={pedido.id}
-                  className="border-2 border-amber-100 rounded-xl p-4"
+                  className={`border-2 rounded-xl p-4 ${
+                    index === 0
+                      ? "border-green-400 bg-green-50 shadow-lg"
+                      : "border-amber-100"
+                  }`}
                 >
+                  {index === 0 && (
+                    <div className="mb-2">
+                      <Badge className="bg-green-600 text-white font-bold">
+                        🎯 PRÓXIMA ENTREGA
+                      </Badge>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -289,18 +295,41 @@ export default function RotaAtivaPage() {
                     </div>
                   </div>
 
-                  <Button
-                    onClick={() => atualizarStatus(pedido, "Em Rota")}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    disabled={updating === pedido.id}
-                  >
-                    {updating === pedido.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <MapPin className="w-4 h-4 mr-2" />
-                    )}
-                    A CAMINHO
-                  </Button>
+                  {role?.toLowerCase() === 'entregador' ? (
+                    <Button
+                      onClick={() => atualizarStatus(pedido, "Em Rota")}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      disabled={updating === pedido.id}
+                    >
+                      {updating === pedido.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <MapPin className="w-4 h-4 mr-2" />
+                      )}
+                      A CAMINHO
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => abrirMaps(pedido)}
+                        className="flex-1"
+                      >
+                        <MapPin className="w-4 h-4 mr-1" />
+                        Maps
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => atualizarStatus(pedido, pedido.status === "Coleta" ? "Recebido" : "Entregue")}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                        {pedido.status === "Coleta" ? "COLETADO" : "ENTREGUE"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

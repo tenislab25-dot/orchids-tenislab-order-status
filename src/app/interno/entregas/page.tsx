@@ -762,6 +762,16 @@ export default function EntregasPage() {
                 Iniciar Rota
               </Button>
             )}
+            {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && rotaAtiva && (
+              <Button
+                onClick={() => router.push('/interno/rota-ativa')}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold"
+              >
+                <Route className="w-4 h-4 mr-1" />
+                Ver Rota
+              </Button>
+            )}
             {role?.toLowerCase() === 'entregador' && rotaAtiva && (
               <>
                 <Button
