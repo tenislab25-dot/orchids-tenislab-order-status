@@ -580,13 +580,21 @@ export default function EntregasPage() {
       });
 
       setPedidos(filtrados || []);
+      
+      // Verificar se há pedidos "Em Rota" para mostrar botão Ver Rota
+      const temPedidosEmRota = filtrados?.some(p => p.status === "Em Rota");
+      if (temPedidosEmRota && !rotaAtiva) {
+        setRotaAtiva(true);
+      } else if (!temPedidosEmRota && rotaAtiva) {
+        setRotaAtiva(false);
+      }
     } catch (error: any) {
       console.error("Erro ao carregar entregas:", error);
       toast.error("Erro ao carregar entregas");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [rotaAtiva]);
 
   useEffect(() => {
     fetchPedidos();

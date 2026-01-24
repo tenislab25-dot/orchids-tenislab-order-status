@@ -38,16 +38,28 @@ export default function RotaAtivaPage() {
 
       if (error) throw error;
 
-      // Filtrar apenas Coleta e entregas (Pronto/Em Rota com tipo_entrega='entrega')
+      // Obter data de hoje no formato YYYY-MM-DD
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Filtrar apenas Coleta e entregas (Pronto/Em Rota com tipo_entrega='entrega') DO DIA
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
         
-        // Se é coleta, sempre aparece
-        if (s === "Coleta") return true;
-        
-        // Se é Pronto ou Em Rota, verifica se é entrega (não retirada)
+        // Verificar se é entrega (não retirada)
         const isEntrega = pedido.tipo_entrega === 'entrega' || !pedido.tipo_entrega;
-        return (s === "Pronto" || s === "Em Rota") && isEntrega;
+        
+        // Se é coleta, verificar se é do dia
+        if (s === "Coleta") {
+          return pedido.pickup_date === todayStr;
+        }
+        
+        // Se é Pronto ou Em Rota, verificar se é entrega do dia
+        if ((s === "Pronto" || s === "Em Rota") && isEntrega) {
+          return pedido.delivery_date === todayStr;
+        }
+        
+        return false;
       });
 
       setPedidos(filtrados || []);
