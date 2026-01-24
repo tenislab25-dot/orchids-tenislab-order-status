@@ -42,27 +42,46 @@ export default function RotaAtivaPage() {
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       
+      console.log('=== DEBUG ROTA ATIVA ===');
+      console.log('Data de hoje:', todayStr);
+      
       // Filtrar apenas Coleta e entregas DO DIA (EXCLUIR retiradas)
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
         
+        console.log(`\nPedido: ${pedido.clients?.name} (OS ${pedido.os_number})`);
+        console.log(`  Status: ${s}`);
+        console.log(`  Tipo: ${pedido.tipo_entrega || 'null'}`);
+        console.log(`  Delivery Date: ${pedido.delivery_date || 'null'}`);
+        console.log(`  Pickup Date: ${pedido.pickup_date || 'null'}`);
+        
         // EXCLUIR explicitamente retiradas
         if (pedido.tipo_entrega === 'retirada') {
+          console.log('  -> EXCLUÍDO (retirada)');
           return false;
         }
         
         // Se é coleta, verificar se é do dia
         if (s === "Coleta") {
-          return pedido.pickup_date === todayStr;
+          const isToday = pedido.pickup_date === todayStr;
+          console.log(`  -> Coleta ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.pickup_date})`);
+          return isToday;
         }
         
         // Se é Pronto ou Em Rota, verificar se é do dia
         if (s === "Pronto" || s === "Em Rota") {
-          return pedido.delivery_date === todayStr;
+          const isToday = pedido.delivery_date === todayStr;
+          console.log(`  -> Entrega ${isToday ? 'DO DIA' : 'OUTRO DIA'} (${pedido.delivery_date})`);
+          return isToday;
         }
         
+        console.log('  -> EXCLUÍDO (status não compatível)');
         return false;
       });
+      
+      console.log('\n=== RESULTADO ===');
+      console.log(`Total filtrado: ${filtrados?.length || 0} pedidos`);
+      console.log('========================\n');
 
       setPedidos(filtrados || []);
     } catch (error: any) {
