@@ -743,15 +743,7 @@ export default function EntregasPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setShowColetaModal(true)}
-              size="sm"
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold"
-            >
-              <UserPlus className="w-4 h-4 mr-1" />
-              Coleta
-            </Button>
-            {!rotaAtiva ? (
+            {role === 'ENTREGADOR' && !rotaAtiva && (
               <Button
                 onClick={handleOptimizeRoute}
                 disabled={pedidos.length === 0}
@@ -761,7 +753,8 @@ export default function EntregasPage() {
                 <Route className="w-4 h-4 mr-1" />
                 Iniciar Rota
               </Button>
-            ) : (
+            )}
+            {role === 'ENTREGADOR' && rotaAtiva && (
               <>
                 <Button
                   onClick={handleFinalizarRota}
@@ -1087,7 +1080,12 @@ export default function EntregasPage() {
                       <Button 
                         variant="outline"
                         className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
-                        onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
+                        onClick={() => {
+                          const isColeta = pedido.status === 'Coleta' || (pedido.pickup_date && new Date(pedido.pickup_date) > new Date());
+                          const novoStatus = isColeta ? 'Coleta' : 'Pronto';
+                          const mensagem = isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?";
+                          confirm(mensagem) && atualizarStatus(pedido, novoStatus);
+                        }}
                         disabled={updating === pedido.id}
                       >
                         <XCircle className="w-4 h-4" />
