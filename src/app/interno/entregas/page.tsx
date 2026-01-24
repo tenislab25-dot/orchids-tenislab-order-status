@@ -751,7 +751,7 @@ export default function EntregasPage() {
               <UserPlus className="w-4 h-4 mr-1" />
               Coleta
             </Button>
-            {role === 'ENTREGADOR' && !rotaAtiva && (
+            {role?.toLowerCase() === 'entregador' && !rotaAtiva && (
               <Button
                 onClick={() => router.push('/interno/rota-ativa')}
                 disabled={pedidos.length === 0}
@@ -762,7 +762,7 @@ export default function EntregasPage() {
                 Iniciar Rota
               </Button>
             )}
-            {role === 'ENTREGADOR' && rotaAtiva && (
+            {role?.toLowerCase() === 'entregador' && rotaAtiva && (
               <>
                 <Button
                   onClick={handleFinalizarRota}
@@ -959,18 +959,20 @@ export default function EntregasPage() {
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
-                  {rotaAtiva && pedido.status === "Pronto" && !pedido._falhado ? (
-                    // Rota ativa + Pronto: botão A CAMINHO + FALHOU + ENTREGUE
+                  {/* ENTREGADOR COM ROTA ATIVA */}
+                  {role?.toLowerCase() === 'entregador' && rotaAtiva && (pedido.status === "Pronto" || pedido.status === "Coleta") && !pedido._falhado ? (
                     <div className="space-y-2">
+                      {/* Botão A CAMINHO */}
                       <Button 
                         className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
                         onClick={() => {
                           const phone = pedido.clients?.phone?.replace(/\D/g, "");
                           const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                          const isColeta = pedido.status === 'Coleta';
                           const message = encodeURIComponent(
-                            `Olá ${pedido.clients?.name}! 🚚\n\n` +
-                            `Seus tênis estão a caminho! Nosso motoboy está indo até você agora. \u2728\n\n` +
-                            `Em breve chegaremos! Qualquer dúvida, estamos à disposição.`
+                            isColeta 
+                              ? `Olá ${pedido.clients?.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso motoboy está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.`
+                              : `Olá ${pedido.clients?.name}! 🚚\n\nSeus tênis estão a caminho! Nosso motoboy está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.`
                           );
                           window.open(`https://wa.me/${whatsapp}?text=${message}`, "_blank");
                           toast.success("Mensagem enviada!");
@@ -979,105 +981,85 @@ export default function EntregasPage() {
                         <MessageCircle className="w-4 h-4 mr-2" />
                         A CAMINHO
                       </Button>
+                      
+                      {/* Botões FALHOU e COLETADO/ENTREGUE */}
                       <div className="flex gap-2">
-                        {role?.toLowerCase() === 'entregador' && (
-                          <Button 
-                            variant="outline"
-                            className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
-                            onClick={() => confirm("Confirmar que a entrega não foi realizada?") && atualizarStatus(pedido, "Pronto")}
-                            disabled={updating === pedido.id}
-                          >
-                            <XCircle className="w-4 h-4" />
-                            FALHOU
-                          </Button>
-                        )}
-                        <Button 
-                          className={`${role?.toLowerCase() === 'entregador' ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg`}
-                          onClick={() => atualizarStatus(pedido, "Entregue")}
-                          disabled={updating === pedido.id}
-                        >
-                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                          ENTREGUE
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (role === 'admin' || role === 'atendente') && !rotaAtiva ? (
-                    // Rota inativa: botão EXCLUIR (Admin e Atendente)
-                    <Button 
-                      variant="outline"
-                      className="w-full h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
-                      onClick={async () => {
-                        if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
-                          try {
-                            setUpdating(pedido.id);
-                            const { error } = await supabase
-                              .from('service_orders')
-                              .delete()
-                              .eq('id', pedido.id);
-                            
-                            if (error) throw error;
-                            toast.success('OS excluída com sucesso');
-                            fetchPedidos();
-                          } catch (error: any) {
-                            toast.error('Erro ao excluir: ' + error.message);
-                          } finally {
-                            setUpdating(null);
-                          }
-                        }
-                      }}
-                      disabled={updating === pedido.id}
-                    >
-                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                      EXCLUIR
-                    </Button>
-                  ) : pedido.status === "Coleta" && !pedido._falhado ? (
-                    // Rota ativa + Coleta: botão A CAMINHO + FALHOU + COLETADO
-                    <div className="space-y-2">
-                      <Button 
-                        className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
-                        onClick={() => {
-                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
-                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
-                          const message = encodeURIComponent(
-                            `Olá ${pedido.clients?.name}! 🚚\n\n` +
-                            `Estamos a caminho para buscar seus tênis! Nosso motoboy está indo até você agora. \u2728\n\n` +
-                            `Em breve chegaremos! Qualquer dúvida, estamos à disposição.`
-                          );
-                          window.open(`https://wa.me/${whatsapp}?text=${message}`, "_blank");
-                          toast.success("Mensagem enviada!");
-                        }}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        A CAMINHO
-                      </Button>
-                      <div className="flex gap-2">
-                      {role?.toLowerCase() === 'entregador' && (
                         <Button 
                           variant="outline"
-                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
+                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
                           onClick={() => {
-                            if (confirm(`Confirmar que a coleta não foi realizada?`)) {
-                              atualizarStatus(pedido, "Coleta");
-                            }
+                            const isColeta = pedido.status === 'Coleta';
+                            const mensagem = isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?";
+                            const novoStatus = isColeta ? 'Coleta' : 'Pronto';
+                            confirm(mensagem) && atualizarStatus(pedido, novoStatus);
                           }}
                           disabled={updating === pedido.id}
                         >
-                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                          <XCircle className="w-4 h-4" />
                           FALHOU
                         </Button>
-                      )}
+                        <Button 
+                          className="flex-[2] h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg"
+                          onClick={() => {
+                            const novoStatus = pedido.status === 'Coleta' ? 'Recebido' : 'Entregue';
+                            atualizarStatus(pedido, novoStatus);
+                          }}
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                          {pedido.status === 'Coleta' ? 'COLETADO' : 'ENTREGUE'}
+                        </Button>
+                      </div>
+                    </div>
+                  
+                  /* ADMIN/ATENDENTE (COM OU SEM ROTA ATIVA) */
+                  ) : (role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (pedido.status === "Pronto" || pedido.status === "Coleta") ? (
+                    <div className="space-y-2">
+                      {/* Botão COLETADO/ENTREGUE */}
                       <Button 
-                        className={`${role?.toLowerCase() === 'entregador' ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm shadow-lg`}
-                        onClick={() => atualizarStatus(pedido, "Recebido")}
+                        className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg"
+                        onClick={() => {
+                          const novoStatus = pedido.status === 'Coleta' ? 'Recebido' : 'Entregue';
+                          atualizarStatus(pedido, novoStatus);
+                        }}
                         disabled={updating === pedido.id}
                       >
                         {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                        COLETADO
+                        {pedido.status === 'Coleta' ? 'COLETADO' : 'ENTREGUE'}
                       </Button>
-                      </div>
+                      
+                      {/* Botão EXCLUIR */}
+                      <Button 
+                        variant="outline"
+                        className="w-full h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
+                        onClick={async () => {
+                          if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
+                            try {
+                              setUpdating(pedido.id);
+                              const { error } = await supabase
+                                .from('service_orders')
+                                .delete()
+                                .eq('id', pedido.id);
+                              
+                              if (error) throw error;
+                              toast.success('OS excluída com sucesso');
+                              fetchPedidos();
+                            } catch (error: any) {
+                              toast.error('Erro ao excluir: ' + error.message);
+                            } finally {
+                              setUpdating(null);
+                            }
+                          }
+                        }}
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                        EXCLUIR
+                      </Button>
                     </div>
+                  
+                  /* PEDIDO QUE FALHOU - INCLUIR NA ROTA NOVAMENTE */
                   ) : (pedido.status === "Coleta" || pedido.status === "Pronto") && rotaAtiva && pedido._falhado ? (
-                    // Pedido que falhou - mostrar botão para incluir na rota novamente
                     <Button 
                       className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg"
                       onClick={() => incluirNaRota(pedido)}
@@ -1086,69 +1068,12 @@ export default function EntregasPage() {
                       {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Route className="w-4 h-4" />}
                       INCLUIR NA ROTA
                     </Button>
-                  ) : (
-                    // Botões normais de Falhou e Entregue
-                    <div className="flex gap-2">
-                      {role?.toLowerCase() === 'entregador' && (
-                        <Button 
-                          variant="outline"
-                          className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
-                          onClick={() => {
-                            const isColeta = pedido.status === 'Coleta' || (pedido.pickup_date && new Date(pedido.pickup_date) > new Date());
-                            const novoStatus = isColeta ? 'Coleta' : 'Pronto';
-                            const mensagem = isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?";
-                            confirm(mensagem) && atualizarStatus(pedido, novoStatus);
-                          }}
-                          disabled={updating === pedido.id}
-                        >
-                          <XCircle className="w-4 h-4" />
-                          FALHOU
-                        </Button>
-                      )}
-                      <Button 
-                        className={`${role?.toLowerCase() === 'entregador' ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-lg`}
-                        onClick={() => atualizarStatus(pedido, "Entregue")}
-                        disabled={updating === pedido.id}
-                      >
-                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                        ENTREGUE
-                      </Button>
-                    </div>
-                  )}
+                  
+                  /* ENTREGADOR SEM ROTA ATIVA - NENHUM BOTÃO */
+                  ) : null}
                 </div>
 
-                {/* Botão EXCLUIR - Sempre visível para Admin/Atendente */}
-                {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (
-                  <div className="mt-2 pt-2 border-t border-slate-100">
-                    <Button 
-                      variant="outline"
-                      className="w-full h-10 rounded-xl border-2 border-red-100 text-red-600 font-bold text-xs hover:bg-red-50"
-                      onClick={async () => {
-                        if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
-                          try {
-                            setUpdating(pedido.id);
-                            const { error } = await supabase
-                              .from('service_orders')
-                              .delete()
-                              .eq('id', pedido.id);
-                            
-                            if (error) throw error;
-                            toast.success('OS excluída com sucesso');
-                            fetchPedidos();
-                          } catch (error: any) {
-                            toast.error('Erro ao excluir: ' + error.message);
-                          } finally {
-                            setUpdating(null);
-                          }
-                        }
-                      }}
-                      disabled={updating === pedido.id}
-                    >
-                      {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                      EXCLUIR
-                    </Button>
-                  </div>
-                )}
+
               </CardContent>
             </Card>
             </div>
