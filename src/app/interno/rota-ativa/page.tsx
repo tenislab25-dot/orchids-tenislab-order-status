@@ -96,11 +96,22 @@ export default function RotaAtivaPage() {
   useEffect(() => {
     fetchPedidos();
     
-    // Atualização automática apenas para Admin/Atendente (modo observador)
-    if (role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') {
-      const interval = setInterval(fetchPedidos, 10000); // Atualiza a cada 10 segundos
-      return () => clearInterval(interval);
-    }
+    // Realtime subscription para atualização automática (substitui polling)
+    const channel = supabase
+      .channel("rota_ativa_orders")
+      .on(
+        "postgres_changes",
+        { event: "*", table: "service_orders" },
+        (payload) => {
+          console.log("Realtime update em rota ativa:", payload);
+          fetchPedidos(); // Atualiza lista automaticamente
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [role]);
 
   const atualizarStatus = async (pedido: any, novoStatus: string) => {

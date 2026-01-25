@@ -639,6 +639,23 @@ export default function EntregasPage() {
       toast.info('Você está em rota ativa! Redirecionando...');
       router.push('/interno/rota-ativa');
     }
+
+    // Realtime subscription para atualização automática
+    const channel = supabase
+      .channel("entregas_orders")
+      .on(
+        "postgres_changes",
+        { event: "*", table: "service_orders" },
+        (payload) => {
+          console.log("Realtime update em entregas:", payload);
+          fetchPedidos(); // Atualiza lista automaticamente
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchPedidos, role, rotaAtiva, router]);
 
   const salvarObservacoes = async (pedidoId: string) => {
