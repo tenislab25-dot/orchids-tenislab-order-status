@@ -332,6 +332,13 @@ export default function DashboardPage() {
     // Buscar o status atual da OS
     const currentOrder = orders.find(o => o.id === orderId);
     
+    // Confirmação antes de cancelar
+    if (newStatus === 'Cancelado') {
+      if (!window.confirm('⚠️ Tem certeza que deseja CANCELAR este pedido?\n\nEsta ação não pode ser desfeita.')) {
+        return;
+      }
+    }
+    
     // Bloquear OPERACIONAL de alterar OS que já estão Pronto ou Entregue
     if (role === 'OPERACIONAL' && currentOrder && ['Pronto', 'Entregue'].includes(currentOrder.status)) {
       toast.error("Você não pode alterar o status de uma OS que já está Pronta ou Entregue");

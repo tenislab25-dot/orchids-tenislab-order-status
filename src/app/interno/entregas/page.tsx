@@ -69,6 +69,13 @@ export default function EntregasPage() {
   
   // Estados para configuração de rota
   const [showRouteConfigModal, setShowRouteConfigModal] = useState(false);
+  
+  // Rolar para o topo quando modal abrir
+  useEffect(() => {
+    if (showRouteConfigModal || showColetaModal) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showRouteConfigModal, showColetaModal]);
   const [endPointType, setEndPointType] = useState<'current' | 'tenislab' | 'custom' | 'none'>('current');
   const [customEndPoint, setCustomEndPoint] = useState('');
   const [startLocation, setStartLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -513,6 +520,11 @@ export default function EntregasPage() {
 
   // Finalizar rota
   const handleFinalizarRota = async () => {
+    // Confirmação antes de finalizar
+    if (!window.confirm('🚚 Tem certeza que deseja finalizar a rota?\n\nTodos os pedidos restantes serão mantidos para a próxima rota.')) {
+      return;
+    }
+    
     try {
       toast.info('Finalizando rota...');
       
