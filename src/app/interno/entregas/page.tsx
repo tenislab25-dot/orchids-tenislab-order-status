@@ -224,7 +224,7 @@ export default function EntregasPage() {
       console.log(`   Lat: ${START_LAT.toFixed(6)}`);
       console.log(`   Lng: ${START_LNG.toFixed(6)}`);
       console.log(`🏢 Loja Tenislab: ${LOJA_LAT}, ${LOJA_LNG}`);
-      console.log(`🎯 Ponto final escolhido: ${endPointType});
+      console.log(`🎯 Ponto final escolhido: ${endPointType}`);
 
       // Obter data de hoje no formato YYYY-MM-DD
       const today = new Date();
