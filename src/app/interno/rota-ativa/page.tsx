@@ -80,6 +80,10 @@ export default function RotaAtivaPage() {
           if (pedido.pickup_date) {
             return pedido.pickup_date === todayStr;
           }
+          // Se previous_status era Coleta, manter na rota (coleta em andamento)
+          if (pedido.previous_status === "Coleta") {
+            return true;
+          }
           return false;
         }
       });
@@ -137,7 +141,8 @@ export default function RotaAtivaPage() {
         const phone = pedido.clients?.phone?.replace(/\D/g, "");
         if (phone) {
           const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
-          const isColeta = pedido.status === "Coleta";
+          // Verificar se é coleta pelo status ANTERIOR (antes de mudar para Em Rota)
+          const isColeta = pedido.status === "Coleta" || pedido.previous_status === "Coleta";
           const isNovaTentativa = pedido.failed_delivery;
           
           let mensagem;
