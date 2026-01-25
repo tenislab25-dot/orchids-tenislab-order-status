@@ -72,18 +72,23 @@ export default function RotaAtivaPage() {
           return pedido.pickup_date === todayStr;
         } else {
           // Pronto ou Em Rota
-          // Se tem delivery_date, é entrega
-          if (pedido.delivery_date) {
-            return pedido.delivery_date === todayStr;
-          }
-          // Senão, é coleta em rota
-          if (pedido.pickup_date) {
-            return pedido.pickup_date === todayStr;
-          }
+          
+          // IMPORTANTE: Verificar previous_status PRIMEIRO!
           // Se previous_status era Coleta, manter na rota (coleta em andamento)
           if (pedido.previous_status === "Coleta") {
             return true;
           }
+          
+          // Se tem delivery_date, é entrega
+          if (pedido.delivery_date) {
+            return pedido.delivery_date === todayStr;
+          }
+          
+          // Senão, é coleta em rota
+          if (pedido.pickup_date) {
+            return pedido.pickup_date === todayStr;
+          }
+          
           return false;
         }
       });
