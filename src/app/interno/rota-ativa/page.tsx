@@ -115,6 +115,22 @@ export default function RotaAtivaPage() {
   }, [role]);
 
   const atualizarStatus = async (pedido: any, novoStatus: string) => {
+    // Confirmação antes de mudar status
+    const isColeta = pedido.status === "Coleta";
+    const confirmMessage = novoStatus === "Em Rota" 
+      ? (isColeta 
+          ? `🚚 Confirmar que está A CAMINHO para COLETAR os tênis de ${pedido.clients?.name}?\n\nUma mensagem será enviada via WhatsApp.`
+          : `🚚 Confirmar que está A CAMINHO para ENTREGAR os tênis de ${pedido.clients?.name}?\n\nUma mensagem será enviada via WhatsApp.`)
+      : novoStatus === "Recebido"
+      ? `✅ Confirmar que os tênis de ${pedido.clients?.name} foram COLETADOS?`
+      : novoStatus === "Entregue"
+      ? `✅ Confirmar que os tênis de ${pedido.clients?.name} foram ENTREGUES?`
+      : `Confirmar mudança de status para ${novoStatus}?`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+    
     try {
       setUpdating(pedido.id);
 
@@ -169,6 +185,16 @@ export default function RotaAtivaPage() {
   };
 
   const marcarComoFalhou = async (pedido: any) => {
+    // Confirmação antes de marcar como falhou
+    const isColeta = pedido.previous_status === "Coleta";
+    const confirmMessage = isColeta
+      ? `⚠️ Confirmar que a COLETA FALHOU?\n\nO pedido voltará para o status "${pedido.previous_status || "Pronto"}" e ficará marcado para nova tentativa.`
+      : `⚠️ Confirmar que a ENTREGA FALHOU?\n\nO pedido voltará para o status "${pedido.previous_status || "Pronto"}" e ficará marcado para nova tentativa.`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+    
     try {
       setUpdating(pedido.id);
 
