@@ -24,7 +24,16 @@ export default function RotaAtivaPage() {
       const { data, error } = await supabase
         .from("service_orders")
         .select(`
-          *,
+          id,
+          os_number,
+          status,
+          tipo_entrega,
+          delivery_date,
+          pickup_date,
+          delivery_notes,
+          failed_delivery,
+          previous_status,
+          updated_at,
           clients (
             name,
             phone,
