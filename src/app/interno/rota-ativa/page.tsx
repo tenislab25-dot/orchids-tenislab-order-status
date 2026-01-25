@@ -84,7 +84,10 @@ export default function RotaAtivaPage() {
         { event: "*", table: "service_orders" },
         (payload) => {
           console.log("Realtime update em rota ativa:", payload);
-          fetchPedidos(); // Atualiza lista automaticamente
+          // Delay de 300ms para dar tempo do banco atualizar previous_status
+          setTimeout(() => {
+            fetchPedidos();
+          }, 300);
         }
       )
       .subscribe();
