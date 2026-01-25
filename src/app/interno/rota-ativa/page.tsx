@@ -51,7 +51,7 @@ export default function RotaAtivaPage() {
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       
-      // Filtrar por status E data
+      // Filtrar APENAS por status (SEM filtro de data)
       const filtrados = data?.filter(pedido => {
         const s = pedido.status;
         
@@ -61,36 +61,7 @@ export default function RotaAtivaPage() {
         }
         
         // Incluir apenas: Coleta, Pronto, Em Rota
-        if (s !== "Coleta" && s !== "Pronto" && s !== "Em Rota") {
-          return false;
-        }
-        
-        // Filtrar por data:
-        // - Coleta: pickup_date = hoje
-        // - Pronto/Em Rota: delivery_date = hoje (ou pickup_date se for coleta)
-        if (s === "Coleta") {
-          return pedido.pickup_date === todayStr;
-        } else {
-          // Pronto ou Em Rota
-          
-          // IMPORTANTE: Verificar previous_status PRIMEIRO!
-          // Se previous_status era Coleta, manter na rota (coleta em andamento)
-          if (pedido.previous_status === "Coleta") {
-            return true;
-          }
-          
-          // Se tem delivery_date, é entrega
-          if (pedido.delivery_date) {
-            return pedido.delivery_date === todayStr;
-          }
-          
-          // Senão, é coleta em rota
-          if (pedido.pickup_date) {
-            return pedido.pickup_date === todayStr;
-          }
-          
-          return false;
-        }
+        return s === "Coleta" || s === "Pronto" || s === "Em Rota";
       });
 
       setPedidos(filtrados || []);
