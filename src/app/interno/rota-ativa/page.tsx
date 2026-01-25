@@ -218,11 +218,11 @@ export default function RotaAtivaPage() {
   };
 
   const abrirMaps = (pedido: any) => {
-    if (pedido.clients?.coordinates) {
-      const [lat, lng] = pedido.clients.coordinates.split(",");
-      window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, "_blank");
-    } else if (pedido.clients?.plus_code) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${pedido.clients.plus_code}`, "_blank");
+    // Usar mesma lógica da página entregas: /maps/dir/ para navegação
+    const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
+    
+    if (location) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
     } else {
       toast.error("Endereço não disponível");
     }
