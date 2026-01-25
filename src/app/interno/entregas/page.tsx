@@ -206,9 +206,9 @@ export default function EntregasPage() {
       const { OpenLocationCode } = await import('open-location-code');
       const olc = new OpenLocationCode();
 
-      // Coordenadas da loja (para referência)
-      const LOJA_LAT = -9.619938;
-      const LOJA_LNG = -35.709313;
+      // Coordenadas da loja (vindas de variáveis de ambiente)
+      const LOJA_LAT = parseFloat(process.env.NEXT_PUBLIC_STORE_LATITUDE || '-9.619938');
+      const LOJA_LNG = parseFloat(process.env.NEXT_PUBLIC_STORE_LONGITUDE || '-35.709313');
       
       // Usar localização atual como ponto de partida
       if (!startLocation) {
