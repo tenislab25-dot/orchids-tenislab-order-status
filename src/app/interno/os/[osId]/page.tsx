@@ -23,8 +23,10 @@ import {
     Star,
     MessageCircle,
     Camera,
-    Loader2
+    Loader2,
+    DollarSign
   } from "lucide-react";
+import { PaymentModal } from "@/components/payments/PaymentModal";
 
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1346,6 +1348,14 @@ export default function OSViewPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PaymentModal
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
+        serviceOrderId={order?.id || ''}
+        amount={order?.total || 0}
+        osNumber={order?.os_number || ''}
+      />
     </div>
   );
 }
