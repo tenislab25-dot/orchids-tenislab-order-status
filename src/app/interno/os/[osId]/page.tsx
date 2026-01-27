@@ -26,7 +26,7 @@ import {
     Loader2,
     DollarSign
   } from "lucide-react";
-import { PaymentModal } from "@/components/payments/PaymentModal";
+
 
   import { Button } from "@/components/ui/button";
   import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,7 +94,7 @@ export default function OSViewPage() {
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+
   const [deliveryModalOpen, setDeliveryModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
@@ -219,7 +219,7 @@ export default function OSViewPage() {
         payment_method: newPaymentMethod || prev.payment_method,
         machine_fee: Number(machineFee) || 0
       } : null);
-      setPaymentModalOpen(false);
+
       setIsConfirmingPayment(false);
       toast.success("Pagamento Confirmado!");
     }
@@ -1066,13 +1066,9 @@ export default function OSViewPage() {
               <CardTitle className="text-xs font-black text-slate-600 uppercase tracking-widest">Pagamento</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Método</span>
-                  <span className="text-sm font-bold text-slate-700">{order.payment_method || "Não definido"}</span>
-                </div>
-                <div className="flex flex-col gap-1 items-end">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</span>
+              <div className="flex items-center justify-center">
+                <div className="flex flex-col gap-1 items-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status do Pagamento</span>
                   {order.payment_confirmed || order.pay_on_entry ? (
                     <Badge className="bg-green-100 text-green-700 font-bold">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -1089,31 +1085,22 @@ export default function OSViewPage() {
 
               {(role === "ADMIN" || role === "ATENDENTE") && (
                 <div className="flex gap-2 pt-4 border-t border-slate-100">
-                  {!order.payment_confirmed && !order.pay_on_entry ? (
-                    <Button 
-                      onClick={() => setPaymentModalOpen(true)}
-                      className="flex-1 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-xs"
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Confirmar Pagamento
-                    </Button>
-                  ) : (
+                  <Button 
+                    onClick={handleSharePaymentLink}
+                    className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Copiar Link de Pagamento
+                  </Button>
+                  {order.payment_confirmed || order.pay_on_entry ? (
                     <Button 
                       onClick={handleRevertPayment}
                       variant="outline"
-                      className="flex-1 h-10 rounded-xl border-amber-200 text-amber-600 font-bold text-xs hover:bg-amber-50"
+                      className="h-10 rounded-xl border-amber-200 text-amber-600 font-bold text-xs hover:bg-amber-50"
                     >
-                      <Clock className="w-4 h-4 mr-2" />
-                      Marcar como Pendente
+                      <Clock className="w-4 h-4" />
                     </Button>
-                  )}
-                  <Button 
-                    onClick={handleSharePaymentLink}
-                    variant="outline"
-                    className="h-10 rounded-xl border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </Button>
+                  ) : null}
                 </div>
               )}
             </CardContent>
@@ -1349,13 +1336,7 @@ export default function OSViewPage() {
         </DialogContent>
       </Dialog>
 
-      <PaymentModal
-        open={paymentModalOpen}
-        onOpenChange={setPaymentModalOpen}
-        serviceOrderId={order?.id || ''}
-        amount={order?.total || 0}
-        osNumber={order?.os_number || ''}
-      />
+
     </div>
   );
 }
