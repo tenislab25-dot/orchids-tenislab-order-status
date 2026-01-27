@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Pegar dados do body
-    const { serviceOrderId, amount } = await request.json();
+    const { serviceOrderId, amount, couponId, discountAmount } = await request.json();
 
     if (!serviceOrderId || !amount) {
       return NextResponse.json(
@@ -46,6 +46,58 @@ export async function POST(request: NextRequest) {
 
     if (osError || !serviceOrder) {
       return NextResponse.json({ error: 'Ordem de serviço não encontrada' }, { status: 404 });
+    }
+
+    // Se tem cupom, atualizar OS e registrar uso
+    if (couponId && discountAmount) {
+      // Atualizar OS com cupom
+      const { error: updateError } = await supabase
+        .from('service_orders')
+        .update({
+          coupon_id: couponId,
+          discount_amount: discountAmount
+        })
+        .eq('id', serviceOrderId);
+
+      if (updateError) {
+        console.error('Erro ao atualizar OS com cupom:', updateError);
+      }
+
+      // Registrar uso do cupom
+      const { error: usageError } = await supabase
+        .from('coupon_usage')
+        .insert({
+          coupon_id: couponId,
+          client_id: serviceOrder.client_id,
+          service_order_id: serviceOrderId,
+          discount_amount: discountAmount
+        });
+
+      if (usageError) {
+        console.error('Erro ao registrar uso do cupom:', usageError);
+      }
+
+      // Incrementar contador de uso do cupom
+      const { error: incrementError } = await supabase.rpc('increment_coupon_usage', {
+        coupon_id_param: couponId
+      });
+
+      if (incrementError) {
+        console.error('Erro ao incrementar uso do cupom:', incrementError);
+        // Fallback: incrementar manualmente
+        const { data: coupon } = await supabase
+          .from('coupons')
+          .select('times_used')
+          .eq('id', couponId)
+          .single();
+
+        if (coupon) {
+          await supabase
+            .from('coupons')
+            .update({ times_used: coupon.times_used + 1 })
+            .eq('id', couponId);
+        }
+      }
     }
 
     // Limpar e validar dados do cliente
