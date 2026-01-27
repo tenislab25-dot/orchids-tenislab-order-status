@@ -35,8 +35,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar pagamento PIX no Mercado Pago
+    // Garantir que o valor seja um número válido com 2 casas decimais
+    const transactionAmount = parseFloat(String(amount).replace(',', '.'));
+    if (isNaN(transactionAmount) || transactionAmount <= 0) {
+      return NextResponse.json(
+        { error: 'Valor inválido', details: `O valor "${amount}" não é um número válido` },
+        { status: 400 }
+      );
+    }
+
     const paymentData = {
-      transaction_amount: Number(amount),
+      transaction_amount: parseFloat(transactionAmount.toFixed(2)),
       description: `Lavagem de tênis - OS #${serviceOrder.os_number}`,
       payment_method_id: 'pix',
       payer: {

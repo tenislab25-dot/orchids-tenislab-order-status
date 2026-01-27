@@ -23,10 +23,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Garantir que o valor seja um número válido
+    const baseAmount = parseFloat(String(amount).replace(',', '.'));
+    if (isNaN(baseAmount) || baseAmount <= 0) {
+      return NextResponse.json(
+        { error: 'Valor inválido', details: `O valor "${amount}" não é um número válido` },
+        { status: 400 }
+      );
+    }
+
     // Calcular valor com taxa de cartão (4,99%)
     const cardFee = Number(process.env.MERCADO_PAGO_CREDIT_CARD_FEE) || 0.0499;
-    const totalAmount = Number(amount) / (1 - cardFee);
-    const feeAmount = totalAmount - Number(amount);
+    const totalAmount = baseAmount / (1 - cardFee);
+    const feeAmount = totalAmount - baseAmount;
 
     // Buscar dados da OS
     const { data: serviceOrder, error: osError } = await supabase
