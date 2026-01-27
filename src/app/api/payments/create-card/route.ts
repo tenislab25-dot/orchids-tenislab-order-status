@@ -12,12 +12,6 @@ const preference = new Preference(client);
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
-    // Verificar autenticação
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-    }
 
     // Pegar dados do body
     const { serviceOrderId, amount } = await request.json();
