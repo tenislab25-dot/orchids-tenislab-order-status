@@ -9,7 +9,10 @@ import {
   CreditCard,
   Loader2,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Ticket,
+  Check,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +28,7 @@ interface OrderData {
   total: number;
   delivery_fee: number;
   payment_confirmed: boolean;
+  client_id: string;
   clients: {
     name: string;
   } | null;
@@ -46,6 +50,12 @@ export default function PaymentPage() {
     init_point: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  // Estados do cupom
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -62,6 +72,7 @@ export default function PaymentPage() {
           total,
           delivery_fee,
           payment_confirmed,
+          client_id,
           clients (
             name
           )
@@ -94,6 +105,61 @@ export default function PaymentPage() {
     }
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Digite um código de cupom');
+      return;
+    }
+
+    if (!order) return;
+
+    setIsValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode.toUpperCase(),
+          clientId: order.client_id
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setCouponError(data.error || 'Cupom inválido');
+        setAppliedCoupon(null);
+        return;
+      }
+
+      setAppliedCoupon(data.coupon);
+      setCouponError('');
+      toast.success(`Cupom aplicado! ${data.coupon.discount_percent}% de desconto`);
+    } catch (error) {
+      setCouponError('Erro ao validar cupom');
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setAppliedCoupon(null);
+    setCouponError('');
+    toast.info('Cupom removido');
+  };
+
+  // Calcular valores com desconto
+  const serviceValue = order ? order.total - (order.delivery_fee || 0) : 0;
+  const discountAmount = appliedCoupon 
+    ? (serviceValue * appliedCoupon.discount_percent) / 100 
+    : 0;
+  const finalServiceValue = serviceValue - discountAmount;
+  const finalTotal = finalServiceValue + (order?.delivery_fee || 0);
+
   const handleGeneratePix = async () => {
     if (!order) return;
     
@@ -104,7 +170,9 @@ export default function PaymentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceOrderId: order.id,
-          amount: Number(order.total),
+          amount: finalTotal,
+          couponId: appliedCoupon?.id || null,
+          discountAmount: discountAmount
         }),
       });
 
@@ -138,7 +206,9 @@ export default function PaymentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceOrderId: order.id,
-          amount: Number(order.total),
+          amount: finalTotal,
+          couponId: appliedCoupon?.id || null,
+          discountAmount: discountAmount
         }),
       });
 
@@ -233,12 +303,88 @@ export default function PaymentPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-6"
         >
-          <div className="flex flex-col items-center gap-2 border-b border-slate-50 pb-6">
-            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total a Pagar</span>
-            <span className="text-4xl font-black text-slate-900 tracking-tighter">
-              R$ {Number(order.total).toFixed(2)}
-            </span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase">{order.clients?.name}</span>
+          {/* Campo de Cupom */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Ticket className="w-4 h-4 text-amber-600" />
+              <h3 className="font-bold text-sm text-slate-900">Cupom de Desconto</h3>
+            </div>
+
+            {!appliedCoupon ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Digite o código"
+                    className="flex-1 px-3 py-2 text-sm rounded-xl border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 uppercase"
+                    disabled={isValidatingCoupon}
+                    onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                  />
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={isValidatingCoupon || !couponCode.trim()}
+                    className="px-4 py-2 bg-amber-600 text-white text-sm rounded-xl font-bold hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isValidatingCoupon ? '...' : 'Aplicar'}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="text-red-500 text-xs flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {couponError}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between bg-white rounded-xl p-3 border border-amber-300">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-slate-900">{appliedCoupon.code}</p>
+                    <p className="text-xs text-amber-600">-{appliedCoupon.discount_percent}% de desconto</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleRemoveCoupon}
+                  className="text-red-500 hover:text-red-700 p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Resumo de Valores */}
+          <div className="bg-slate-50 rounded-2xl p-4 space-y-2">
+            <div className="flex justify-between text-sm text-slate-600">
+              <span>Serviço</span>
+              <span>R$ {serviceValue.toFixed(2)}</span>
+            </div>
+
+            {appliedCoupon && (
+              <div className="flex justify-between text-sm text-amber-600 font-bold">
+                <span>Desconto ({appliedCoupon.discount_percent}%)</span>
+                <span>- R$ {discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+
+            {order.delivery_fee > 0 && (
+              <div className="flex justify-between text-sm text-slate-600">
+                <span>Frete</span>
+                <span>R$ {order.delivery_fee.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="border-t border-slate-200 pt-2 flex justify-between items-center">
+              <span className="font-bold text-lg text-slate-900">Total</span>
+              <span className="font-black text-2xl text-blue-600">
+                R$ {finalTotal.toFixed(2)}
+              </span>
+            </div>
           </div>
 
           <Tabs defaultValue="pix" className="w-full">
@@ -261,7 +407,7 @@ export default function PaymentPage() {
                       Valor a pagar
                     </p>
                     <p className="text-2xl font-bold text-green-600">
-                      R$ {Number(order.total).toFixed(2)}
+                      R$ {finalTotal.toFixed(2)}
                     </p>
                     <p className="text-xs text-slate-500">
                       ✅ Aprovação instantânea
@@ -335,7 +481,7 @@ export default function PaymentPage() {
                     Valor a pagar
                   </p>
                   <p className="text-2xl font-bold text-blue-600">
-                    R$ {Number(order.total).toFixed(2)}
+                    R$ {finalTotal.toFixed(2)}
                   </p>
                   <p className="text-xs text-slate-500">
                     💳 Pagamento seguro via Mercado Pago
