@@ -2,18 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Wallet, 
+import {
+  Ticket,
+  LayoutDashboard,
+  Users,
+  Wallet,
   Database,
   ChevronRight,
   ClipboardList,
   LayoutGrid,
-    ShoppingBag,
-    Loader2,
-    Truck
-  } from "lucide-react";
+  ShoppingBag,
+  Loader2,
+  Truck
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel, type UserRole } from "@/lib/auth";
 
@@ -58,6 +59,7 @@ export default function InternoPage() {
     console.log("Role is null or undefined");
     return null;
   }
+
   console.log("Current user role:", role);
 
   return (
@@ -75,85 +77,92 @@ export default function InternoPage() {
           <div className="text-center">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
-                Bem-vindo, {getRoleLabel(role as UserRole)}
-              </p>
+              Bem-vindo, {getRoleLabel(role as UserRole)}
+            </p>
           </div>
         </header>
 
         {/* MENU */}
         <main className="flex flex-col gap-4">
-            {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
-              <MenuButton 
-                href="/interno/dashboard"
-                title="Dashboard"
-                icon={LayoutDashboard}
-                description="Visão Geral"
-              />
-            )}
+          {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
+            <MenuButton 
+              href="/interno/dashboard"
+              title="Dashboard"
+              icon={LayoutDashboard}
+              description="Visão Geral"
+            />
+          )}
 
-            {(role === 'ADMIN' || role === 'ATENDENTE') && (
-              <MenuButton 
-                href="/interno/os"
-                title="Ordens de Serviço"
-                icon={ClipboardList}
-                description="Criar e Gerenciar OS"
-              />
-            )}
+          {(role === 'ADMIN' || role === 'ATENDENTE') && (
+            <MenuButton 
+              href="/interno/os"
+              title="Ordens de Serviço"
+              icon={ClipboardList}
+              description="Criar e Gerenciar OS"
+            />
+          )}
 
-            {(role === 'ADMIN' || role === 'ATENDENTE') && (
-              <MenuButton 
-                href="/interno/clientes"
-                title="Clientes"
-                icon={Users}
-                description="Base de Clientes"
-              />
-            )}
+          {(role === 'ADMIN' || role === 'ATENDENTE') && (
+            <MenuButton 
+              href="/interno/clientes"
+              title="Clientes"
+              icon={Users}
+              description="Base de Clientes"
+            />
+          )}
 
-            {role === 'ADMIN' && (
-              <MenuButton 
-                href="/interno/financeiro"
-                title="Financeiro"
-                icon={Wallet}
-                description="Relatórios Financeiros"
-              />
-            )}
+          {(role === 'ADMIN' || role === 'ATENDENTE') && (
+            <MenuButton 
+              href="/interno/cupons"
+              title="Cupons"
+              icon={Ticket}
+              description="Cupons de Desconto"
+            />
+          )}
 
-              {role === 'ADMIN' && (
-                <MenuButton 
-                  href="/interno/servicos"
-                  title="Serviços"
-                  icon={LayoutGrid}
-                  description="Catálogo de Preços"
-                />
-              )}
+          {role === 'ADMIN' && (
+            <MenuButton 
+              href="/interno/financeiro"
+              title="Financeiro"
+              icon={Wallet}
+              description="Relatórios Financeiros"
+            />
+          )}
 
-              {role === 'ADMIN' && (
-                <MenuButton 
-                  href="/interno/produtos"
-                  title="Produtos"
-                  icon={ShoppingBag}
-                  description="Itens para Venda"
-                />
-              )}
+          {role === 'ADMIN' && (
+            <MenuButton 
+              href="/interno/servicos"
+              title="Serviços"
+              icon={LayoutGrid}
+              description="Catálogo de Preços"
+            />
+          )}
 
-              {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'ENTREGADOR') && (
-                <MenuButton 
-                  href="/interno/entregas" 
-                  title="Entregas" 
-                  icon={Truck} 
-                  description="Ver pedidos prontos para entrega" 
-                />
-              )}
+          {role === 'ADMIN' && (
+            <MenuButton 
+              href="/interno/produtos"
+              title="Produtos"
+              icon={ShoppingBag}
+              description="Itens para Venda"
+            />
+          )}
 
-
+          {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'ENTREGADOR') && (
+            <MenuButton 
+              href="/interno/entregas" 
+              title="Entregas" 
+              icon={Truck} 
+              description="Ver pedidos prontos para entrega" 
+            />
+          )}
         </main>
 
-          {/* FOOTER / LOGOUT */}
-          <footer className="mt-4 flex flex-col gap-8">
-            <p className="text-slate-300 text-[10px] uppercase tracking-[0.4em] font-black text-center">
-              TENISLAB v2.0
-            </p>
-          </footer>
+        {/* FOOTER / LOGOUT */}
+        <footer className="mt-4 flex flex-col gap-8">
+          <p className="text-slate-300 text-[10px] uppercase tracking-[0.4em] font-black text-center">
+            TENISLAB v2.0
+          </p>
+        </footer>
       </div>
     </div>
   );
