@@ -767,6 +767,12 @@ export default function DashboardPage() {
                     <span className="hidden sm:inline">Clientes</span>
                   </Button>
                 </Link>
+                <Link href="/interno/todos" prefetch={false}>
+                  <Button variant="outline" className="border-slate-200 text-slate-700 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
+                    <Package className="w-4 h-4" />
+                    <span className="hidden sm:inline">Todas as OS</span>
+                  </Button>
+                </Link>
                 <Link href="/interno/os" prefetch={false}>
                   <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl gap-2 h-10 sm:h-11 px-4 sm:px-6 shadow-lg shadow-slate-200 text-xs sm:text-sm">
                     <Plus className="w-4 h-4" />

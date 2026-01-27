@@ -193,8 +193,8 @@ export default function TodosPedidosPage() {
           )
         `)
         .eq('payment_confirmed', true)
-        .gte('payment_confirmed_at', sevenDaysAgo.toISOString())
-        .order('payment_confirmed_at', { ascending: false });
+        .gte('updated_at', sevenDaysAgo.toISOString())
+        .order('updated_at', { ascending: false });
 
       if (error) {
         toast.error("Erro ao carregar pagadores recentes: " + error.message);
