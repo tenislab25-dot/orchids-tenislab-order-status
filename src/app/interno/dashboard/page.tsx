@@ -28,7 +28,8 @@ import {
   Volume2,
   VolumeX,
   Filter,
-  MessageCircle
+  MessageCircle,
+  Crown
 } from "lucide-react";
 
 import {
@@ -74,6 +75,7 @@ interface Order {
   clients: {
     name: string;
     phone?: string;
+    is_vip?: boolean;
   } | null;
 }
 
@@ -237,7 +239,8 @@ export default function DashboardPage() {
           priority, updated_at, created_at, items,
           clients (
             name,
-            phone
+            phone,
+            is_vip
           )
         `)
         .gte('updated_at', thirtyDaysAgo.toISOString())
@@ -600,7 +603,15 @@ export default function DashboardPage() {
                   </Button>
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-xs sm:text-sm font-bold text-slate-700 truncate">{order.clients?.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs sm:text-sm font-bold text-slate-700 truncate">{order.clients?.name}</span>
+                    {order.clients?.is_vip && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[9px] font-bold flex-shrink-0">
+                        <Crown className="w-2.5 h-2.5" />
+                        VIP
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold">{order.items?.length} par(es) • R$ {order.total?.toFixed(2)}</span>
                   </div>
