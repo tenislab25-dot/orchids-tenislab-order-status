@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 
 // Configurar Mercado Pago
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
+  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() || '',
 });
 
 const payment = new Payment(client);
