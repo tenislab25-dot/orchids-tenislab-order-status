@@ -13,13 +13,16 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
-  Gift,
-  Star
+  Star,
+  TrendingUp,
+  DollarSign,
+  Award,
+  Crown
 } from "lucide-react";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -35,40 +38,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
 
-interface Client {
+interface ClientWithStats {
   id: string;
   name: string;
   phone: string;
   email?: string;
-  address?: string; // DEPRECATED: mantido por compatibilidade
-  plus_code?: string;
-  coordinates?: string;
-  complement?: string;
+  is_vip: boolean;
   created_at: string;
-}
-
-interface LoyaltyData {
   total_services: number;
-  free_services_available: number;
-  progress_to_next: number;
+  total_spent: number;
+  ticket_medio: number;
+  first_service_date?: string;
+  last_service_date?: string;
 }
 
 export default function ClientsPage() {
   const router = useRouter();
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<ClientWithStats[]>([]);
+  const [topClients, setTopClients] = useState<ClientWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<ClientWithStats | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [loyaltyDialog, setLoyaltyDialog] = useState<{ open: boolean; client: Client | null; data: LoyaltyData | null }>({
-    open: false,
-    client: null,
-    data: null
-  });
   
   const [formData, setFormData] = useState({
     name: "",
@@ -96,13 +90,16 @@ export default function ClientsPage() {
   async function fetchClients() {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .order("name", { ascending: true });
-
-      if (error) throw error;
-      setClients(data || []);
+      
+      // Buscar todos os clientes com estatísticas
+      const response = await fetch("/api/clients");
+      if (!response.ok) throw new Error("Erro ao carregar clientes");
+      const data = await response.json();
+      
+      setClients(data);
+      
+      // Top 10 já vem ordenado da API
+      setTopClients(data.slice(0, 10));
     } catch (error: any) {
       toast.error("Erro ao carregar clientes: " + error.message);
     } finally {
@@ -110,21 +107,23 @@ export default function ClientsPage() {
     }
   }
 
-  const filteredClients = clients.filter(client => 
-    client.name.toLowerCase().includes(search.toLowerCase()) ||
-    client.phone.includes(search)
-  );
+  const filteredClients = search 
+    ? clients.filter(client => 
+        client.name.toLowerCase().includes(search.toLowerCase()) ||
+        client.phone.includes(search)
+      )
+    : clients;
 
-  const handleOpenDialog = (client?: Client) => {
+  const handleOpenDialog = (client?: ClientWithStats) => {
     if (client) {
       setEditingClient(client);
       setFormData({
         name: client.name,
         phone: client.phone,
         email: client.email || "",
-        plus_code: client.plus_code || "",
-        coordinates: client.coordinates || "",
-        complement: client.complement || ""
+        plus_code: "",
+        coordinates: "",
+        complement: ""
       });
     } else {
       setEditingClient(null);
@@ -133,7 +132,7 @@ export default function ClientsPage() {
     setIsDialogOpen(true);
   };
 
-    const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.phone) {
       toast.error("Nome e telefone são obrigatórios");
       return;
@@ -141,7 +140,6 @@ export default function ClientsPage() {
 
     setSaving(true);
     
-    // Timeout de segurança - destrava o botão após 15 segundos
     const timeoutId = setTimeout(() => {
       setSaving(false);
       toast.error("Operação demorou muito. Verifique sua conexão e tente novamente.");
@@ -158,7 +156,6 @@ export default function ClientsPage() {
     };
 
     try {
-      // Verificar e renovar sessão antes de salvar
       const isSessionValid = await ensureValidSession();
       if (!isSessionValid) {
         clearTimeout(timeoutId);
@@ -210,54 +207,20 @@ export default function ClientsPage() {
     }
   };
 
-  const openLoyaltyDialog = async (client: Client) => {
-    try {
-      const response = await fetch(`/api/loyalty?clientId=${client.id}`);
-      const data = await response.json();
-      setLoyaltyDialog({ open: true, client, data });
-    } catch (error) {
-      toast.error("Erro ao carregar fidelidade");
-    }
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
   };
 
-  const useFreeService = async () => {
-    if (!loyaltyDialog.client) return;
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error("Sessão expirada");
-        return;
-      }
-
-      const response = await fetch("/api/loyalty", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          clientId: loyaltyDialog.client.id,
-          action: "use_free_service"
-        })
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        toast.error(data.error);
-        return;
-      }
-
-      toast.success(data.message);
-      openLoyaltyDialog(loyaltyDialog.client);
-    } catch (error) {
-      toast.error("Erro ao usar serviço grátis");
-    }
-  };
+  // Estatísticas gerais
+  const totalClients = clients.length;
+  const totalVips = clients.filter(c => c.is_vip).length;
+  const topClientThisMonth = clients.length > 0 ? clients[0] : null;
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/interno/dashboard" prefetch={false}>
@@ -268,9 +231,9 @@ export default function ClientsPage() {
           <div>
             <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
               <Users className="w-6 h-6 text-blue-500" />
-              Clientes
+              Gestão de Clientes
             </h1>
-            <p className="text-sm text-slate-500">Gerencie o cadastro de clientes da TENISLAB</p>
+            <p className="text-sm text-slate-500">Visualize estatísticas e gerencie seus clientes</p>
           </div>
         </div>
         <Button onClick={() => handleOpenDialog()} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl gap-2">
@@ -279,8 +242,146 @@ export default function ClientsPage() {
         </Button>
       </header>
 
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border-none shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500 font-medium">Total de Clientes</p>
+                <p className="text-3xl font-black text-slate-900 mt-1">{totalClients}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500 font-medium">Clientes VIP</p>
+                <p className="text-3xl font-black text-amber-600 mt-1">{totalVips}</p>
+              </div>
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                <Crown className="w-6 h-6 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500 font-medium">Top Cliente</p>
+                <p className="text-lg font-bold text-slate-900 mt-1 truncate">
+                  {topClientThisMonth ? topClientThisMonth.name : "N/A"}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {topClientThisMonth ? `${topClientThisMonth.total_services} serviços` : ""}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <Award className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top 10 Clientes */}
+      <Card className="border-none shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
+          <CardTitle className="flex items-center gap-2 text-amber-900">
+            <TrendingUp className="w-5 h-5" />
+            Top 10 Clientes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500">Carregando ranking...</div>
+          ) : topClients.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-slate-500">Nenhum cliente cadastrado ainda</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Cliente</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Serviços</th>
+                    <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Total Gasto</th>
+                    <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Ticket Médio</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {topClients.map((client, index) => (
+                    <tr key={client.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                          index === 0 ? "bg-amber-100 text-amber-700" :
+                          index === 1 ? "bg-slate-200 text-slate-700" :
+                          index === 2 ? "bg-orange-100 text-orange-700" :
+                          "bg-slate-100 text-slate-600"
+                        }`}>
+                          {index + 1}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link 
+                          href={`/interno/clientes/${client.id}`}
+                          className="hover:underline"
+                        >
+                          <p className="font-bold text-slate-900">{client.name}</p>
+                          <p className="text-xs text-slate-500">{client.phone}</p>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="font-bold text-blue-600">{client.total_services}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-bold text-green-600">{formatCurrency(client.total_spent)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-slate-600">{formatCurrency(client.ticket_medio)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {client.is_vip && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+                            <Crown className="w-3 h-3" />
+                            VIP
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Link href={`/interno/clientes/${client.id}`}>
+                          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                            Ver Detalhes
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Lista Completa de Clientes */}
       <Card className="border-none shadow-sm overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <CardTitle className="text-lg font-bold text-slate-900">Todos os Clientes</CardTitle>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -303,8 +404,21 @@ export default function ClientsPage() {
             <div className="divide-y divide-slate-100">
               {filteredClients.map((client) => (
                 <div key={client.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-bold text-slate-900">{client.name}</h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Link 
+                        href={`/interno/clientes/${client.id}`}
+                        className="hover:underline"
+                      >
+                        <h3 className="font-bold text-slate-900">{client.name}</h3>
+                      </Link>
+                      {client.is_vip && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+                          <Crown className="w-3 h-3" />
+                          VIP
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1">
                       <span className="text-xs text-slate-500 flex items-center gap-1">
                         <Phone className="w-3 h-3" /> {client.phone}
@@ -314,18 +428,20 @@ export default function ClientsPage() {
                           <Mail className="w-3 h-3" /> {client.email}
                         </span>
                       )}
+                      <span className="text-xs text-blue-600 font-medium">
+                        {client.total_services} serviços
+                      </span>
+                      <span className="text-xs text-green-600 font-medium">
+                        {formatCurrency(client.total_spent)}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-50"
-                      onClick={() => openLoyaltyDialog(client)}
-                      title="Programa de Fidelidade"
-                    >
-                      <Star className="w-4 h-4" />
-                    </Button>
+                    <Link href={`/interno/clientes/${client.id}`}>
+                      <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                        Ver Detalhes
+                      </Button>
+                    </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
@@ -333,14 +449,14 @@ export default function ClientsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenDialog(client)} className="gap-2">
-                            <Pencil className="w-4 h-4" /> Editar
+                        <DropdownMenuItem onClick={() => handleOpenDialog(client)} className="gap-2">
+                          <Pencil className="w-4 h-4" /> Editar
+                        </DropdownMenuItem>
+                        {role === "ADMIN" && (
+                          <DropdownMenuItem onClick={() => handleDelete(client.id)} className="gap-2 text-red-600 focus:text-red-600">
+                            <Trash2 className="w-4 h-4" /> Excluir
                           </DropdownMenuItem>
-{role === "ADMIN" && (
-                              <DropdownMenuItem onClick={() => handleDelete(client.id)} className="gap-2 text-red-600 focus:text-red-600">
-                                <Trash2 className="w-4 h-4" /> Excluir
-                              </DropdownMenuItem>
-                            )}
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -351,6 +467,7 @@ export default function ClientsPage() {
         </CardContent>
       </Card>
 
+      {/* Dialog de Criar/Editar Cliente */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -421,63 +538,6 @@ export default function ClientsPage() {
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={loyaltyDialog.open} onOpenChange={(open) => setLoyaltyDialog({ ...loyaltyDialog, open })}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Gift className="w-5 h-5 text-amber-500" />
-              Programa de Fidelidade
-            </DialogTitle>
-          </DialogHeader>
-          {loyaltyDialog.client && loyaltyDialog.data && (
-            <div className="flex flex-col gap-6 py-4">
-              <div className="text-center">
-                <p className="text-sm text-slate-500 mb-1">Cliente</p>
-                <p className="font-bold text-lg">{loyaltyDialog.client.name}</p>
-              </div>
-
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">Total de serviços</p>
-                    <p className="text-3xl font-black text-amber-700">{loyaltyDialog.data.total_services}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-green-600 font-bold uppercase tracking-wider">Grátis disponíveis</p>
-                    <p className="text-3xl font-black text-green-600">{loyaltyDialog.data.free_services_available}</p>
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-slate-500 mb-2">
-                    <span>Progresso para próximo grátis</span>
-                    <span>{loyaltyDialog.data.progress_to_next}/10</span>
-                  </div>
-                  <Progress value={loyaltyDialog.data.progress_to_next * 10} className="h-3" />
-                  <p className="text-xs text-slate-400 mt-2 text-center">
-                    Faltam {10 - loyaltyDialog.data.progress_to_next} serviços para ganhar 1 higienização grátis
-                  </p>
-                </div>
-              </div>
-
-              {loyaltyDialog.data.free_services_available > 0 && (
-                <Button 
-                  onClick={useFreeService}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold gap-2"
-                >
-                  <Gift className="w-4 h-4" />
-                  Usar 1 Higienização Grátis
-                </Button>
-              )}
-
-              <p className="text-xs text-slate-400 text-center">
-                A cada 10 serviços realizados, o cliente ganha 1 higienização grátis!
-              </p>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </div>
