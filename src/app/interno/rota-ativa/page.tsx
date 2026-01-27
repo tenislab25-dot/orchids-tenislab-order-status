@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, Package, Loader2, CheckCircle2, XCircle, AlertCircle, Edit, Save, X as XIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, MessageCircle, Package, Loader2, CheckCircle2, XCircle, AlertCircle, Edit, Save, X as XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -401,12 +401,15 @@ export default function RotaAtivaPage() {
                         Maps
                       </Button>
                       <Button
-                        size="default"
                         variant="outline"
-                        onClick={() => abrirWhatsApp(pedido)}
-                        className="flex-1 h-12 text-base font-semibold border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400"
+                        className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                        onClick={() => {
+                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                          window.open(`https://wa.me/${whatsapp}`, "_blank" );
+                        }}
                       >
-                        <Phone className="w-5 h-5 mr-2" />
+                        <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
                         Zap
                       </Button>
                     </div>
