@@ -94,6 +94,9 @@ export default function OSViewPage() {
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [confirmRevertPaymentOpen, setConfirmRevertPaymentOpen] = useState(false);
+  const [confirmStatusChangeOpen, setConfirmStatusChangeOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<Status | null>(null);
 
   const [deliveryModalOpen, setDeliveryModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -226,6 +229,7 @@ export default function OSViewPage() {
   };
 
   const handleRevertPayment = async () => {
+    setConfirmRevertPaymentOpen(false);
     const { error } = await supabase
       .from("service_orders")
       .update({ payment_confirmed: false })
@@ -1094,7 +1098,7 @@ export default function OSViewPage() {
                   </Button>
                   {order.payment_confirmed || order.pay_on_entry ? (
                     <Button 
-                      onClick={handleRevertPayment}
+                      onClick={() => setConfirmRevertPaymentOpen(true)}
                       variant="outline"
                       className="h-10 rounded-xl border-amber-200 text-amber-600 font-bold text-xs hover:bg-amber-50"
                     >
@@ -1124,7 +1128,8 @@ export default function OSViewPage() {
                         if (status === "Entregue") {
                           handleEntregueClick();
                         } else {
-                          handleStatusUpdate(status);
+                          setPendingStatus(status);
+                          setConfirmStatusChangeOpen(true);
                         }
                       }}
                       disabled={order.status === status || (statusUpdating !== null)}
@@ -1295,6 +1300,64 @@ export default function OSViewPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Modal de Confirmação - Reverter Pagamento */}
+      <Dialog open={confirmRevertPaymentOpen} onOpenChange={setConfirmRevertPaymentOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black">Reverter Pagamento?</DialogTitle>
+            <DialogDescription className="text-slate-600">
+              Esta ação marcará o pagamento como <strong>pendente</strong>. O cliente precisará pagar novamente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmRevertPaymentOpen(false)}
+              className="rounded-xl"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleRevertPayment}
+              className="rounded-xl bg-amber-600 hover:bg-amber-700"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Sim, Reverter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação - Mudança de Status */}
+      <Dialog open={confirmStatusChangeOpen} onOpenChange={setConfirmStatusChangeOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black">Confirmar Mudança de Status?</DialogTitle>
+            <DialogDescription className="text-slate-600">
+              Você está prestes a mudar o status de <strong>{order?.status}</strong> para <strong>{pendingStatus}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmStatusChangeOpen(false)}
+              className="rounded-xl"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                setConfirmStatusChangeOpen(false);
+                if (pendingStatus) handleStatusUpdate(pendingStatus);
+              }}
+              className="rounded-xl bg-blue-600 hover:bg-blue-700"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Sim, Alterar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
