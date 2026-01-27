@@ -194,7 +194,8 @@ export default function TodosPedidosPage() {
         `)
         .eq('payment_confirmed', true)
         .gte('updated_at', sevenDaysAgo.toISOString())
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .order('id', { ascending: false }); // Ordenação secundária por ID (mais recente primeiro)
 
       if (error) {
         toast.error("Erro ao carregar pagadores recentes: " + error.message);

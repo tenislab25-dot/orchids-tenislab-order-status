@@ -60,6 +60,7 @@ export default function ClientDetailsPage() {
   const [client, setClient] = useState<ClientDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [togglingVip, setTogglingVip] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
@@ -71,6 +72,7 @@ export default function ClientDetailsPage() {
       router.push("/interno/dashboard");
       return;
     }
+    setUserRole(storedRole);
     fetchClientDetails();
   }, [clientId]);
 
@@ -187,18 +189,20 @@ export default function ClientDetailsPage() {
             <p className="text-sm text-slate-500">Detalhes e histórico do cliente</p>
           </div>
         </div>
-        <Button 
-          onClick={toggleVip}
-          disabled={togglingVip}
-          className={`gap-2 font-bold ${
-            client.is_vip 
-              ? "bg-amber-600 hover:bg-amber-700 text-white" 
-              : "bg-slate-200 hover:bg-slate-300 text-slate-700"
-          }`}
-        >
-          <Star className={`w-4 h-4 ${client.is_vip ? "fill-current" : ""}`} />
-          {togglingVip ? "Alterando..." : client.is_vip ? "Remover VIP" : "Marcar como VIP"}
-        </Button>
+        {userRole === 'ADMIN' && (
+          <Button 
+            onClick={toggleVip}
+            disabled={togglingVip}
+            className={`gap-2 font-bold ${
+              client.is_vip 
+                ? "bg-amber-600 hover:bg-amber-700 text-white" 
+                : "bg-slate-200 hover:bg-slate-300 text-slate-700"
+            }`}
+          >
+            <Star className={`w-4 h-4 ${client.is_vip ? "fill-current" : ""}`} />
+            {togglingVip ? "Alterando..." : client.is_vip ? "Remover VIP" : "Marcar como VIP"}
+          </Button>
+        )}
       </header>
 
       {/* Informações do Cliente */}
