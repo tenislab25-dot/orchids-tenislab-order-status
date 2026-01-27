@@ -118,12 +118,25 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[PIX] Erro ao criar pagamento PIX:', error);
     console.error('[PIX] Stack trace:', error.stack);
-    console.error('[PIX] Detalhes do erro:', JSON.stringify(error, null, 2));
+    console.error('[PIX] Detalhes completos do erro:', JSON.stringify(error, null, 2));
+    
+    // Extrair detalhes do erro do Mercado Pago
+    const mpError = error?.cause || error?.response?.data || error;
+    console.error('[PIX] Erro do Mercado Pago:', JSON.stringify(mpError, null, 2));
+    
     return NextResponse.json(
       { 
         error: 'Erro ao criar pagamento PIX',
         message: error.message || 'Erro desconhecido',
-        details: error.toString()
+        details: error.toString(),
+        mpError: mpError,
+        fullError: {
+          message: error.message,
+          cause: error.cause,
+          response: error.response,
+          status: error.status,
+          statusText: error.statusText
+        }
       },
       { status: 500 }
     );
