@@ -5,11 +5,11 @@ import { supabase } from "@/lib/supabase";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { code, client_id } = body;
+    const { code, clientId } = body;
 
-    if (!code || !client_id) {
+    if (!code) {
       return NextResponse.json(
-        { valid: false, error: "Código do cupom e ID do cliente são obrigatórios" },
+        { valid: false, error: "Código do cupom é obrigatório" },
         { status: 400 }
       );
     }
@@ -52,19 +52,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 5. Verificar se o cliente já usou este cupom
-    const { data: usage, error: usageError } = await supabase
-      .from("coupon_usage")
-      .select("id")
-      .eq("coupon_id", coupon.id)
-      .eq("client_id", client_id)
-      .single();
+    // 5. Verificar se o cliente já usou este cupom (se clientId fornecido)
+    if (clientId) {
+      const { data: usage, error: usageError } = await supabase
+        .from("coupon_usage")
+        .select("id")
+        .eq("coupon_id", coupon.id)
+        .eq("client_id", clientId)
+        .maybeSingle();
 
-    if (usage) {
-      return NextResponse.json({
-        valid: false,
-        error: "Você já usou este cupom"
-      });
+      if (usage) {
+        return NextResponse.json({
+          valid: false,
+          error: "Você já usou este cupom"
+        });
+      }
     }
 
     // Cupom válido!
