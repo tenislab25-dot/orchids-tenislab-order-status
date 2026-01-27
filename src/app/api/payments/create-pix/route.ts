@@ -46,14 +46,22 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    console.log('[PIX] Criando pagamento no Mercado Pago:', paymentData);
     const mpPayment = await payment.create({ body: paymentData });
+    console.log('[PIX] Resposta do Mercado Pago:', JSON.stringify(mpPayment, null, 2));
 
     // Extrair dados do PIX
     const pixData = mpPayment.point_of_interaction?.transaction_data;
+    console.log('[PIX] Dados do PIX extraídos:', pixData);
     
     if (!pixData || !pixData.qr_code || !pixData.qr_code_base64) {
+      console.error('[PIX] Dados do PIX inválidos:', { pixData, mpPayment });
       return NextResponse.json(
-        { error: 'Erro ao gerar PIX no Mercado Pago' },
+        { 
+          error: 'Erro ao gerar PIX no Mercado Pago',
+          details: 'Dados do QR Code não foram retornados pelo Mercado Pago',
+          mpResponse: mpPayment
+        },
         { status: 500 }
       );
     }
@@ -91,10 +99,16 @@ export async function POST(request: NextRequest) {
       qr_code: pixData.qr_code,
       qr_code_base64: pixData.qr_code_base64,
     });
-  } catch (error) {
-    console.error('Erro ao criar pagamento PIX:', error);
+  } catch (error: any) {
+    console.error('[PIX] Erro ao criar pagamento PIX:', error);
+    console.error('[PIX] Stack trace:', error.stack);
+    console.error('[PIX] Detalhes do erro:', JSON.stringify(error, null, 2));
     return NextResponse.json(
-      { error: 'Erro ao criar pagamento PIX' },
+      { 
+        error: 'Erro ao criar pagamento PIX',
+        message: error.message || 'Erro desconhecido',
+        details: error.toString()
+      },
       { status: 500 }
     );
   }
