@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
-import { createClient } from '@/lib/supabase/server';
+import { createWebhookClient } from '@/lib/supabase/server';
 
 // Configurar Mercado Pago
 const client = new MercadoPagoConfig({
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Pagamento MP:', JSON.stringify(mpPayment, null, 2));
 
-    // Criar cliente Supabase (sem autenticação, pois é webhook externo)
-    const supabase = createClient();
+    // Criar cliente Supabase para webhook (usa Service Role Key)
+    const supabase = createWebhookClient();
 
     // Buscar pagamento no banco de dados
     const { data: existingPayment, error: findError } = await supabase
