@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // Configurar Mercado Pago
 const client = new MercadoPagoConfig({
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Registrar uso do cupom
-      const { error: usageError } = await supabase
+      const { error: usageError } = await supabaseAdmin
         .from('coupon_usage')
         .insert({
           coupon_id: couponId,
@@ -64,21 +65,21 @@ export async function POST(request: NextRequest) {
       }
 
       // Incrementar contador de uso do cupom
-      const { error: incrementError } = await supabase.rpc('increment_coupon_usage', {
+      const { error: incrementError } = await supabaseAdmin.rpc('increment_coupon_usage', {
         coupon_id_param: couponId
       });
 
       if (incrementError) {
         console.error('Erro ao incrementar uso do cupom:', incrementError);
         // Fallback: incrementar manualmente
-        const { data: coupon } = await supabase
+        const { data: coupon } = await supabaseAdmin
           .from('coupons')
           .select('times_used')
           .eq('id', couponId)
           .single();
 
         if (coupon) {
-          await supabase
+          await supabaseAdmin
             .from('coupons')
             .update({ times_used: coupon.times_used + 1 })
             .eq('id', couponId);
