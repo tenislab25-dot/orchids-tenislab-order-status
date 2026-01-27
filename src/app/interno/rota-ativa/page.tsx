@@ -359,7 +359,7 @@ export default function RotaAtivaPage() {
               {pedidosEmRota.map((pedido, index) => (
                 <div
                   key={pedido.id}
-                  className="border-2 border-blue-100 rounded-xl p-4"
+                  className="border-2 border-blue-100 rounded-xl p-5"
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <div className="bg-blue-600 text-white font-bold rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
@@ -389,41 +389,41 @@ export default function RotaAtivaPage() {
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex gap-2">
                       <Button
-                        size="sm"
+                        size="default"
                         variant="outline"
                         onClick={() => abrirMaps(pedido)}
-                        className="flex-1"
+                        className="flex-1 h-12 text-base font-semibold"
                       >
-                        <MapPin className="w-4 h-4 mr-1" />
+                        <MapPin className="w-5 h-5 mr-2" />
                         Maps
                       </Button>
                       <Button
-                        size="sm"
+                        size="default"
                         variant="outline"
                         onClick={() => abrirWhatsApp(pedido)}
-                        className="flex-1 border-green-200 text-green-600 hover:bg-green-50"
+                        className="flex-1 h-12 text-base font-semibold border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400"
                       >
-                        <Phone className="w-4 h-4 mr-1" />
+                        <Phone className="w-5 h-5 mr-2" />
                         Zap
                       </Button>
                     </div>
                     {role?.toLowerCase() === 'entregador' && (
                       <div className="flex gap-2">
                         <Button
-                          size="sm"
+                          size="default"
                           variant="outline"
                           onClick={() => marcarComoFalhou(pedido)}
-                          className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+                          className="flex-1 h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
                           disabled={updating === pedido.id}
                         >
-                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
+                          {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5 mr-2" />}
                           FALHOU
                         </Button>
                         <Button
-                          size="sm"
+                          size="default"
                           onClick={() => {
                             const isColeta = pedido.previous_status === "Coleta";
                             const action = isColeta ? "COLETADO" : "ENTREGUE";
@@ -431,10 +431,10 @@ export default function RotaAtivaPage() {
                               atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
                             }
                           }}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          className="flex-1 h-12 text-base font-bold bg-green-600 hover:bg-green-700 text-white"
                           disabled={updating === pedido.id}
                         >
-                          {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                          {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
                           {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
                         </Button>
                       </div>
