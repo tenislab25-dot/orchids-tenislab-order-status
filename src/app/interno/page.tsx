@@ -13,7 +13,8 @@ import {
   LayoutGrid,
   ShoppingBag,
   Loader2,
-  Truck
+  Truck,
+  Package
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel, type UserRole } from "@/lib/auth";
@@ -108,6 +109,15 @@ export default function InternoPage() {
               title="Clientes"
               icon={Users}
               description="Base de Clientes"
+            />
+          )}
+
+          {(role === 'ADMIN' || role === 'ATENDENTE') && (
+            <MenuButton 
+              href="/interno/todos"
+              title="Todas as OS"
+              icon={Package}
+              description="Lista completa de OS ativas"
             />
           )}
 
