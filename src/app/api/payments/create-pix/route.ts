@@ -55,12 +55,10 @@ export async function POST(request: NextRequest) {
     
     const paymentData = {
       transaction_amount: parseFloat(transactionAmount.toFixed(2)),
-      description: `Lavagem de tênis - OS #${serviceOrder.os_number}`,
+      description: 'Pagamento TenisLab',
       payment_method_id: 'pix',
       payer: {
         email: cleanEmail,
-        first_name: nameParts[0] || 'Cliente',
-        last_name: nameParts.slice(1).join(' ') || 'TenisLab',
       },
     };
 
