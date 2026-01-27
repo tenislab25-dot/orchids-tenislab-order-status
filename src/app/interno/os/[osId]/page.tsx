@@ -1228,47 +1228,6 @@ export default function OSViewPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-        <DialogContent className="rounded-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-black">Confirmar Pagamento</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Método de Pagamento</Label>
-              <Select value={newPaymentMethod || order?.payment_method} onValueChange={setNewPaymentMethod}>
-                <SelectTrigger className="h-12 rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pix">Pix</SelectItem>
-                  <SelectItem value="Cartão">Cartão</SelectItem>
-                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-              <div className="space-y-2">
-                <Label>Desconto do Cartão (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={machineFee}
-                  onChange={(e) => setMachineFee(e.target.value)}
-                  placeholder="0.00"
-                  className="h-12 rounded-xl"
-                />
-              </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setPaymentModalOpen(false); setIsConfirmingPayment(false); }} className="rounded-xl">
-              Cancelar
-            </Button>
-            <Button onClick={confirmPayment} className="bg-green-600 hover:bg-green-700 rounded-xl">
-              {isConfirmingPayment ? "Confirmar Definitivamente" : "Confirmar Pagamento"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={deliveryModalOpen} onOpenChange={setDeliveryModalOpen}>
         <DialogContent className="rounded-3xl">
