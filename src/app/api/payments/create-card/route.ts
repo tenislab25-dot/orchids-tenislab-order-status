@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
     const preferenceData = {
       items: [
         {
+          id: serviceOrderId,
           title: `Lavagem de tênis - OS #${serviceOrder.os_number}`,
           quantity: 1,
           unit_price: Number(totalAmount.toFixed(2)),

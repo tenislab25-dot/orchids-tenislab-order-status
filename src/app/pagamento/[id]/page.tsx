@@ -75,7 +75,7 @@ export default function PaymentPage() {
           console.log("Realtime payment update:", payload);
           // Atualizar apenas se payment_confirmed mudou
           if (payload.new && 'payment_confirmed' in payload.new) {
-            setOrder(prev => prev ? { ...prev, payment_confirmed: payload.new.payment_confirmed } : null);
+            setOrder((prev: any) => prev ? { ...prev, payment_confirmed: payload.new.payment_confirmed } : null);
             if (payload.new.payment_confirmed) {
               toast.success("Pagamento confirmado! ✅");
             }

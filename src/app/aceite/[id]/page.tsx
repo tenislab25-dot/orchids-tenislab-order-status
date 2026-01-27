@@ -168,7 +168,7 @@ export default function CustomerAcceptancePage() {
           (payload) => {
             console.log("Realtime aceite update:", payload);
             if (payload.new && 'client_accepted' in payload.new) {
-              setOrder(prev => prev ? { ...prev, client_accepted: payload.new.client_accepted } : null);
+              setOrder((prev: any) => prev ? { ...prev, client_accepted: payload.new.client_accepted } : null);
               if (payload.new.client_accepted) {
                 toast.success("Or\u00e7amento aceito! \u2705");
               }

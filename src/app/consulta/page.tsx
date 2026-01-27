@@ -383,13 +383,13 @@ function OrderContent() {
                             <span className="font-bold text-red-500">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
                           </div>
                         )}
-                        {order.machine_fee > 0 && (
+                        {order.machine_fee && order.machine_fee > 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-red-500 font-medium">Desconto do Cartão</span>
                             <span className="font-bold text-red-500">- R$ {Number(order.machine_fee).toFixed(2)}</span>
                           </div>
                         )}
-                        {order.delivery_fee > 0 && (
+                        {order.delivery_fee && order.delivery_fee > 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-slate-500">Taxa de Entrega</span>
                             <span className="font-bold text-slate-700">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
@@ -464,7 +464,7 @@ function OrderContent() {
                                             onClick={() => setSelectedImage(photo)}
                                           >
                                             <img src={photo} 
-                                              alt={`Antes ${pIdx + 1}`}unoptimized
+                                              alt={`Antes ${pIdx + 1}`} 
                                               className="w-full h-full object-cover" loading="lazy" />
                                             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                                               <ZoomIn className="w-5 h-5 text-white" />
@@ -486,7 +486,7 @@ function OrderContent() {
                                         onClick={() => setSelectedImage(afterPhotos[0])}
                                       >
                                         <img src={afterPhotos[0]} 
-                                          alt="Resultado final"unoptimized
+                                          alt="Resultado final" 
                                           className="w-full h-full object-cover" loading="lazy" />
                                         <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[8px] font-bold uppercase px-2 py-1 rounded-full shadow-lg">
                                           Resultado
@@ -506,7 +506,7 @@ function OrderContent() {
                                               onClick={() => setSelectedImage(photo)}
                                             >
                                               <img src={photo} 
-                                                alt={`Depois ${pIdx + 2}`}unoptimized
+                                                alt={`Depois ${pIdx + 2}`} 
                                                 className="w-full h-full object-cover" loading="lazy" />
                                               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
                                                 <ZoomIn className="w-4 h-4 text-white" />
