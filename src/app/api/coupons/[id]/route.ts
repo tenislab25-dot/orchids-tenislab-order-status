@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // GET /api/coupons/[id] - Detalhes do cupom
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("coupons")
       .select(`
         *,
@@ -58,7 +58,7 @@ export async function PATCH(
     const { id } = await context.params;
     const body = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("coupons")
       .update(body)
       .eq("id", id)
@@ -91,7 +91,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("coupons")
       .delete()
       .eq("id", id);

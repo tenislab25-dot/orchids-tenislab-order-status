@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // GET /api/coupons - Listar todos os cupons
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("coupons")
       .select(`
         *,
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar cupom
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("coupons")
       .insert({
         code: code.toUpperCase().trim(),
