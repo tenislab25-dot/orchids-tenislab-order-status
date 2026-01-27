@@ -63,17 +63,33 @@ export async function POST(request: NextRequest) {
       .in('status', ['pending', 'in_process']);
 
     if (updateError) {
-      console.error('[WEBHOOK] Erro ao atualizar:', updateError);
+      console.error('[WEBHOOK] Erro ao atualizar payments:', updateError);
       return NextResponse.json({ received: true, error: updateError.message });
     }
 
-    console.log('[WEBHOOK] ✅ Pagamento atualizado com sucesso!');
-    
-    return NextResponse.json({ 
+    console.log('[WEBHOOK] Status dos payments atualizado com sucesso!');
+
+    // TAMBÉM atualizar payment_confirmed na service_orders
+    if (newStatus === 'approved') {
+      const { error: osUpdateError } = await supabase
+        .from('service_orders')
+        .update({
+          payment_confirmed: true,
+        })
+        .eq('id', existingPayment.service_order_id);
+
+      if (osUpdateError) {
+        console.error('[WEBHOOK] Erro ao atualizar service_orders:', osUpdateError);
+      } else {
+        console.log('[WEBHOOK] payment_confirmed atualizado na OS!');
+      }
+    }
+
+    return NextResponse.json({
       received: true,
       updated: true,
       paymentId,
-      newStatus
+      newStatus,
     });
   } catch (error) {
     console.error('[WEBHOOK] Erro:', error);
