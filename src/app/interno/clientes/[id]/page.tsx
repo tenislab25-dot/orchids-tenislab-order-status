@@ -343,14 +343,15 @@ export default function ClientDetailsPage() {
                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
                     <th className="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Valor</th>
                     <th className="px-4 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Pagamento</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {client.service_orders.map((order) => (
                     <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
-                        <span className="font-bold text-blue-600">#{order.os_number}</span>
+                        <Link href={`/interno/os/${order.os_number.replace("/", "-")}`} className="font-bold text-blue-600 hover:underline cursor-pointer">
+                          #{order.os_number}
+                        </Link>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm text-slate-600">{formatDate(order.created_at)}</span>
@@ -374,13 +375,7 @@ export default function ClientDetailsPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <Link href={`/interno/os/${order.id}`}>
-                          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                            Ver Detalhes
-                          </Button>
-                        </Link>
-                      </td>
+
                     </tr>
                   ))}
                 </tbody>
