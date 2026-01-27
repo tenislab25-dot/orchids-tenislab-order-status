@@ -1027,7 +1027,15 @@ export default function EntregasPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contato</p>
-                      <p className="text-slate-700 font-bold mt-0.5">{pedido.clients?.phone || "Sem telefone"}</p>
+                      <a 
+                        href={`https://wa.me/${pedido.clients?.phone?.replace(/\D/g, "").startsWith("55") ? pedido.clients?.phone?.replace(/\D/g, "") : "55" + pedido.clients?.phone?.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 font-bold mt-0.5 hover:underline flex items-center gap-1"
+                      >
+                        <Phone className="w-3 h-3" />
+                        {pedido.clients?.phone || "Sem telefone"}
+                      </a>
                     </div>
                   </div>
 
@@ -1213,34 +1221,7 @@ export default function EntregasPage() {
                         {pedido.status === 'Coleta' ? 'COLETADO' : 'ENTREGUE'}
                       </Button>
                       
-                      {/* Botão EXCLUIR */}
-                      <Button 
-                        variant="outline"
-                        className="w-full h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50"
-                        onClick={async () => {
-                          if (confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
-                            try {
-                              setUpdating(pedido.id);
-                              const { error } = await supabase
-                                .from('service_orders')
-                                .delete()
-                                .eq('id', pedido.id);
-                              
-                              if (error) throw error;
-                              toast.success('OS excluída com sucesso');
-                              fetchPedidos();
-                            } catch (error: any) {
-                              toast.error('Erro ao excluir: ' + error.message);
-                            } finally {
-                              setUpdating(null);
-                            }
-                          }
-                        }}
-                        disabled={updating === pedido.id}
-                      >
-                        {updating === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                        EXCLUIR
-                      </Button>
+
                     </div>
                   
                   /* PEDIDO QUE FALHOU - INCLUIR NA ROTA NOVAMENTE */
