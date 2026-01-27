@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
         },
       },
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_APP_URL || 'https://tenislab.app.br'}/interno/os/${serviceOrderId}?payment=success`,
-        failure: `${process.env.NEXT_PUBLIC_APP_URL || 'https://tenislab.app.br'}/interno/os/${serviceOrderId}?payment=failure`,
-        pending: `${process.env.NEXT_PUBLIC_APP_URL || 'https://tenislab.app.br'}/interno/os/${serviceOrderId}?payment=pending`,
+        success: `${process.env.NEXT_PUBLIC_APP_URL || 'https://tenislab.app.br'}/pagamento/${serviceOrderId}?payment=success`,
+        failure: `${process.env.NEXT_PUBLIC_APP_URL || 'https://tenislab.app.br'}/pagamento/${serviceOrderId}?payment=failure`,
+        pending: `${process.env.NEXT_PUBLIC_APP_URL || 'https://tenislab.app.br'}/pagamento/${serviceOrderId}?payment=pending`,
       },
       auto_return: 'approved' as const,
       payment_methods: {
