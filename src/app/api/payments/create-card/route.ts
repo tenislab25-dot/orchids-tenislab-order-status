@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Pegar dados do body
-    const { serviceOrderId, amount, couponId, discountAmount } = await request.json();
+    const { serviceOrderId, amount, couponId, discountAmount, couponCode } = await request.json();
 
     if (!serviceOrderId || !amount) {
       return NextResponse.json(
@@ -56,7 +56,9 @@ export async function POST(request: NextRequest) {
         .from('service_orders')
         .update({
           coupon_id: couponId,
-          discount_amount: discountAmount
+          discount_amount: discountAmount,
+          final_amount: baseAmount, // Valor final após desconto do cupom
+          coupon_code: couponCode || null
         })
         .eq('id', serviceOrderId);
 

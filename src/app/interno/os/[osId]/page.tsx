@@ -72,6 +72,9 @@ interface OrderData {
   pay_on_entry: boolean;
   delivery_fee: number;
   discount_percent: number;
+  discount_amount?: number;
+  final_amount?: number;
+  coupon_code?: string;
   payment_confirmed: boolean;
   machine_fee: number;
   ready_for_pickup: boolean;
@@ -1048,8 +1051,14 @@ export default function OSViewPage() {
               </div>
               {order.discount_percent > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Desconto ({order.discount_percent}%)</span>
+                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Desconto Manual ({order.discount_percent}%)</span>
                   <span className="text-sm font-bold text-red-400">- R$ {((order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
+                </div>
+              )}
+              {order.discount_amount && order.discount_amount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Cupom {order.coupon_code ? `(${order.coupon_code})` : ''}</span>
+                  <span className="text-sm font-bold text-purple-400">- R$ {Number(order.discount_amount).toFixed(2)}</span>
                 </div>
               )}
               {order.delivery_fee > 0 && (

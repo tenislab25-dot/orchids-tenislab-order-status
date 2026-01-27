@@ -200,7 +200,8 @@ export default function PaymentPage() {
           serviceOrderId: order.id,
           amount: finalTotal,
           couponId: appliedCoupon?.id || null,
-          discountAmount: discountAmount
+          discountAmount: discountAmount,
+          couponCode: appliedCoupon?.code || null
         }),
       });
 
@@ -236,7 +237,8 @@ export default function PaymentPage() {
           serviceOrderId: order.id,
           amount: finalTotal,
           couponId: appliedCoupon?.id || null,
-          discountAmount: discountAmount
+          discountAmount: discountAmount,
+          couponCode: appliedCoupon?.code || null
         }),
       });
 
