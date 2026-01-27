@@ -570,6 +570,16 @@ export default function DashboardPage() {
               </div>
               <div className="flex flex-col items-end gap-1">
                 {getStatusBadge(order.status)}
+                {/* Badge de Pagamento */}
+                {order.payment_confirmed ? (
+                  <Badge className="bg-green-50 text-green-600 border-green-200 border px-2 py-0.5 text-[9px] font-bold">
+                    ✅ PAGO
+                  </Badge>
+                ) : (
+                  <Badge className="bg-red-50 text-red-600 border-red-200 border px-2 py-0.5 text-[9px] font-bold">
+                    💵 A PAGAR
+                  </Badge>
+                )}
                 {(order as any).tipo_entrega && (
                   <Badge className={`${
                     (order as any).tipo_entrega === 'entrega' 
