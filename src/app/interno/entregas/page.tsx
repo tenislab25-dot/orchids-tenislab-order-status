@@ -1097,8 +1097,34 @@ export default function EntregasPage() {
                 </div>
 
                 {/* Botões de Navegação e Comunicação */}
-                <div className={`grid ${rotaAtiva ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
-                  {!rotaAtiva && (
+                {rotaAtiva ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                      onClick={() => {
+                        const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
+                      }}
+                    >
+                      <Navigation className="w-3.5 h-3.5 text-blue-500 mr-1" />
+                      Maps
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                      onClick={() => {
+                        const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                        const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                        window.open(`https://wa.me/${whatsapp}`, "_blank" );
+                      }}
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
+                      Zap
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
                     <Button 
                       variant="outline" 
                       className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
@@ -1107,31 +1133,31 @@ export default function EntregasPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500 mr-1"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                       Editar
                     </Button>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
-                    onClick={() => {
-                      const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
-                    }}
-                  >
-                    <Navigation className="w-3.5 h-3.5 text-blue-500 mr-1" />
-                    Maps
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
-                    onClick={() => {
-                      const phone = pedido.clients?.phone?.replace(/\D/g, "");
-                      const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
-                      window.open(`https://wa.me/${whatsapp}`, "_blank" );
-                    }}
-                  >
-                    <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
-                    Zap
-                  </Button>
-                </div>
+                    <Button 
+                      variant="outline" 
+                      className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                      onClick={() => {
+                        const location = pedido.clients?.plus_code || pedido.clients?.coordinates || pedido.clients?.complement || "";
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
+                      }}
+                    >
+                      <Navigation className="w-3.5 h-3.5 text-blue-500 mr-1" />
+                      Maps
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                      onClick={() => {
+                        const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                        const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                        window.open(`https://wa.me/${whatsapp}`, "_blank" );
+                      }}
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
+                      Zap
+                    </Button>
+                  </div>
+                )}
 
                 {/* Botões de Ação Logística */}
                 <div className="pt-2">
@@ -1642,3 +1668,4 @@ export default function EntregasPage() {
     </div>
   );
 }
+
