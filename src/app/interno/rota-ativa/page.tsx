@@ -583,21 +583,35 @@ export default function RotaAtivaPage() {
                     </div>
                   ) : null}
 
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => abrirMaps(pedido)}
-                      className="flex-1"
-                    >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Maps
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => abrirMaps(pedido)}
+                        className="flex-1"
+                      >
+                        <MapPin className="w-4 h-4 mr-1" />
+                        Maps
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
+                        onClick={() => {
+                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                          window.open(`https://wa.me/${whatsapp}`, "_blank" );
+                        }}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
+                        Zap
+                      </Button>
+                    </div>
                     {role?.toLowerCase() === 'entregador' && (
                       <Button
                         size="sm"
                         onClick={() => atualizarStatus(pedido, "Em Rota")}
-                        className={`flex-1 ${
+                        className={`w-full ${
                           pedido.failed_delivery
                             ? "bg-orange-600 hover:bg-orange-700"
                             : "bg-blue-600 hover:bg-blue-700"
