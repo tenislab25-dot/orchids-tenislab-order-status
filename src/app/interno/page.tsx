@@ -111,7 +111,7 @@ export default function InternoPage() {
             />
           )}
 
-          {(role === 'ADMIN' || role === 'ATENDENTE') && (
+          {role === 'ADMIN' && (
             <MenuButton 
               href="/interno/cupons"
               title="Cupons"
