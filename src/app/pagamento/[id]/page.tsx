@@ -104,7 +104,7 @@ export default function PaymentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceOrderId: order.id,
-          amount: order.total,
+          amount: Number(order.total),
         }),
       });
 
@@ -138,7 +138,7 @@ export default function PaymentPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceOrderId: order.id,
-          amount: order.total,
+          amount: Number(order.total),
         }),
       });
 

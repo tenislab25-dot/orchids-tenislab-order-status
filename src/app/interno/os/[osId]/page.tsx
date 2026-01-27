@@ -1090,7 +1090,7 @@ export default function OSViewPage() {
                     className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
-                    Copiar Link de Pagamento
+                    Enviar Link de Pagamento
                   </Button>
                   {order.payment_confirmed || order.pay_on_entry ? (
                     <Button 
