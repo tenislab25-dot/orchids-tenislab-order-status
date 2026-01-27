@@ -30,10 +30,10 @@ export async function POST(request: NextRequest) {
     // Criar cliente Supabase
     const supabase = createWebhookClient();
 
-    // Buscar pagamento no banco
+    // Buscar pagamento no banco pelo mp_payment_id
     const { data: existingPayment, error: findError } = await supabase
       .from('payments')
-      .select('*')
+      .select('*, service_orders!inner(id, os_number)')
       .eq('mp_payment_id', String(paymentId))
       .single();
 
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[WEBHOOK] Pagamento encontrado:', existingPayment.id);
+    console.log('[WEBHOOK] OS:', existingPayment.service_orders?.os_number);
 
     // Determinar status
     // payment.updated geralmente significa aprovado
@@ -50,14 +51,16 @@ export async function POST(request: NextRequest) {
 
     console.log('[WEBHOOK] Atualizando para:', newStatus);
 
-    // Atualizar status
+    // Atualizar TODOS os pagamentos pendentes da mesma OS
+    // Isso garante que mesmo que haja vários QR Codes gerados, todos sejam marcados como aprovados
     const { error: updateError } = await supabase
       .from('payments')
       .update({
         status: newStatus,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', existingPayment.id);
+      .eq('service_order_id', existingPayment.service_order_id)
+      .in('status', ['pending', 'in_process']);
 
     if (updateError) {
       console.error('[WEBHOOK] Erro ao atualizar:', updateError);
