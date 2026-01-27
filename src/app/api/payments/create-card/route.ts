@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       ],
       payer: {
         name: serviceOrder.clients?.name || 'Cliente TenisLab',
-        email: serviceOrder.clients?.email || 'cliente@tenislab.app.br',
+        email: serviceOrder.clients?.email || 'contato@tenislab.app.br',
         phone: {
           area_code: serviceOrder.clients?.phone?.substring(0, 2) || '82',
           number: serviceOrder.clients?.phone?.substring(2) || '999999999',

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       description: `Lavagem de tênis - OS #${serviceOrder.os_number}`,
       payment_method_id: 'pix',
       payer: {
-        email: serviceOrder.clients?.email || 'cliente@tenislab.app.br',
+        email: serviceOrder.clients?.email || 'contato@tenislab.app.br',
         first_name: serviceOrder.clients?.name?.split(' ')[0] || 'Cliente',
         last_name: serviceOrder.clients?.name?.split(' ').slice(1).join(' ') || 'TenisLab',
       },
