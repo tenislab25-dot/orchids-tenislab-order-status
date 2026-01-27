@@ -1,0 +1,27 @@
+# Documentação
+*.md
+!README.md
+
+# Logs
+*.log
+*.txt
+
+# Scripts
+*.sh
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Testes
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/

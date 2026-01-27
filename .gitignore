@@ -19,6 +19,7 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -38,3 +39,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentação (manter apenas README.md)
+*.md
+!README.md
+
+# Logs
+*.log
+*.txt
+
+# Scripts locais
+*.sh
+
+# Lock files de outros gerenciadores (manter apenas pnpm-lock.yaml)
+bun.lock
+package-lock.json
+yarn.lock
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
