@@ -275,6 +275,23 @@ export default function RotaAtivaPage() {
     }
   };
 
+  const abrirWhatsApp = (pedido: any) => {
+    const phone = pedido.clients?.phone?.replace(/\D/g, "");
+    if (!phone) {
+      toast.error("Telefone não disponível");
+      return;
+    }
+    
+    const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
+    const isColeta = pedido.previous_status === "Coleta";
+    
+    const mensagem = isColeta
+      ? `Olá ${pedido.clients.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`
+      : `Olá ${pedido.clients.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`;
+    
+    window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
+  };
+
   // Mostrar loading enquanto carrega autenticação
   if (loadingAuth || loadingPedidos) {
     return (
@@ -373,15 +390,26 @@ export default function RotaAtivaPage() {
                   )}
 
                   <div className="space-y-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => abrirMaps(pedido)}
-                      className="w-full"
-                    >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Maps
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => abrirMaps(pedido)}
+                        className="flex-1"
+                      >
+                        <MapPin className="w-4 h-4 mr-1" />
+                        Maps
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => abrirWhatsApp(pedido)}
+                        className="flex-1 border-green-200 text-green-600 hover:bg-green-50"
+                      >
+                        <Phone className="w-4 h-4 mr-1" />
+                        Zap
+                      </Button>
+                    </div>
                     {role?.toLowerCase() === 'entregador' && (
                       <div className="flex gap-2">
                         <Button
