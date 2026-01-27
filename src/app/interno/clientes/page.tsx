@@ -63,6 +63,7 @@ export default function ClientsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientWithStats | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [showAllClients, setShowAllClients] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -107,12 +108,18 @@ export default function ClientsPage() {
     }
   }
 
+  // Ordenar clientes alfabeticamente
+  const sortedClients = [...clients].sort((a, b) => a.name.localeCompare(b.name));
+  
   const filteredClients = search 
-    ? clients.filter(client => 
+    ? sortedClients.filter(client => 
         client.name.toLowerCase().includes(search.toLowerCase()) ||
         client.phone.includes(search)
       )
-    : clients;
+    : sortedClients;
+  
+  // Limitar a 20 clientes inicialmente, ou mostrar todos se o usuário clicar
+  const displayedClients = showAllClients ? filteredClients : filteredClients.slice(0, 20);
 
   const handleOpenDialog = (client?: ClientWithStats) => {
     if (client) {
@@ -277,9 +284,17 @@ export default function ClientsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500 font-medium">Top Cliente</p>
-                <p className="text-lg font-bold text-slate-900 mt-1 truncate">
-                  {topClientThisMonth ? topClientThisMonth.name : "N/A"}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-lg font-bold text-slate-900 truncate">
+                    {topClientThisMonth ? topClientThisMonth.name : "N/A"}
+                  </p>
+                  {topClientThisMonth?.is_vip && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+                      <Crown className="w-3 h-3" />
+                      VIP
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-400">
                   {topClientThisMonth ? `${topClientThisMonth.total_services} serviços` : ""}
                 </p>
@@ -395,14 +410,15 @@ export default function ClientsPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-slate-500">Carregando clientes...</div>
-          ) : filteredClients.length === 0 ? (
+          ) : displayedClients.length === 0 ? (
             <div className="p-12 text-center flex flex-col items-center gap-4">
               <Users className="w-12 h-12 text-slate-200" />
               <p className="text-slate-500 font-medium">Nenhum cliente encontrado</p>
             </div>
           ) : (
+            <>
             <div className="divide-y divide-slate-100">
-              {filteredClients.map((client) => (
+              {displayedClients.map((client) => (
                 <div key={client.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -463,6 +479,18 @@ export default function ClientsPage() {
                 </div>
               ))}
             </div>
+            {!showAllClients && filteredClients.length > 20 && (
+              <div className="p-4 border-t border-slate-200 bg-slate-50 text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAllClients(true)}
+                  className="font-medium"
+                >
+                  Ver Mais ({filteredClients.length - 20} clientes)
+                </Button>
+              </div>
+            )}
+            </>
           )}
         </CardContent>
       </Card>

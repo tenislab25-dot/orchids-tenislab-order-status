@@ -6,11 +6,12 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const clientId = params.id;
+    const resolvedParams = await params;
+    const clientId = resolvedParams.id;
 
     // Buscar estado atual do cliente
     const { data: currentClient, error: fetchError } = await supabase
