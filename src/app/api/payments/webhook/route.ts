@@ -1,94 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createWebhookClient } from '@/lib/supabase/server';
-
-// Configurar Mercado Pago
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() || '',
-});
-
-const payment = new Payment(client);
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[WEBHOOK] Iniciando processamento...');
-    
     const body = await request.json();
     
-    console.log('[WEBHOOK] Body recebido:', JSON.stringify(body, null, 2));
+    console.log('[WEBHOOK] Recebido:', JSON.stringify(body, null, 2));
 
-    // Mercado Pago envia notificações de diferentes tipos
-    // Vamos processar apenas notificações de pagamento
+    // Responder imediatamente para evitar timeout
+    const response = NextResponse.json({ received: true });
+
+    // Processar em background (não await)
+    processWebhook(body).catch(error => {
+      console.error('[WEBHOOK] Erro no processamento:', error);
+    });
+
+    return response;
+  } catch (error) {
+    console.error('[WEBHOOK] Erro ao receber:', error);
+    return NextResponse.json({ error: 'Erro ao processar webhook' }, { status: 500 });
+  }
+}
+
+async function processWebhook(body: any) {
+  try {
+    // Verificar tipo
     if (body.type !== 'payment') {
-      return NextResponse.json({ received: true });
+      console.log('[WEBHOOK] Tipo ignorado:', body.type);
+      return;
     }
 
-    // Aceitar tanto payment.created quanto payment.updated
+    // Verificar ação
     if (!body.action || (!body.action.includes('payment.created') && !body.action.includes('payment.updated'))) {
-      return NextResponse.json({ received: true });
+      console.log('[WEBHOOK] Ação ignorada:', body.action);
+      return;
     }
 
     const paymentId = body.data?.id;
     
     if (!paymentId) {
-      console.error('[WEBHOOK] Payment ID não encontrado no webhook');
-      return NextResponse.json({ error: 'Payment ID não encontrado' }, { status: 400 });
+      console.error('[WEBHOOK] Payment ID não encontrado');
+      return;
     }
 
-    console.log('[WEBHOOK] Payment ID:', paymentId);
-    console.log('[WEBHOOK] Action:', body.action);
+    console.log('[WEBHOOK] Processando payment:', paymentId);
 
-    // Criar cliente Supabase para webhook (usa Service Role Key)
-    console.log('[WEBHOOK] Criando cliente Supabase...');
+    // Criar cliente Supabase
     const supabase = createWebhookClient();
-    console.log('[WEBHOOK] Cliente Supabase criado com sucesso');
 
-    // Buscar pagamento no banco de dados
+    // Buscar pagamento no banco
     const { data: existingPayment, error: findError } = await supabase
       .from('payments')
       .select('*')
       .eq('mp_payment_id', String(paymentId))
       .single();
 
-    console.log('[WEBHOOK] Resultado da busca:', { existingPayment, findError });
-    
     if (findError || !existingPayment) {
-      console.error('[WEBHOOK] Pagamento não encontrado no banco:', paymentId, findError);
-      return NextResponse.json({ error: 'Pagamento não encontrado' }, { status: 404 });
-    }
-    
-    console.log('[WEBHOOK] Pagamento encontrado no banco:', existingPayment.id);
-
-    // Determinar novo status baseado na ação
-    // payment.updated geralmente significa que o pagamento foi aprovado
-    let newStatus = 'pending';
-    
-    if (body.action === 'payment.updated') {
-      // Buscar detalhes do pagamento no Mercado Pago para confirmar status
-      try {
-        console.log('[WEBHOOK] Buscando status no Mercado Pago...');
-        const mpPayment = await payment.get({ id: paymentId });
-        console.log('[WEBHOOK] Status MP:', mpPayment.status);
-        
-        const statusMap: Record<string, string> = {
-          'approved': 'approved',
-          'pending': 'pending',
-          'in_process': 'in_process',
-          'rejected': 'rejected',
-          'cancelled': 'cancelled',
-          'refunded': 'refunded',
-        };
-        
-        newStatus = statusMap[mpPayment.status || 'pending'] || 'pending';
-      } catch (mpError) {
-        console.error('[WEBHOOK] Erro ao buscar no MP, assumindo approved:', mpError);
-        // Se falhar ao buscar no MP, assume approved (pois payment.updated geralmente é aprovação)
-        newStatus = 'approved';
-      }
+      console.error('[WEBHOOK] Pagamento não encontrado:', paymentId, findError);
+      return;
     }
 
-    // Atualizar status do pagamento
-    console.log('[WEBHOOK] Atualizando status para:', newStatus);
+    console.log('[WEBHOOK] Pagamento encontrado:', existingPayment.id);
+
+    // Determinar status
+    // payment.updated geralmente significa aprovado
+    const newStatus = body.action === 'payment.updated' ? 'approved' : 'pending';
+
+    console.log('[WEBHOOK] Atualizando para:', newStatus);
+
+    // Atualizar status
     const { error: updateError } = await supabase
       .from('payments')
       .update({
@@ -98,24 +78,14 @@ export async function POST(request: NextRequest) {
       .eq('id', existingPayment.id);
 
     if (updateError) {
-      console.error('[WEBHOOK] Erro ao atualizar pagamento:', updateError);
-      return NextResponse.json(
-        { error: 'Erro ao atualizar pagamento' },
-        { status: 500 }
-      );
+      console.error('[WEBHOOK] Erro ao atualizar:', updateError);
+      return;
     }
 
-    console.log(`[WEBHOOK] Pagamento ${paymentId} atualizado para status: ${newStatus}`);
-
-    return NextResponse.json({ received: true, status: newStatus });
+    console.log('[WEBHOOK] ✅ Pagamento atualizado com sucesso!');
   } catch (error) {
-    console.error('Erro no webhook:', error);
-    return NextResponse.json(
-      { error: 'Erro ao processar webhook' },
-      { status: 500 }
-    );
+    console.error('[WEBHOOK] Erro no processamento:', error);
   }
 }
 
-// Permitir POST sem verificação CSRF (webhook externo)
 export const dynamic = 'force-dynamic';
