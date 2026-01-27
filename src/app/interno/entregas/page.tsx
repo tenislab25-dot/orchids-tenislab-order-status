@@ -781,9 +781,9 @@ export default function EntregasPage() {
   const pedidosComDistancia = useMemo(() => {
     if (!rotaAtiva || !userLocation) return pedidos;
     
-    return pedidos.map(pedido => {
+    const pedidosComDist = pedidos.map(pedido => {
       const coords = pedidoCoords[pedido.id];
-      if (!coords) return pedido;
+      if (!coords) return { ...pedido, _distancia: Infinity };
       
       const dist = calculateDistance(
         userLocation.lat,
@@ -793,6 +793,14 @@ export default function EntregasPage() {
       );
       
       return { ...pedido, _distancia: dist };
+    });
+    
+    // Ordenar por proximidade (mais próximo primeiro)
+    return pedidosComDist.sort((a, b) => {
+      // Pedidos sem coordenadas vão para o final
+      if (a._distancia === Infinity) return 1;
+      if (b._distancia === Infinity) return -1;
+      return a._distancia - b._distancia;
     });
   }, [pedidos, userLocation, pedidoCoords, rotaAtiva]);
 
