@@ -48,6 +48,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ordem de serviço não encontrada' }, { status: 404 });
     }
 
+    // Limpar e validar dados do cliente
+    const rawEmail = serviceOrder.clients?.email || 'contato@tenislab.app.br';
+    const cleanEmail = rawEmail.trim().toLowerCase();
+    const rawName = serviceOrder.clients?.name || 'Cliente TenisLab';
+    const cleanName = rawName.trim().replace(/[\r\n\t]/g, ' ');
+    const rawPhone = serviceOrder.clients?.phone || '82999999999';
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    
     // Criar preferência de pagamento no Mercado Pago
     const preferenceData = {
       items: [
@@ -59,11 +67,11 @@ export async function POST(request: NextRequest) {
         },
       ],
       payer: {
-        name: serviceOrder.clients?.name || 'Cliente TenisLab',
-        email: serviceOrder.clients?.email || 'contato@tenislab.app.br',
+        name: cleanName,
+        email: cleanEmail,
         phone: {
-          area_code: serviceOrder.clients?.phone?.substring(0, 2) || '82',
-          number: serviceOrder.clients?.phone?.substring(2) || '999999999',
+          area_code: cleanPhone.substring(0, 2) || '82',
+          number: cleanPhone.substring(2) || '999999999',
         },
       },
       back_urls: {

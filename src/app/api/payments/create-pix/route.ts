@@ -44,14 +44,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Limpar e validar email
+    const rawEmail = serviceOrder.clients?.email || 'contato@tenislab.app.br';
+    const cleanEmail = rawEmail.trim().toLowerCase();
+    
+    // Limpar nome (remover caracteres especiais que podem causar problemas em HTTP headers)
+    const rawName = serviceOrder.clients?.name || 'Cliente TenisLab';
+    const cleanName = rawName.trim().replace(/[\r\n\t]/g, ' ');
+    const nameParts = cleanName.split(' ');
+    
     const paymentData = {
       transaction_amount: parseFloat(transactionAmount.toFixed(2)),
       description: `Lavagem de tênis - OS #${serviceOrder.os_number}`,
       payment_method_id: 'pix',
       payer: {
-        email: serviceOrder.clients?.email || 'contato@tenislab.app.br',
-        first_name: serviceOrder.clients?.name?.split(' ')[0] || 'Cliente',
-        last_name: serviceOrder.clients?.name?.split(' ').slice(1).join(' ') || 'TenisLab',
+        email: cleanEmail,
+        first_name: nameParts[0] || 'Cliente',
+        last_name: nameParts.slice(1).join(' ') || 'TenisLab',
       },
     };
 
