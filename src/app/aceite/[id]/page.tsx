@@ -152,6 +152,35 @@ export default function CustomerAcceptancePage() {
   // useEffect movido para DEPOIS da função
   useEffect(() => {
     if (id) fetchOrder();
+    
+    // Realtime: Atualizar quando client_accepted mudar
+    if (id) {
+      const channel = supabase
+        .channel(`aceite_${id}`)
+        .on(
+          "postgres_changes",
+          { 
+            event: "UPDATE", 
+            schema: "public",
+            table: "service_orders",
+            filter: `id=eq.${id}`
+          },
+          (payload) => {
+            console.log("Realtime aceite update:", payload);
+            if (payload.new && 'client_accepted' in payload.new) {
+              setOrder(prev => prev ? { ...prev, client_accepted: payload.new.client_accepted } : null);
+              if (payload.new.client_accepted) {
+                toast.success("Or\u00e7amento aceito! \u2705");
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [id, fetchOrder]);
 
 

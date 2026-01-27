@@ -59,6 +59,34 @@ export default function PaymentPage() {
 
   useEffect(() => {
     fetchOrder();
+    
+    // Realtime: Atualizar quando payment_confirmed mudar
+    const channel = supabase
+      .channel(`payment_${id}`)
+      .on(
+        "postgres_changes",
+        { 
+          event: "UPDATE", 
+          schema: "public",
+          table: "service_orders",
+          filter: `id=eq.${id}`
+        },
+        (payload) => {
+          console.log("Realtime payment update:", payload);
+          // Atualizar apenas se payment_confirmed mudou
+          if (payload.new && 'payment_confirmed' in payload.new) {
+            setOrder(prev => prev ? { ...prev, payment_confirmed: payload.new.payment_confirmed } : null);
+            if (payload.new.payment_confirmed) {
+              toast.success("Pagamento confirmado! ✅");
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id]);
 
   const fetchOrder = async () => {
