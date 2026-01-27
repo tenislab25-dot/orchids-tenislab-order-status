@@ -17,7 +17,12 @@ export async function POST(request: NextRequest) {
 
     // Mercado Pago envia notificações de diferentes tipos
     // Vamos processar apenas notificações de pagamento
-    if (body.type !== 'payment' && body.action !== 'payment.updated') {
+    if (body.type !== 'payment') {
+      return NextResponse.json({ received: true });
+    }
+
+    // Aceitar tanto payment.created quanto payment.updated
+    if (!body.action || (!body.action.includes('payment.created') && !body.action.includes('payment.updated'))) {
       return NextResponse.json({ received: true });
     }
 
