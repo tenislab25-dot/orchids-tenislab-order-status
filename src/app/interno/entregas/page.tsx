@@ -1021,23 +1021,6 @@ export default function EntregasPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-                      <Phone className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contato</p>
-                      <a 
-                        href={`https://wa.me/${pedido.clients?.phone?.replace(/\D/g, "").startsWith("55") ? pedido.clients?.phone?.replace(/\D/g, "") : "55" + pedido.clients?.phone?.replace(/\D/g, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 font-bold mt-0.5 hover:underline flex items-center gap-1"
-                      >
-                        <Phone className="w-3 h-3" />
-                        {pedido.clients?.phone || "Sem telefone"}
-                      </a>
-                    </div>
-                  </div>
 
                   {/* Observações */}
                   {editingNotes === pedido.id ? (
