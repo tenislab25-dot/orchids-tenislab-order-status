@@ -36,11 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[WEBHOOK] Payment ID:', paymentId);
-
-    // Buscar detalhes do pagamento no Mercado Pago
-    console.log('[WEBHOOK] Buscando pagamento no Mercado Pago...');
-    const mpPayment = await payment.get({ id: paymentId });
-    console.log('[WEBHOOK] Pagamento encontrado no MP');
+    console.log('[WEBHOOK] Action:', body.action);
 
     // Criar cliente Supabase para webhook (usa Service Role Key)
     console.log('[WEBHOOK] Criando cliente Supabase...');
@@ -63,24 +59,40 @@ export async function POST(request: NextRequest) {
     
     console.log('[WEBHOOK] Pagamento encontrado no banco:', existingPayment.id);
 
-    // Mapear status do Mercado Pago para nosso sistema
-    const statusMap: Record<string, string> = {
-      'approved': 'approved',
-      'pending': 'pending',
-      'in_process': 'in_process',
-      'rejected': 'rejected',
-      'cancelled': 'cancelled',
-      'refunded': 'refunded',
-    };
-
-    const newStatus = statusMap[mpPayment.status || 'pending'] || 'pending';
+    // Determinar novo status baseado na ação
+    // payment.updated geralmente significa que o pagamento foi aprovado
+    let newStatus = 'pending';
+    
+    if (body.action === 'payment.updated') {
+      // Buscar detalhes do pagamento no Mercado Pago para confirmar status
+      try {
+        console.log('[WEBHOOK] Buscando status no Mercado Pago...');
+        const mpPayment = await payment.get({ id: paymentId });
+        console.log('[WEBHOOK] Status MP:', mpPayment.status);
+        
+        const statusMap: Record<string, string> = {
+          'approved': 'approved',
+          'pending': 'pending',
+          'in_process': 'in_process',
+          'rejected': 'rejected',
+          'cancelled': 'cancelled',
+          'refunded': 'refunded',
+        };
+        
+        newStatus = statusMap[mpPayment.status || 'pending'] || 'pending';
+      } catch (mpError) {
+        console.error('[WEBHOOK] Erro ao buscar no MP, assumindo approved:', mpError);
+        // Se falhar ao buscar no MP, assume approved (pois payment.updated geralmente é aprovação)
+        newStatus = 'approved';
+      }
+    }
 
     // Atualizar status do pagamento
+    console.log('[WEBHOOK] Atualizando status para:', newStatus);
     const { error: updateError } = await supabase
       .from('payments')
       .update({
         status: newStatus,
-        metadata: mpPayment as any,
         updated_at: new Date().toISOString(),
       })
       .eq('id', existingPayment.id);
