@@ -6,6 +6,7 @@ import { Home, LayoutGrid, LogOut, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { useEffect, useRef } from "react";
 
 export default function InternoLayout({
