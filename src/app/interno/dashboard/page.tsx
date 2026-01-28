@@ -409,7 +409,7 @@ export default function DashboardPage() {
         const message = encodeURIComponent(
           `Olá ${data.clients.name}! Seu pedido #${data.os_number} foi entregue! 📦\n\n` +
           `Valor total: R$ ${Number(data.total).toFixed(2)}\n\n` +
-          `Para realizar o pagamento via Pix ou Cartão, acesse o link abaixo:\n${paymentLink}\n\n` +
+          `Para realizar o pagamento, acesse o link abaixo:\n${paymentLink}\n\n` +
           `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
           `Obrigado pela preferência!`
         );
