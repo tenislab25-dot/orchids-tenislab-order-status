@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Phone, MessageCircle, Package, Loader2, CheckCircle2, XCircle, AlertCircle, Edit, Save, X as XIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, MessageCircle, Package, Loader2, CheckCircle2, XCircle, AlertCircle, Edit, Save, X as XIcon, Route } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -293,6 +293,114 @@ export default function RotaAtivaPage() {
     window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
   };
 
+  // Função para calcular distância entre dois pontos (fórmula de Haversine)
+  const calcularDistancia = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Raio da Terra em km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Função para extrair coordenadas de diferentes formatos
+  const extrairCoordenadas = (pedido: any): { lat: number; lon: number } | null => {
+    const coords = pedido.clients?.coordinates;
+    const plusCode = pedido.clients?.plus_code;
+    
+    if (coords) {
+      // Formato: "lat,lon" ou "lat, lon"
+      const parts = coords.split(',').map((p: string) => parseFloat(p.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        return { lat: parts[0], lon: parts[1] };
+      }
+    }
+    
+    // Plus codes não têm coordenadas diretas, retornar null
+    return null;
+  };
+
+  // Algoritmo do vizinho mais próximo para otimizar rota
+  const otimizarRota = () => {
+    const pedidosComCoordenadas = pedidosEmRota
+      .map(p => ({ pedido: p, coords: extrairCoordenadas(p) }))
+      .filter(p => p.coords !== null);
+
+    if (pedidosComCoordenadas.length === 0) {
+      toast.error("Nenhum pedido com coordenadas disponíveis");
+      return;
+    }
+
+    if (pedidosComCoordenadas.length === 1) {
+      // Se só tem 1 pedido, abrir direto
+      const location = pedidosComCoordenadas[0].pedido.clients?.plus_code || 
+                      pedidosComCoordenadas[0].pedido.clients?.coordinates || 
+                      pedidosComCoordenadas[0].pedido.clients?.complement;
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(location)}`, "_blank");
+      return;
+    }
+
+    // Algoritmo do vizinho mais próximo
+    const rotaOtimizada: any[] = [];
+    const naoVisitados = [...pedidosComCoordenadas];
+    
+    // Começar com o primeiro pedido da lista
+    let atual = naoVisitados[0];
+    rotaOtimizada.push(atual.pedido);
+    naoVisitados.splice(0, 1);
+
+    // Enquanto houver pedidos não visitados
+    while (naoVisitados.length > 0) {
+      let maisProximo = naoVisitados[0];
+      let menorDistancia = calcularDistancia(
+        atual.coords!.lat, 
+        atual.coords!.lon,
+        maisProximo.coords!.lat,
+        maisProximo.coords!.lon
+      );
+
+      // Encontrar o mais próximo
+      for (let i = 1; i < naoVisitados.length; i++) {
+        const distancia = calcularDistancia(
+          atual.coords!.lat,
+          atual.coords!.lon,
+          naoVisitados[i].coords!.lat,
+          naoVisitados[i].coords!.lon
+        );
+
+        if (distancia < menorDistancia) {
+          menorDistancia = distancia;
+          maisProximo = naoVisitados[i];
+        }
+      }
+
+      // Adicionar o mais próximo à rota
+      rotaOtimizada.push(maisProximo.pedido);
+      atual = maisProximo;
+      naoVisitados.splice(naoVisitados.indexOf(maisProximo), 1);
+    }
+
+    // Construir URL do Google Maps com waypoints
+    const destino = rotaOtimizada[rotaOtimizada.length - 1];
+    const destinoLocation = destino.clients?.plus_code || destino.clients?.coordinates || destino.clients?.complement;
+    
+    const waypoints = rotaOtimizada.slice(0, -1).map(p => {
+      return p.clients?.plus_code || p.clients?.coordinates || p.clients?.complement;
+    }).filter(Boolean);
+
+    let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destinoLocation)}`;
+    
+    if (waypoints.length > 0) {
+      mapsUrl += `&waypoints=${waypoints.map(w => encodeURIComponent(w)).join('|')}`;
+    }
+
+    window.open(mapsUrl, "_blank");
+    toast.success(`Rota otimizada com ${rotaOtimizada.length} paradas!`);
+  };
+
   // Mostrar loading enquanto carrega autenticação
   if (loadingAuth || loadingPedidos) {
     return (
@@ -355,6 +463,17 @@ export default function RotaAtivaPage() {
               </div>
               <Badge className="bg-blue-500 text-white">{pedidosEmRota.length}</Badge>
             </div>
+
+            {/* Botão Otimizar Rota */}
+            {pedidosEmRota.length > 1 && (
+              <Button
+                onClick={otimizarRota}
+                className="w-full mb-4 h-14 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+              >
+                <Route className="w-5 h-5 mr-2" />
+                Iniciar Rota Otimizada ({pedidosEmRota.length} paradas)
+              </Button>
+            )}
 
             <div className="space-y-3">
               {pedidosEmRota.map((pedido, index) => (
