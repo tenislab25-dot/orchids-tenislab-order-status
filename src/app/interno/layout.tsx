@@ -1,8 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Home, LayoutGrid, LogOut, User, Loader2 } from "lucide-react";
+import { Home, LayoutGrid, LogOut, User, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/auth";
@@ -15,6 +15,7 @@ export default function InternoLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, role, loading, signOut } = useAuth();
   const isLoginPage = pathname === "/interno/login";
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,6 +68,15 @@ export default function InternoLayout({
             </div>
           </Link>
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => router.back()}
+              className="flex-1 sm:flex-initial rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden xs:inline">Voltar</span>
+            </Button>
             {role !== 'ENTREGADOR' && (
               <Link href="/interno" prefetch={false} className="flex-1 sm:flex-initial">
                 <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
