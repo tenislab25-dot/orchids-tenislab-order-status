@@ -325,6 +325,11 @@ export default function RotaAtivaPage() {
 
   // Algoritmo do vizinho mais próximo para otimizar rota
   const otimizarRota = () => {
+    if (pedidosEmRota.length === 0) {
+      toast.error("Nenhum pedido Em Rota. Marque os pedidos como 'Em Rota' primeiro!");
+      return;
+    }
+
     const pedidosComCoordenadas = pedidosEmRota
       .map(p => ({ pedido: p, coords: extrairCoordenadas(p) }))
       .filter(p => p.coords !== null);
@@ -465,15 +470,13 @@ export default function RotaAtivaPage() {
             </div>
 
             {/* Botão Otimizar Rota */}
-            {pedidosEmRota.length > 1 && (
-              <Button
-                onClick={otimizarRota}
-                className="w-full mb-4 h-14 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
-              >
-                <Route className="w-5 h-5 mr-2" />
-                Iniciar Rota Otimizada ({pedidosEmRota.length} paradas)
-              </Button>
-            )}
+            <Button
+              onClick={otimizarRota}
+              className="w-full mb-4 h-14 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+            >
+              <Route className="w-5 h-5 mr-2" />
+              {pedidosEmRota.length === 0 ? "Iniciar Rota Otimizada" : `Iniciar Rota Otimizada (${pedidosEmRota.length} paradas)`}
+            </Button>
 
             <div className="space-y-3">
               {pedidosEmRota.map((pedido, index) => (
