@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAdminOrAtendente } from "@/lib/auth-middleware";
+import { UpdateClientSchema, validateSchema } from "@/schemas";
+import { logger } from "@/lib/logger";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -9,6 +12,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const resolvedParams = await params;
     const clientId = resolvedParams.id;
@@ -33,7 +42,7 @@ export async function GET(
       .single();
 
     if (clientError) {
-      console.error("Erro ao buscar cliente:", clientError);
+      logger.error("Erro ao buscar cliente:", clientError);
       return NextResponse.json({ error: clientError.message }, { status: 500 });
     }
 
@@ -78,7 +87,7 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error: any) {
-    console.error("Erro no endpoint de cliente:", error);
+    logger.error("Erro no endpoint de cliente:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -88,27 +97,43 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const resolvedParams = await params;
     const clientId = resolvedParams.id;
     const body = await request.json();
 
+    // Validar dados
+    const validation = validateSchema(UpdateClientSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: validation.errors },
+        { status: 400 }
+      );
+    }
+
     // Atualizar cliente
     const { data, error } = await supabase
       .from("clients")
-      .update(body)
+      .update(validation.data)
       .eq("id", clientId)
       .select()
       .single();
 
     if (error) {
-      console.error("Erro ao atualizar cliente:", error);
+      logger.error("Erro ao atualizar cliente:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    logger.log("Cliente atualizado:", clientId);
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error("Erro no endpoint de atualização de cliente:", error);
+    logger.error("Erro no endpoint de atualização de cliente:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
