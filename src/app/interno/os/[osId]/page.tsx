@@ -1105,10 +1105,11 @@ export default function OSViewPage() {
                 <div className="flex gap-2 pt-4 border-t border-slate-100">
                   <Button 
                     onClick={handleSharePaymentLink}
-                    className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+                    disabled={order.pay_on_entry || order.payment_confirmed}
+                    className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
-                    Enviar Link de Pagamento
+                    {order.pay_on_entry ? "Pago na Entrada" : order.payment_confirmed ? "Já Pago" : "Enviar Link de Pagamento"}
                   </Button>
                   {order.payment_confirmed || order.pay_on_entry ? (
                     <Button 
