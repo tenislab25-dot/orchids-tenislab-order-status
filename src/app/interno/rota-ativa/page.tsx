@@ -627,44 +627,6 @@ export default function RotaAtivaPage() {
               <Badge className="bg-blue-500 text-white">{pedidosEmRota.length}</Badge>
             </div>
 
-            {/* Botão A Caminho */}
-            {pedidosEmRota.length > 0 && (
-              <Button
-                onClick={() => {
-                  if (pedidosEmRota.length === 0) {
-                    toast.error('❌ Nenhum pedido Em Rota');
-                    return;
-                  }
-
-                  const confirmMessage = `📢 Enviar mensagem "A Caminho" para ${pedidosEmRota.length} cliente(s)?`;
-                  if (!window.confirm(confirmMessage)) {
-                    return;
-                  }
-
-                  let enviados = 0;
-                  for (const pedido of pedidosEmRota) {
-                    const phone = pedido.clients?.phone?.replace(/\D/g, "");
-                    if (phone) {
-                      const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
-                      const isColeta = pedido.previous_status === "Coleta";
-                      const mensagem = isColeta
-                        ? `Olá ${pedido.clients.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`
-                        : `Olá ${pedido.clients.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`;
-                      
-                      window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
-                      enviados++;
-                    }
-                  }
-
-                  toast.success(`✅ ${enviados} mensagem(ns) enviada(s)!`);
-                }}
-                className="w-full mb-3 h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                A Caminho ({pedidosEmRota.length})
-              </Button>
-            )}
-
             {/* Botão Otimizar Rota */}
             <Button
               onClick={otimizarRota}
@@ -738,6 +700,27 @@ export default function RotaAtivaPage() {
                         Zap
                       </Button>
                     </div>
+                    <Button
+                      size="default"
+                      onClick={() => {
+                        const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                        if (!phone) {
+                          toast.error('❌ Cliente sem telefone cadastrado');
+                          return;
+                        }
+                        const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
+                        const isColeta = pedido.previous_status === "Coleta";
+                        const mensagem = isColeta
+                          ? `Olá ${pedido.clients.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`
+                          : `Olá ${pedido.clients.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`;
+                        window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
+                        toast.success('✅ Mensagem enviada!');
+                      }}
+                      className="w-full h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    >
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      A Caminho
+                    </Button>
                     {role?.toLowerCase() === 'entregador' && (
                       <div className="flex gap-2">
                         <Button
