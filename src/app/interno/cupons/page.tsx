@@ -46,7 +46,7 @@ export default function CuponsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -57,41 +57,19 @@ export default function CuponsPage() {
   });
 
   useEffect(() => {
-    checkAuthAndFetch();
-  }, []);
-
-  async function checkAuthAndFetch() {
-    try {
-      // Verificar sessão do Supabase
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
-        // Tentar renovar a sessão
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-        
-        if (refreshError || !refreshData.session) {
-          router.push("/interno/login");
-          return;
-        }
-      }
-
-      // Verificar role no localStorage
-      const storedRole = localStorage.getItem("tenislab_role");
-      if (!storedRole) {
-        router.push("/interno/login");
-        return;
-      }
-      if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-        router.push("/interno/dashboard");
-        return;
-      }
-
-      setIsAuthenticated(true);
-      fetchCoupons();
-    } catch (err) {
+    // Verificar role no localStorage (mesmo padrão das outras páginas)
+    const storedRole = localStorage.getItem("tenislab_role");
+    if (!storedRole) {
       router.push("/interno/login");
+      return;
     }
-  }
+    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+      router.push("/interno/dashboard");
+      return;
+    }
+    setRole(storedRole);
+    fetchCoupons();
+  }, [router]);
 
   async function fetchCoupons() {
     try {
@@ -269,8 +247,8 @@ export default function CuponsPage() {
   const totalUsage = coupons.reduce((sum, c) => sum + c.usage_count, 0);
   const totalDiscount = coupons.reduce((sum, c) => sum + (c.usage_count * c.discount_percent), 0);
 
-  // Se não está autenticado, mostrar loading
-  if (!isAuthenticated) {
+  // Se não tem role, mostrar loading (está verificando)
+  if (!role) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 flex items-center justify-center">
         <div className="text-center">
