@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
       },
       statement_descriptor: 'TENISLAB',
       external_reference: serviceOrderId,
+      notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.tenislab.app.br'}/api/payments/webhook`,
     };
 
     const mpPreference = await preference.create({ body: preferenceData });
