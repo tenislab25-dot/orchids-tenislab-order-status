@@ -312,11 +312,13 @@ export default function RotaAtivaPage() {
     return R * c;
   };
 
-  // Função para extrair coordenadas de diferentes formatos
+  // Função para extrair coordenadas ou localização de diferentes formatos
   const extrairCoordenadas = (pedido: any): { lat: number; lon: number } | null => {
     const coords = pedido.clients?.coordinates;
     const plusCode = pedido.clients?.plus_code;
+    const complement = pedido.clients?.complement;
     
+    // Tentar extrair coordenadas numéricas primeiro
     if (coords) {
       // Formato: "lat,lon" ou "lat, lon"
       const parts = coords.split(',').map((p: string) => parseFloat(p.trim()));
@@ -325,7 +327,16 @@ export default function RotaAtivaPage() {
       }
     }
     
-    // Plus codes não têm coordenadas diretas, retornar null
+    // Se não tiver coordenadas numéricas, tentar Plus Code
+    // Plus Codes são aceitos pelo Google Maps, então podemos usá-los
+    if (plusCode && plusCode.trim()) {
+      // Retornar um objeto especial indicando que é Plus Code
+      // Vamos usar coordenadas fictícias para não quebrar o algoritmo
+      // O Google Maps vai usar o Plus Code na URL
+      return { lat: 0, lon: 0 }; // Placeholder - será substituído pelo Plus Code na URL
+    }
+    
+    // Se não tiver nada, retornar null
     return null;
   };
 
@@ -615,6 +626,44 @@ export default function RotaAtivaPage() {
               </div>
               <Badge className="bg-blue-500 text-white">{pedidosEmRota.length}</Badge>
             </div>
+
+            {/* Botão A Caminho */}
+            {pedidosEmRota.length > 0 && (
+              <Button
+                onClick={() => {
+                  if (pedidosEmRota.length === 0) {
+                    toast.error('❌ Nenhum pedido Em Rota');
+                    return;
+                  }
+
+                  const confirmMessage = `📢 Enviar mensagem "A Caminho" para ${pedidosEmRota.length} cliente(s)?`;
+                  if (!window.confirm(confirmMessage)) {
+                    return;
+                  }
+
+                  let enviados = 0;
+                  for (const pedido of pedidosEmRota) {
+                    const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                    if (phone) {
+                      const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
+                      const isColeta = pedido.previous_status === "Coleta";
+                      const mensagem = isColeta
+                        ? `Olá ${pedido.clients.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`
+                        : `Olá ${pedido.clients.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`;
+                      
+                      window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
+                      enviados++;
+                    }
+                  }
+
+                  toast.success(`✅ ${enviados} mensagem(ns) enviada(s)!`);
+                }}
+                className="w-full mb-3 h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                A Caminho ({pedidosEmRota.length})
+              </Button>
+            )}
 
             {/* Botão Otimizar Rota */}
             <Button
