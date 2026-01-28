@@ -324,65 +324,9 @@ export default function RotaAtivaPage() {
   };
 
   // Algoritmo do vizinho mais próximo para otimizar rota
-  const otimizarRota = async () => {
-    // Se não há pedidos em rota, marcar todos os aguardando como Em Rota
-    if (pedidosEmRota.length === 0 && pedidosAguardando.length > 0) {
-      const confirmMessage = `🚀 Iniciar rota com ${pedidosAguardando.length} pedido(s)?\n\nTodos os pedidos serão marcados como "Em Rota" e uma mensagem será enviada via WhatsApp para cada cliente.`;
-      
-      if (!window.confirm(confirmMessage)) {
-        return;
-      }
-
-      try {
-        toast.info(`Marcando ${pedidosAguardando.length} pedido(s) como Em Rota...`);
-
-        // Marcar todos como Em Rota
-        for (const pedido of pedidosAguardando) {
-          const isColeta = pedido.status === "Coleta";
-          
-          const { error } = await supabase
-            .from("service_orders")
-            .update({
-              status: "Em Rota",
-              previous_status: pedido.status,
-              failed_delivery: false
-            })
-            .eq("id", pedido.id);
-
-          if (error) throw error;
-
-          // Abrir WhatsApp para cada pedido
-          const phone = pedido.clients?.phone?.replace(/\D/g, "");
-          if (phone) {
-            const whatsapp = phone.startsWith("55") ? phone : `55${phone}`;
-            const mensagem = isColeta
-              ? `Olá ${pedido.clients.name}! 🚚\n\nEstamos a caminho para buscar seus tênis! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`
-              : `Olá ${pedido.clients.name}! 🚚\n\nSeus tênis estão a caminho! Nosso entregador está indo até você agora. ✨\n\nEm breve chegaremos! Qualquer dúvida, estamos à disposição.\n\n*OS #${pedido.os_number}*`;
-            
-            window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, "_blank");
-          }
-        }
-
-        // Recarregar pedidos
-        await fetchPedidos();
-        
-        toast.success(`${pedidosAguardando.length} pedido(s) marcado(s) como Em Rota!`);
-        
-        // Aguardar um pouco para os pedidos serem recarregados
-        setTimeout(() => {
-          otimizarRota(); // Chamar novamente para otimizar
-        }, 1000);
-        
-        return;
-      } catch (error: any) {
-        logger.error("Erro ao marcar pedidos como Em Rota:", error);
-        toast.error("Erro ao iniciar rota");
-        return;
-      }
-    }
-
+  const otimizarRota = () => {
     if (pedidosEmRota.length === 0) {
-      toast.error("Nenhum pedido disponível para iniciar rota");
+      toast.error("Nenhum pedido Em Rota para otimizar. Vá para a página Entregas e inicie a rota primeiro!");
       return;
     }
 
@@ -530,7 +474,7 @@ export default function RotaAtivaPage() {
               className="w-full mb-4 h-14 text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
             >
               <Route className="w-5 h-5 mr-2" />
-              {pedidosEmRota.length === 0 ? "Iniciar Rota Otimizada" : `Iniciar Rota Otimizada (${pedidosEmRota.length} paradas)`}
+              {pedidosEmRota.length === 0 ? "Otimizar Rota" : `Otimizar Rota (${pedidosEmRota.length} paradas)`}
             </Button>
 
             <div className="space-y-3">

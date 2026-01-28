@@ -82,6 +82,9 @@ export default function EntregasPage() {
   const [customEndPoint, setCustomEndPoint] = useState('');
   const [startLocation, setStartLocation] = useState<{lat: number, lng: number} | null>(null);
   
+  // Estados para seleção de pedidos
+  const [selectedPedidos, setSelectedPedidos] = useState<Set<string>>(new Set());
+  
   // Estados para observações
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesText, setNotesText] = useState('');
@@ -159,6 +162,63 @@ export default function EntregasPage() {
   };
 
   const handleOptimizeRoute = async () => {
+    // Verificar se há pedidos selecionados
+    if (selectedPedidos.size === 0) {
+      toast.error('❌ Selecione pelo menos um pedido para iniciar a rota!');
+      return;
+    }
+
+    // Confirmar ação
+    const confirmMessage = `🚀 Iniciar rota com ${selectedPedidos.size} pedido(s) selecionado(s)?\n\nTodos serão marcados como "Em Rota".`;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      // Marcar pedidos selecionados como "Em Rota"
+      toast.info(`Marcando ${selectedPedidos.size} pedido(s) como Em Rota...`);
+
+      for (const pedidoId of selectedPedidos) {
+        const pedido = pedidos.find(p => p.id === pedidoId);
+        if (!pedido) continue;
+
+        const { error } = await supabase
+          .from("service_orders")
+          .update({
+            status: "Em Rota",
+            previous_status: pedido.status,
+            failed_delivery: false
+          })
+          .eq("id", pedidoId);
+
+        if (error) {
+          logger.error(`Erro ao marcar pedido ${pedido.os_number} como Em Rota:`, error);
+          throw error;
+        }
+      }
+
+      toast.success(`${selectedPedidos.size} pedido(s) marcado(s) como Em Rota!`);
+
+      // Limpar seleção
+      setSelectedPedidos(new Set());
+
+      // Recarregar pedidos
+      await fetchPedidos();
+
+      // Redirecionar para Rota Ativa
+      toast.info('🗺️ Redirecionando para Rota Ativa...');
+      setTimeout(() => {
+        router.push('/interno/rota-ativa');
+      }, 1000);
+
+      return;
+    } catch (error: any) {
+      logger.error('Erro ao iniciar rota:', error);
+      toast.error('Erro ao iniciar rota');
+      return;
+    }
+    
+    // Código antigo comentado - não usado mais
     // Primeiro, obter localização atual
     toast.info('📍 Obtendo sua localização GPS...');
     
@@ -865,12 +925,12 @@ export default function EntregasPage() {
             {role?.toLowerCase() === 'entregador' && !rotaAtiva && (
               <Button
                 onClick={handleOptimizeRoute}
-                disabled={pedidos.length === 0}
+                disabled={selectedPedidos.size === 0}
                 size="sm"
                 className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
               >
                 <Route className="w-4 h-4 mr-1" />
-                Iniciar Rota
+                Iniciar Rota {selectedPedidos.size > 0 && `(${selectedPedidos.size})`}
               </Button>
             )}
             {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (
@@ -939,6 +999,23 @@ export default function EntregasPage() {
                   )}
                   {/* Cabeçalho do Card com Botões de Reordenação */}
                   <div className="flex justify-between items-start gap-3">
+                    {/* Checkbox de Seleção (só quando rota não está ativa) */}
+                    {!rotaAtiva && (
+                      <input
+                        type="checkbox"
+                        checked={selectedPedidos.has(pedido.id)}
+                        onChange={(e) => {
+                          const newSelected = new Set(selectedPedidos);
+                          if (e.target.checked) {
+                            newSelected.add(pedido.id);
+                          } else {
+                            newSelected.delete(pedido.id);
+                          }
+                          setSelectedPedidos(newSelected);
+                        }}
+                        className="w-5 h-5 rounded border-2 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      />
+                    )}
                     {/* Botões de Reordenação (só quando rota não está ativa) */}
                     {!rotaAtiva && (
                     <div className="flex flex-col gap-1">
