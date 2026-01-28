@@ -597,15 +597,7 @@ export default function StatusPage() {
         <OrderContent />
       </Suspense>
 
-      <div className="flex justify-center -mt-4">
-        <Button 
-          variant="link" 
-          asChild
-          className="text-slate-400 hover:text-slate-600 text-[10px] font-bold uppercase tracking-widest"
-        >
-          <Link href="/" prefetch={false}>Voltar para página inicial</Link>
-        </Button>
-      </div>
+
 
       <footer className="mt-auto pt-12 text-center pb-8 flex flex-col gap-4">
         <p className="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">
