@@ -326,6 +326,9 @@ export default function OSViewPage() {
 
         toast.success(`Status atualizado para: ${newStatus}`);
         
+        // Atualiza o estado local imediatamente
+        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+        
         // Notificação via API (opcional, não trava o processo)
         fetch("/api/notifications/status-change", { method: "POST", credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -1055,13 +1058,13 @@ export default function OSViewPage() {
                   <span className="text-sm font-bold text-red-400">- R$ {((order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
                 </div>
               )}
-              {order.discount_amount && order.discount_amount > 0 && (
+              {Number(order.discount_amount) > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Cupom {order.coupon_code ? `(${order.coupon_code})` : ''}</span>
                   <span className="text-sm font-bold text-purple-400">- R$ {Number(order.discount_amount).toFixed(2)}</span>
                 </div>
               )}
-              {order.delivery_fee > 0 && (
+              {Number(order.delivery_fee) > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Taxa Entrega</span>
                   <span className="text-sm font-bold text-green-400">+ R$ {Number(order.delivery_fee).toFixed(2)}</span>
