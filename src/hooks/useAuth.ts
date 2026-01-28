@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import { logger } from "@/lib/logger";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { canAccessPage, type UserRole } from "@/lib/auth";
+import { 
+  getAuthState, 
+  setAuthState, 
+  subscribeToAuthState, 
+  clearAuthState 
+} from "@/lib/authState";
 
 interface AuthContextValue {
   user: { id: string; email: string } | null;
@@ -14,19 +20,23 @@ interface AuthContextValue {
 }
 
 export function useAuth(): AuthContextValue {
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const hasCheckedAuth = useRef(false);
+  
+  // Usar useSyncExternalStore para sincronizar com o estado global
+  const authState = useSyncExternalStore(
+    subscribeToAuthState,
+    () => getAuthState(),
+    () => ({ role: null, user: null, isAuthenticated: false, hasChecked: false })
+  );
+
+  const [loading, setLoading] = useState(!authState.hasChecked);
 
   const signOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
       localStorage.removeItem("tenislab_role");
-      setUser(null);
-      setRole(null);
+      clearAuthState();
       window.location.href = "/interno/login";
     } catch (error) {
       logger.error("Erro ao sair:", error);
@@ -35,9 +45,11 @@ export function useAuth(): AuthContextValue {
   }, []);
 
   useEffect(() => {
-    // Evitar múltiplas verificações
-    if (hasCheckedAuth.current) return;
-    hasCheckedAuth.current = true;
+    // Se já verificou e tem autenticação, não precisa fazer nada
+    if (authState.hasChecked && authState.isAuthenticated) {
+      setLoading(false);
+      return;
+    }
 
     let isMounted = true;
 
@@ -50,16 +62,21 @@ export function useAuth(): AuthContextValue {
         
         if (cachedRole) {
           // TEM CACHE - usar imediatamente e NÃO redirecionar
-          if (isMounted) {
-            setRole(cachedRole);
-            setLoading(false);
-          }
+          setAuthState({
+            role: cachedRole,
+            isAuthenticated: true,
+            hasChecked: true
+          });
+          
+          if (isMounted) setLoading(false);
           
           // Em background, tentar obter dados do usuário
           try {
             const { data: { session } } = await supabase.auth.getSession();
             if (session && isMounted) {
-              setUser({ id: session.user.id, email: session.user.email || "" });
+              setAuthState({
+                user: { id: session.user.id, email: session.user.email || "" }
+              });
             }
           } catch (e) {
             logger.error("Erro ao obter sessão em background:", e);
@@ -81,9 +98,15 @@ export function useAuth(): AuthContextValue {
 
           if (profile && isMounted) {
             const userRole = profile.role as UserRole;
-            setUser({ id: session.user.id, email: session.user.email || "" });
-            setRole(userRole);
             localStorage.setItem("tenislab_role", userRole);
+            
+            setAuthState({
+              role: userRole,
+              user: { id: session.user.id, email: session.user.email || "" },
+              isAuthenticated: true,
+              hasChecked: true
+            });
+            
             setLoading(false);
 
             if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
@@ -91,6 +114,7 @@ export function useAuth(): AuthContextValue {
             }
           } else if (isMounted) {
             // Sem perfil, redirecionar para login
+            setAuthState({ hasChecked: true });
             if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
               router.push("/interno/login");
             }
@@ -98,6 +122,7 @@ export function useAuth(): AuthContextValue {
           }
         } else {
           // SEM sessão E SEM cache - redirecionar para login
+          setAuthState({ hasChecked: true });
           if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
             router.push("/interno/login");
           }
@@ -109,9 +134,16 @@ export function useAuth(): AuthContextValue {
           // Se der erro, verificar cache novamente
           const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
           if (cachedRole) {
-            setRole(cachedRole);
-          } else if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-            router.push("/interno/login");
+            setAuthState({
+              role: cachedRole,
+              isAuthenticated: true,
+              hasChecked: true
+            });
+          } else {
+            setAuthState({ hasChecked: true });
+            if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
+              router.push("/interno/login");
+            }
           }
           setLoading(false);
         }
@@ -127,15 +159,18 @@ export function useAuth(): AuthContextValue {
       logger.log("useAuth: onAuthStateChange event =", event);
 
       if (event === "SIGNED_OUT") {
-        setUser(null);
-        setRole(null);
         localStorage.removeItem("tenislab_role");
+        clearAuthState();
         router.push("/interno/login");
       } else if (event === "SIGNED_IN" && session) {
         const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
         if (cachedRole) {
-          setUser({ id: session.user.id, email: session.user.email || "" });
-          setRole(cachedRole);
+          setAuthState({
+            role: cachedRole,
+            user: { id: session.user.id, email: session.user.email || "" },
+            isAuthenticated: true,
+            hasChecked: true
+          });
           setLoading(false);
         }
       }
@@ -145,14 +180,19 @@ export function useAuth(): AuthContextValue {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Array vazio - roda apenas uma vez
+  }, [pathname, router, authState.hasChecked, authState.isAuthenticated]);
 
   // Efeito separado para verificar permissões quando pathname muda
   useEffect(() => {
-    if (role && pathname?.startsWith("/interno") && !canAccessPage(role, pathname)) {
+    if (authState.role && pathname?.startsWith("/interno") && !canAccessPage(authState.role, pathname)) {
       router.push("/interno");
     }
-  }, [pathname, role, router]);
+  }, [pathname, authState.role, router]);
 
-  return { user, role, loading, signOut };
+  return { 
+    user: authState.user, 
+    role: authState.role, 
+    loading, 
+    signOut 
+  };
 }
