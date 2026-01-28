@@ -46,10 +46,33 @@ export async function POST(request: NextRequest) {
     logger.log('[WEBHOOK] Pagamento encontrado:', existingPayment.id);
     logger.log('[WEBHOOK] OS:', existingPayment.service_orders?.os_number);
 
-    // Determinar status
-    // payment.updated geralmente significa aprovado
-    const newStatus = body.action === 'payment.updated' ? 'approved' : 'pending';
+    // Consultar API do Mercado Pago para obter status real do pagamento
+    const mpAccessToken = process.env.MP_ACCESS_TOKEN;
+    if (!mpAccessToken) {
+      logger.error('[WEBHOOK] MP_ACCESS_TOKEN não configurado');
+      return NextResponse.json({ received: true, error: 'MP_ACCESS_TOKEN não configurado' });
+    }
 
+    let paymentStatus = 'pending';
+    try {
+      const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${mpAccessToken}`
+        }
+      });
+
+      if (mpResponse.ok) {
+        const mpData = await mpResponse.json();
+        paymentStatus = mpData.status; // approved, pending, rejected, etc.
+        logger.log('[WEBHOOK] Status do MP:', paymentStatus);
+      } else {
+        logger.error('[WEBHOOK] Erro ao consultar MP:', mpResponse.status);
+      }
+    } catch (error) {
+      logger.error('[WEBHOOK] Erro ao consultar MP:', error);
+    }
+
+    const newStatus = paymentStatus;
     logger.log('[WEBHOOK] Atualizando para:', newStatus);
 
     // Atualizar TODOS os pagamentos pendentes da mesma OS
