@@ -373,6 +373,12 @@ export default function RotaAtivaPage() {
                         )}
                       </div>
                       <p className="text-sm text-gray-600">OS #{pedido.os_number}</p>
+                      {pedido.clients?.complement && (
+                        <div className="flex items-start gap-1.5 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-gray-500">{pedido.clients.complement}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -509,6 +515,12 @@ export default function RotaAtivaPage() {
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">OS #{pedido.os_number}</p>
+                      {pedido.clients?.complement && (
+                        <div className="flex items-start gap-1.5 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-gray-500">{pedido.clients.complement}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
