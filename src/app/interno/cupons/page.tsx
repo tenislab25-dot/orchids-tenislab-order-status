@@ -70,7 +70,7 @@ export default function CuponsPage() {
   async function fetchCoupons() {
     try {
       setLoading(true);
-      const response = await fetch("/api/coupons", {
+      const response = await fetch("/api/coupons", { cache: "no-store",
         credentials: 'include'
       });
       if (!response.ok) throw new Error("Erro ao buscar cupons");
@@ -93,9 +93,8 @@ export default function CuponsPage() {
 
     try {
       setCreating(true);
-      const response = await fetch("/api/coupons", {
+      const response = await fetch("/api/coupons", { cache: "no-store",
         method: "POST",
-        credentials: 'include',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: formData.code.toUpperCase().trim(),
