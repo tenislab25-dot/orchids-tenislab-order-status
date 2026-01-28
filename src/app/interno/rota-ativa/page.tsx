@@ -456,8 +456,7 @@ export default function RotaAtivaPage() {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Em Rota */}
-        {pedidosEmRota.length > 0 && (
-          <section className="bg-white rounded-2xl shadow-lg p-6">
+        <section className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-blue-100 p-3 rounded-full">
                 <MapPin className="w-6 h-6 text-blue-600" />
@@ -575,8 +574,7 @@ export default function RotaAtivaPage() {
                 </div>
               ))}
             </div>
-          </section>
-        )}
+        </section>
 
         {/* Aguardando */}
         <section className="bg-white rounded-2xl shadow-lg p-6">
