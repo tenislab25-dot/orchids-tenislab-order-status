@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { logger } from "@/lib/logger";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -13,13 +13,24 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
 }
 
+// Função para obter role do localStorage de forma segura
+function getStoredRole(): UserRole | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem("tenislab_role") as UserRole | null;
+  } catch {
+    return null;
+  }
+}
+
 export function useAuth(): AuthContextValue {
+  // IMPORTANTE: Inicializar role com valor do localStorage SINCRONAMENTE
+  // Isso evita o flash de loading e redirecionamento indevido
+  const [role, setRole] = useState<UserRole | null>(() => getStoredRole());
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !getStoredRole()); // Se tem cache, não está loading
   const router = useRouter();
   const pathname = usePathname();
-  const hasInitialized = useRef(false);
 
   const signOut = useCallback(async () => {
     try {
@@ -34,35 +45,20 @@ export function useAuth(): AuthContextValue {
     }
   }, []);
 
-  // Efeito principal - roda apenas uma vez na montagem
+  // Efeito para carregar dados do usuário em background
   useEffect(() => {
     let isMounted = true;
 
-    const checkAuth = async () => {
-      // Se já inicializou, não precisa verificar novamente
-      if (hasInitialized.current) {
-        setLoading(false);
-        return;
-      }
-
+    const loadUserData = async () => {
       try {
-        // PRIMEIRO: Verificar se tem cache no localStorage
-        const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
+        const cachedRole = getStoredRole();
         
-        // Se tem cache, usar imediatamente para evitar flash de loading
-        if (cachedRole && isMounted) {
-          setRole(cachedRole);
-          hasInitialized.current = true;
-          setLoading(false);
-          
-          // Em background, verificar se a sessão do Supabase existe
-          // Se não existir, o usuário será deslogado na próxima ação
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session && isMounted) {
-              setUser({ id: session.user.id, email: session.user.email || "" });
-            }
-          });
-          
+        // Se já tem role do cache, apenas buscar dados do usuário em background
+        if (cachedRole) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session && isMounted) {
+            setUser({ id: session.user.id, email: session.user.email || "" });
+          }
           return;
         }
         
@@ -82,14 +78,16 @@ export function useAuth(): AuthContextValue {
             setUser({ id: session.user.id, email: session.user.email || "" });
             setRole(userRole);
             localStorage.setItem("tenislab_role", userRole);
-            hasInitialized.current = true;
             setLoading(false);
 
             if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
               router.push("/interno");
             }
           } else if (isMounted) {
-            router.push("/interno/login");
+            // Sem perfil, redirecionar para login
+            if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
+              router.push("/interno/login");
+            }
             setLoading(false);
           }
         } else {
@@ -103,22 +101,20 @@ export function useAuth(): AuthContextValue {
         logger.error("Erro ao verificar autenticação:", err);
         if (isMounted) {
           // Se der erro mas tem cache, manter usuário logado
-          const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
+          const cachedRole = getStoredRole();
           if (cachedRole) {
             setRole(cachedRole);
-            setLoading(false);
-          } else {
+          } else if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
             router.push("/interno/login");
-            setLoading(false);
           }
+          setLoading(false);
         }
       }
     };
 
-    checkAuth();
+    loadUserData();
 
-    // Listener do Supabase Auth - SIMPLIFICADO
-    // Só reage a SIGNED_OUT e SIGNED_IN, ignora TOKEN_REFRESHED e USER_UPDATED
+    // Listener do Supabase Auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
@@ -126,26 +122,22 @@ export function useAuth(): AuthContextValue {
         setUser(null);
         setRole(null);
         localStorage.removeItem("tenislab_role");
-        hasInitialized.current = false;
         router.push("/interno/login");
       } else if (event === "SIGNED_IN" && session) {
-        // Usar cache se tiver, evita buscar do banco
-        const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
+        const cachedRole = getStoredRole();
         if (cachedRole) {
           setUser({ id: session.user.id, email: session.user.email || "" });
           setRole(cachedRole);
-          hasInitialized.current = true;
           setLoading(false);
         }
       }
-      // Ignorar TOKEN_REFRESHED, USER_UPDATED para não causar re-fetch
     });
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Array vazio = roda só uma vez na montagem
+  }, [pathname, router]);
 
   // Efeito separado para verificar permissões quando pathname muda
   useEffect(() => {
