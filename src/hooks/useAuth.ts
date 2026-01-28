@@ -49,58 +49,49 @@ export function useAuth(): AuthContextValue {
         // PRIMEIRO: Verificar se tem cache no localStorage
         const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
         
-        // Tentar obter sessão do Supabase
+        // Se tem cache, usar imediatamente para evitar flash de loading
+        if (cachedRole && isMounted) {
+          setRole(cachedRole);
+          hasInitialized.current = true;
+          setLoading(false);
+          
+          // Em background, verificar se a sessão do Supabase existe
+          // Se não existir, o usuário será deslogado na próxima ação
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session && isMounted) {
+              setUser({ id: session.user.id, email: session.user.email || "" });
+            }
+          });
+          
+          return;
+        }
+        
+        // Se não tem cache, verificar sessão do Supabase
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Sessão existe - usar ela
-          if (cachedRole) {
-            // Tem cache, usar ele imediatamente
-            if (isMounted) {
-              setUser({ id: session.user.id, email: session.user.email || "" });
-              setRole(cachedRole);
-              setLoading(false);
-              hasInitialized.current = true;
-            }
-          } else {
-            // Não tem cache, buscar do banco (só acontece no primeiro login)
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("role")
-              .eq("id", session.user.id)
-              .single();
+          // Sessão existe - buscar role do banco
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single();
 
-            if (profile && isMounted) {
-              const userRole = profile.role as UserRole;
-              setUser({ id: session.user.id, email: session.user.email || "" });
-              setRole(userRole);
-              localStorage.setItem("tenislab_role", userRole);
-              hasInitialized.current = true;
-              setLoading(false);
-
-              if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
-                router.push("/interno");
-              }
-            } else if (isMounted) {
-              router.push("/interno/login");
-              setLoading(false);
-            }
-          }
-        } else if (cachedRole) {
-          // SEM sessão MAS tem cache - usar cache como fallback
-          // Isso pode acontecer quando a sessão ainda está sendo restaurada
-          // ou quando o token expirou mas o usuário ainda está "logado" localmente
-          logger.info("Sessão não encontrada, usando cache do localStorage");
-          
-          if (isMounted) {
-            // Definir role do cache para permitir acesso temporário
-            setRole(cachedRole);
-            setLoading(false);
+          if (profile && isMounted) {
+            const userRole = profile.role as UserRole;
+            setUser({ id: session.user.id, email: session.user.email || "" });
+            setRole(userRole);
+            localStorage.setItem("tenislab_role", userRole);
             hasInitialized.current = true;
+            setLoading(false);
+
+            if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
+              router.push("/interno");
+            }
+          } else if (isMounted) {
+            router.push("/interno/login");
+            setLoading(false);
           }
-          
-          // Tentar restaurar a sessão em background
-          // Se falhar, o usuário será redirecionado no próximo refresh
         } else {
           // SEM sessão E SEM cache - redirecionar para login
           if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
