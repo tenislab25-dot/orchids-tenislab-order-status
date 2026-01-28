@@ -33,7 +33,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
@@ -50,7 +49,6 @@ interface Order {
   priority: boolean;
   updated_at?: string;
   payment_confirmed?: boolean;
-  payment_confirmed_at?: string;
   items: any[];
   clients: {
     name: string;
@@ -63,9 +61,7 @@ const PAGE_SIZE = 20;
 export default function TodosPedidosPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [recentPayers, setRecentPayers] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingPayers, setLoadingPayers] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,7 +70,6 @@ export default function TodosPedidosPage() {
     key: 'updated_at',
     direction: 'desc'
   });
-  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -114,7 +109,6 @@ export default function TodosPedidosPage() {
         toast.error("Erro ao atualizar prioridade: " + error.message);
       } else {
         setOrders(prev => prev.map(o => o.id === orderId ? { ...o, priority: !currentPriority } : o));
-        setRecentPayers(prev => prev.map(o => o.id === orderId ? { ...o, priority: !currentPriority } : o));
         toast.success(!currentPriority ? "Marcado como Prioridade!" : "Prioridade Removida");
       }
     };
@@ -176,46 +170,9 @@ export default function TodosPedidosPage() {
     }
   }, [currentPage, debouncedSearch, sortConfig]);
 
-  const fetchRecentPayers = useCallback(async () => {
-    setLoadingPayers(true);
-    try {
-      // Últimos 7 dias
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { data, error } = await supabase
-        .from("service_orders")
-        .select(`
-          *,
-          clients (
-            name,
-            phone
-          )
-        `)
-        .eq('payment_confirmed', true)
-        .not('payment_confirmed_at', 'is', null)
-        .gte('payment_confirmed_at', sevenDaysAgo.toISOString())
-        .order('payment_confirmed_at', { ascending: false }); // Mais recente no topo
-
-      if (error) {
-        toast.error("Erro ao carregar pagadores recentes: " + error.message);
-      } else {
-        setRecentPayers(data || []);
-      }
-    } catch (error: any) {
-      toast.error("Erro ao carregar pagadores recentes: " + error.message);
-    } finally {
-      setLoadingPayers(false);
-    }
-  }, []);
-
   useEffect(() => {
-    if (activeTab === "all") {
-      fetchOrders();
-    } else if (activeTab === "recent-payers") {
-      fetchRecentPayers();
-    }
-  }, [activeTab, fetchOrders, fetchRecentPayers]);
+    fetchOrders();
+  }, [fetchOrders]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -256,126 +213,6 @@ export default function TodosPedidosPage() {
       );
     };
 
-  const renderTable = (data: Order[], isLoading: boolean) => (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader className="bg-slate-50/50">
-          <TableRow>
-            <TableHead 
-              className="font-bold py-6 pl-8 cursor-pointer hover:text-blue-600 transition-colors"
-              onClick={() => handleSort('os_number')}
-            >
-              <div className="flex items-center">
-                OS {getSortIcon('os_number')}
-              </div>
-            </TableHead>
-            <TableHead 
-              className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
-              onClick={() => handleSort('client')}
-            >
-              <div className="flex items-center">
-                Cliente {getSortIcon('client')}
-              </div>
-            </TableHead>
-            <TableHead 
-              className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
-              onClick={() => handleSort('entry_date')}
-            >
-              <div className="flex items-center">
-                Entrada {getSortIcon('entry_date')}
-              </div>
-            </TableHead>
-              <TableHead 
-                className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
-                onClick={() => handleSort('delivery_date')}
-              >
-                <div className="flex items-center">
-                  Entrega {getSortIcon('delivery_date')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
-                onClick={() => handleSort('status')}
-              >
-                <div className="flex items-center">
-                  Status {getSortIcon('status')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="font-bold cursor-pointer hover:text-blue-600 transition-colors text-center"
-                onClick={() => handleSort('priority')}
-              >
-                <div className="flex items-center justify-center">
-                  Prioridade {getSortIcon('priority')}
-                </div>
-              </TableHead>
-              <TableHead className="font-bold pr-8">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-        <TableBody>
-          {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-20">Carregando...</TableCell></TableRow>
-          ) : data.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-20 text-slate-400">Nenhuma OS encontrada</TableCell></TableRow>
-          ) : (
-            data.map((order) => (
-                <TableRow key={order.id} className={`hover:bg-slate-50/50 border-b border-slate-50 ${order.priority ? 'bg-amber-50/30' : ''}`}>
-                  <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
-                  <TableCell className="font-bold text-slate-700">
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="w-4 h-4 text-slate-400" />
-                      {order.clients?.name || "—"}
-                    </div>
-                  </TableCell>
-                <TableCell className="text-slate-500 text-xs font-bold">
-                  {order.entry_date ? formatDate(order.entry_date) : "—"}
-                </TableCell>
-                <TableCell>
-                  {order.delivery_date ? (
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                      <Calendar className="w-4 h-4 text-slate-400" />
-                      {formatDate(order.delivery_date)}
-                    </div>
-                  ) : (
-                    <span className="text-slate-400 text-xs">—</span>
-                  )}
-                </TableCell>
-                <TableCell>{getStatusBadge(order.status)}</TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => togglePriority(order.id, order.priority)}
-                    className={`rounded-full ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-slate-400'}`}
-                  >
-                    <Star className={`w-5 h-5 ${order.priority ? 'fill-amber-500' : ''}`} />
-                  </Button>
-                </TableCell>
-                <TableCell className="pr-8">
-                  <div className="flex items-center gap-2">
-                    <Link href={`/interno/os/${order.id}`} prefetch={false}>
-                      <Button variant="ghost" size="icon" className="rounded-full hover:bg-blue-50 hover:text-blue-600">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="rounded-full hover:bg-green-50 hover:text-green-600"
-                      onClick={() => sendWhatsAppMessage(order)}
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
-                  </div>
-              </TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
-  </div>
-  );
-
   return (
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex items-center justify-between pt-8">
@@ -395,33 +232,136 @@ export default function TodosPedidosPage() {
 
       <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
         <CardHeader className="bg-white border-b border-slate-50 p-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-              <TabsTrigger value="all">Todas</TabsTrigger>
-              <TabsTrigger value="recent-payers">Pagadores Recentes</TabsTrigger>
-            </TabsList>
-
-            {activeTab === "all" && (
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Buscar por OS ou cliente..."
-                  className="pl-11 h-12 bg-slate-50 border-none rounded-2xl focus-visible:ring-2 ring-blue-500/20 font-medium"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-            )}
-          </Tabs>
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por OS ou cliente..."
+              className="pl-11 h-12 bg-slate-50 border-none rounded-2xl focus-visible:ring-2 ring-blue-500/20 font-medium"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          {activeTab === "all" ? (
-            renderTable(orders, loading)
-          ) : (
-            renderTable(recentPayers, loadingPayers)
-          )}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50/50">
+                <TableRow>
+                  <TableHead 
+                    className="font-bold py-6 pl-8 cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => handleSort('os_number')}
+                  >
+                    <div className="flex items-center">
+                      OS {getSortIcon('os_number')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => handleSort('client')}
+                  >
+                    <div className="flex items-center">
+                      Cliente {getSortIcon('client')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => handleSort('entry_date')}
+                  >
+                    <div className="flex items-center">
+                      Entrada {getSortIcon('entry_date')}
+                    </div>
+                  </TableHead>
+                    <TableHead 
+                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('delivery_date')}
+                    >
+                      <div className="flex items-center">
+                        Entrega {getSortIcon('delivery_date')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        Status {getSortIcon('status')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="font-bold cursor-pointer hover:text-blue-600 transition-colors text-center"
+                      onClick={() => handleSort('priority')}
+                    >
+                      <div className="flex items-center justify-center">
+                        Prioridade {getSortIcon('priority')}
+                      </div>
+                    </TableHead>
+                    <TableHead className="font-bold pr-8">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+              <TableBody>
+                {loading ? (
+                    <TableRow><TableCell colSpan={7} className="text-center py-20">Carregando...</TableCell></TableRow>
+                ) : orders.length === 0 ? (
+                    <TableRow><TableCell colSpan={7} className="text-center py-20 text-slate-400">Nenhuma OS encontrada</TableCell></TableRow>
+                ) : (
+                  orders.map((order) => (
+                      <TableRow key={order.id} className={`hover:bg-slate-50/50 border-b border-slate-50 ${order.priority ? 'bg-amber-50/30' : ''}`}>
+                        <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
+                        <TableCell className="font-bold text-slate-700">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="w-4 h-4 text-slate-400" />
+                            {order.clients?.name || "—"}
+                          </div>
+                        </TableCell>
+                      <TableCell className="text-slate-500 text-xs font-bold">
+                        {order.entry_date ? formatDate(order.entry_date) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {order.delivery_date ? (
+                          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                            <Calendar className="w-4 h-4 text-slate-400" />
+                            {formatDate(order.delivery_date)}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(order.status)}</TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => togglePriority(order.id, order.priority)}
+                          className={`rounded-full ${order.priority ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-slate-400'}`}
+                        >
+                          <Star className={`w-5 h-5 ${order.priority ? 'fill-amber-500' : ''}`} />
+                        </Button>
+                      </TableCell>
+                      <TableCell className="pr-8">
+                        <div className="flex items-center gap-2">
+                          <Link href={`/interno/os/${order.id}`} prefetch={false}>
+                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-blue-50 hover:text-blue-600">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="rounded-full hover:bg-green-50 hover:text-green-600"
+                            onClick={() => sendWhatsAppMessage(order)}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                        </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
         </CardContent>
-        {activeTab === "all" && totalPages > 1 && (
+        {totalPages > 1 && (
           <CardFooter className="flex items-center justify-between p-6 border-t border-slate-50">
             <p className="text-sm text-slate-500 font-medium">
               Página {currentPage} de {totalPages} • {totalCount} OS no total
@@ -446,13 +386,6 @@ export default function TodosPedidosPage() {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-          </CardFooter>
-        )}
-        {activeTab === "recent-payers" && (
-          <CardFooter className="flex items-center justify-center p-6 border-t border-slate-50">
-            <p className="text-sm text-slate-500 font-medium">
-              {recentPayers.length} pagamento(s) nos últimos 7 dias
-            </p>
           </CardFooter>
         )}
       </Card>
