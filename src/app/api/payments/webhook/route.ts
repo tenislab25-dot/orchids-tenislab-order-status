@@ -1,31 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createWebhookClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('[WEBHOOK] Recebido:', JSON.stringify(body, null, 2));
+    logger.log('[WEBHOOK] Recebido:', JSON.stringify(body, null, 2));
     
     // Verificar tipo
     if (body.type !== 'payment') {
-      console.log('[WEBHOOK] Tipo ignorado:', body.type);
+      logger.log('[WEBHOOK] Tipo ignorado:', body.type);
       return NextResponse.json({ received: true });
     }
 
     // Verificar ação
     if (!body.action || (!body.action.includes('payment.created') && !body.action.includes('payment.updated'))) {
-      console.log('[WEBHOOK] Ação ignorada:', body.action);
+      logger.log('[WEBHOOK] Ação ignorada:', body.action);
       return NextResponse.json({ received: true });
     }
 
     const paymentId = body.data?.id;
     
     if (!paymentId) {
-      console.error('[WEBHOOK] Payment ID não encontrado');
+      logger.error('[WEBHOOK] Payment ID não encontrado');
       return NextResponse.json({ received: true });
     }
 
-    console.log('[WEBHOOK] Processando payment:', paymentId);
+    logger.log('[WEBHOOK] Processando payment:', paymentId);
 
     // Criar cliente Supabase
     const supabase = createWebhookClient();
@@ -38,18 +39,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (findError || !existingPayment) {
-      console.error('[WEBHOOK] Pagamento não encontrado:', paymentId, findError);
+      logger.error('[WEBHOOK] Pagamento não encontrado:', paymentId, findError);
       return NextResponse.json({ received: true });
     }
 
-    console.log('[WEBHOOK] Pagamento encontrado:', existingPayment.id);
-    console.log('[WEBHOOK] OS:', existingPayment.service_orders?.os_number);
+    logger.log('[WEBHOOK] Pagamento encontrado:', existingPayment.id);
+    logger.log('[WEBHOOK] OS:', existingPayment.service_orders?.os_number);
 
     // Determinar status
     // payment.updated geralmente significa aprovado
     const newStatus = body.action === 'payment.updated' ? 'approved' : 'pending';
 
-    console.log('[WEBHOOK] Atualizando para:', newStatus);
+    logger.log('[WEBHOOK] Atualizando para:', newStatus);
 
     // Atualizar TODOS os pagamentos pendentes da mesma OS
     // Isso garante que mesmo que haja vários QR Codes gerados, todos sejam marcados como aprovados
@@ -63,11 +64,11 @@ export async function POST(request: NextRequest) {
       .in('status', ['pending', 'in_process']);
 
     if (updateError) {
-      console.error('[WEBHOOK] Erro ao atualizar payments:', updateError);
+      logger.error('[WEBHOOK] Erro ao atualizar payments:', updateError);
       return NextResponse.json({ received: true, error: updateError.message });
     }
 
-    console.log('[WEBHOOK] Status dos payments atualizado com sucesso!');
+    logger.log('[WEBHOOK] Status dos payments atualizado com sucesso!');
 
     // TAMBÉM atualizar payment_confirmed na service_orders
     if (newStatus === 'approved') {
@@ -80,9 +81,9 @@ export async function POST(request: NextRequest) {
         .eq('id', existingPayment.service_order_id);
 
       if (osUpdateError) {
-        console.error('[WEBHOOK] Erro ao atualizar service_orders:', osUpdateError);
+        logger.error('[WEBHOOK] Erro ao atualizar service_orders:', osUpdateError);
       } else {
-        console.log('[WEBHOOK] payment_confirmed atualizado na OS!');
+        logger.log('[WEBHOOK] payment_confirmed atualizado na OS!');
       }
     }
 
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
       newStatus,
     });
   } catch (error) {
-    console.error('[WEBHOOK] Erro:', error);
+    logger.error('[WEBHOOK] Erro:', error);
     return NextResponse.json({ 
       received: true,
       error: error instanceof Error ? error.message : String(error)

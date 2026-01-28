@@ -1,80 +1,70 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { canChangeToStatus, type UserRole, type Status } from "@/lib/auth";
+import { requireAdminOrAtendente } from "@/lib/auth-middleware";
+import { UpdateOrderStatusSchema, validateSchema } from "@/schemas";
+import { logger } from "@/lib/logger";
 
-const VALID_STATUSES = [
-  "Recebido",
-  "Em espera",
-  "Em serviço",
-  "Em finalização",
-  "Pronto",
-  "Entregue",
-  "Cancelado"
-];
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
     }
 
-    const token = authHeader.split(" ")[1];
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-
-    if (userError || !user) {
-      return NextResponse.json({ error: "Sessão inválida" }, { status: 401 });
+    const { user } = authResult;
+    
+    const body = await request.json();
+    
+    // Validar dados com Zod
+    const validation = validateSchema(UpdateOrderStatusSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: validation.errors },
+        { status: 400 }
+      );
     }
 
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const { order_id, status } = validation.data;
 
-    if (!profile) {
-      return NextResponse.json({ error: "Perfil não encontrado" }, { status: 403 });
-    }
-
-    const { orderId, status } = await request.json();
-
-    if (!orderId || !status) {
-      return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
-    }
-
-    if (typeof orderId !== "string" || orderId.length > 50) {
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
-    }
-
-    if (!VALID_STATUSES.includes(status)) {
-      return NextResponse.json({ error: "Status inválido" }, { status: 400 });
-    }
-
-    const { data: currentOrder } = await supabaseAdmin
+    // Buscar pedido atual
+    const { data: currentOrder, error: fetchError } = await supabaseAdmin
       .from("service_orders")
       .select("status")
-      .eq("id", orderId)
+      .eq("id", order_id)
       .single();
 
-    const userRole = profile.role as UserRole;
-    if (!canChangeToStatus(userRole, status as Status, currentOrder?.status)) {
+    if (fetchError || !currentOrder) {
+      return NextResponse.json(
+        { error: "Pedido não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    // Verificar permissão para mudar status
+    if (!canChangeToStatus(user.role as UserRole, status as Status, currentOrder.status)) {
       return NextResponse.json(
         { error: "Você não tem permissão para alterar para este status ou o pedido já foi entregue" },
         { status: 403 }
       );
     }
 
+    // Atualizar status
     const { error: updateError } = await supabaseAdmin
       .from("service_orders")
       .update({ status, updated_at: new Date().toISOString() })
-      .eq("id", orderId);
+      .eq("id", order_id);
 
     if (updateError) {
+      logger.error("Erro ao atualizar status:", updateError);
       return NextResponse.json({ error: "Erro ao atualizar status" }, { status: 500 });
     }
 
+    logger.log(`Status atualizado: ${order_id} -> ${status}`);
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error: any) {
+    logger.error("Erro no update-status:", error);
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

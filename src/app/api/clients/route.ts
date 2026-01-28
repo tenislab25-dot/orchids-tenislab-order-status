@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAdminOrAtendente } from "@/lib/auth-middleware";
+import { CreateClientSchema, validateSchema } from "@/schemas";
+import { logger } from "@/lib/logger";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const { searchParams } = new URL(request.url);
@@ -39,7 +48,7 @@ export async function GET(request: NextRequest) {
     const { data: clientsData, error } = await query;
 
     if (error) {
-      console.error("Erro ao buscar clientes:", error);
+      logger.error("Erro ao buscar clientes:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -93,7 +102,47 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(clientsWithStats);
   } catch (error: any) {
-    console.error("Erro no endpoint de clientes:", error);
+    logger.error("Erro no endpoint de clientes:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const body = await request.json();
+    
+    // Validar dados
+    const validation = validateSchema(CreateClientSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: validation.errors },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data, error } = await supabase
+      .from('clients')
+      .insert([validation.data])
+      .select()
+      .single();
+
+    if (error) {
+      logger.error("Erro ao criar cliente:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    logger.log("Cliente criado:", data.id);
+    return NextResponse.json(data, { status: 201 });
+  } catch (error: any) {
+    logger.error("Erro no POST de clientes:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

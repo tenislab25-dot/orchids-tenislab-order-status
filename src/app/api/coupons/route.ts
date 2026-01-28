@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireAdmin } from "@/lib/auth-middleware";
+import { CreateCouponSchema, validateSchema } from "@/schemas";
+import { logger } from "@/lib/logger";
 
 // GET /api/coupons - Listar todos os cupons
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Verificar autenticação (apenas ADMIN)
+    const authResult = await requireAdmin(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const { data, error } = await supabaseAdmin
       .from("coupons")
       .select(`
@@ -33,7 +42,7 @@ export async function GET() {
 
     return NextResponse.json(couponsWithStats);
   } catch (error: any) {
-    console.error("Erro ao buscar cupons:", error);
+    logger.error("Erro ao buscar cupons:", error);
     return NextResponse.json(
       { error: "Erro ao buscar cupons: " + error.message },
       { status: 500 }
@@ -44,32 +53,25 @@ export async function GET() {
 // POST /api/coupons - Criar novo cupom
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação (apenas ADMIN)
+    const authResult = await requireAdmin(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const body = await request.json();
-    const { code, discount_percent, expires_at, total_limit } = body;
-
-    // Validações
-    if (!code || !discount_percent || !expires_at || !total_limit) {
+    
+    // Validar dados com Zod
+    const validation = validateSchema(CreateCouponSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Campos obrigatórios: code, discount_percent, expires_at, total_limit" },
+        { error: 'Dados inválidos', details: validation.errors },
         { status: 400 }
       );
     }
 
-    if (discount_percent <= 0 || discount_percent > 100) {
-      return NextResponse.json(
-        { error: "Desconto deve estar entre 1% e 100%" },
-        { status: 400 }
-      );
-    }
-
-    if (total_limit <= 0) {
-      return NextResponse.json(
-        { error: "Limite total deve ser maior que 0" },
-        { status: 400 }
-      );
-    }
-
-    if (new Date(expires_at) <= new Date()) {
+    // Validação adicional: data de expiração deve ser futura
+    if (new Date(validation.data.expires_at) <= new Date()) {
       return NextResponse.json(
         { error: "Data de expiração deve ser futura" },
         { status: 400 }
@@ -80,11 +82,11 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from("coupons")
       .insert({
-        code: code.toUpperCase().trim(),
-        discount_percent,
-        expires_at,
-        total_limit,
-        is_active: true
+        code: validation.data.code,
+        discount_percent: validation.data.discount_percent,
+        expires_at: validation.data.expires_at,
+        total_limit: validation.data.total_limit,
+        is_active: validation.data.is_active ?? true
       })
       .select()
       .single();
@@ -99,9 +101,10 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
+    logger.log("Cupom criado:", data.code);
     return NextResponse.json(data, { status: 201 });
   } catch (error: any) {
-    console.error("Erro ao criar cupom:", error);
+    logger.error("Erro ao criar cupom:", error);
     return NextResponse.json(
       { error: "Erro ao criar cupom: " + error.message },
       { status: 500 }
