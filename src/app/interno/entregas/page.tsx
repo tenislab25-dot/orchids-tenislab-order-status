@@ -716,8 +716,7 @@ export default function EntregasPage() {
       
       // Se foi entregue, dispara a notificação automática via API
       if (novoStatus === "Entregue") {
-        fetch("/api/notifications/status-change", {
-          method: "POST",
+        fetch("/api/notifications/status-change", { method: "POST", credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             status: novoStatus,

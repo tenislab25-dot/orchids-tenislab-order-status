@@ -94,7 +94,9 @@ export default function ClientsPage() {
       setLoading(true);
       
       // Buscar todos os clientes com estatísticas
-      const response = await fetch("/api/clients");
+      const response = await fetch("/api/clients", {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error("Erro ao carregar clientes");
       const data = await response.json();
       

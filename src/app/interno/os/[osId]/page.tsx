@@ -327,8 +327,7 @@ export default function OSViewPage() {
         toast.success(`Status atualizado para: ${newStatus}`);
         
         // Notificação via API (opcional, não trava o processo)
-        fetch("/api/notifications/status-change", {
-          method: "POST",
+        fetch("/api/notifications/status-change", { method: "POST", credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             status: newStatus,

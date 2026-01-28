@@ -55,8 +55,7 @@ export default function LoginPage() {
   const send2FACode = useCallback(async (userId: string, userEmail: string) => {
     setSending2FA(true);
     try {
-      const response = await fetch("/api/auth/two-factor", {
-        method: "POST",
+      const response = await fetch("/api/auth/two-factor", { method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "send", userId, email: userEmail }),
       });
@@ -133,8 +132,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/auth/two-factor", {
-        method: "POST",
+      const response = await fetch("/api/auth/two-factor", { method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "verify", userId: pendingUser.id, code: twoFactorCode }),
       });

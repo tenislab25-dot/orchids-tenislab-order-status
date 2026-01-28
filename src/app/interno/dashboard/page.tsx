@@ -383,8 +383,7 @@ export default function DashboardPage() {
       );
       toast.success("Status atualizado!");
 
-      fetch("/api/notifications/status-change", {
-        method: "POST",
+      fetch("/api/notifications/status-change", { method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: newStatus,
