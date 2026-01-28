@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 function generateCode(): string {
@@ -100,12 +101,12 @@ export async function POST(request: Request) {
         });
 
       if (insertError) {
-        console.error("Error inserting 2FA code:", insertError);
+        logger.error("Error inserting 2FA code:", insertError);
         return NextResponse.json({ error: "Erro ao gerar código" }, { status: 500 });
       }
 
       if (process.env.NODE_ENV === "development") {
-        console.log(`[2FA] Código para ${email}: ${newCode}`);
+        logger.log(`[2FA] Código para ${email}: ${newCode}`);
       }
 
       return NextResponse.json({ success: true, message: "Código enviado" });
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Ação inválida" }, { status: 400 });
   } catch (error) {
-    console.error("2FA error:", error);
+    logger.error("2FA error:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
 }

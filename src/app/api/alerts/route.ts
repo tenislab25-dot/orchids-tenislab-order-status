@@ -1,11 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdminOrAtendente } from "@/lib/auth-middleware";
+import { logger } from "@/lib/logger";
 import { createClient } from "@supabase/supabase-js";
 import { verifyAuth, canManageOrders } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
   const auth = await verifyAuth(request);
   if (!auth || !canManageOrders(auth.role)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

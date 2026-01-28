@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { logger } from "@/lib/logger";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDateTime, formatDate } from "@/lib/date-utils";
@@ -70,7 +71,7 @@ export default function BancoDadosPage() {
       if (error) throw error;
       setOrders(data as Order[]);
     } catch (error: any) {
-      console.error("Erro ao buscar banco de dados:", error);
+      logger.error("Erro ao buscar banco de dados:", error);
       toast.error("Erro ao buscar banco de dados");
     } finally {
       setLoading(false);

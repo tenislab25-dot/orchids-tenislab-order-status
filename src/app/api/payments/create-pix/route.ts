@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminOrAtendente } from '@/lib/auth-middleware';
+import { logger } from '@/lib/logger';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -12,6 +14,12 @@ const payment = new Payment(client);
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const supabase = await createClient();
 
     // Pegar dados do body
@@ -50,7 +58,7 @@ export async function POST(request: NextRequest) {
         .eq('id', serviceOrderId);
 
       if (updateError) {
-        console.error('Erro ao atualizar OS com cupom:', updateError);
+        logger.error('Erro ao atualizar OS com cupom:', updateError);
       }
 
       // Registrar uso do cupom
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
         });
 
       if (usageError) {
-        console.error('Erro ao registrar uso do cupom:', usageError);
+        logger.error('Erro ao registrar uso do cupom:', usageError);
       }
 
       // Incrementar contador de uso do cupom
@@ -73,7 +81,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (incrementError) {
-        console.error('Erro ao incrementar uso do cupom:', incrementError);
+        logger.error('Erro ao incrementar uso do cupom:', incrementError);
         // Fallback: incrementar manualmente
         const { data: coupon } = await supabaseAdmin
           .from('coupons')
@@ -118,16 +126,16 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    console.log('[PIX] Criando pagamento no Mercado Pago:', paymentData);
+    logger.log('[PIX] Criando pagamento no Mercado Pago:', paymentData);
     const mpPayment = await payment.create({ body: paymentData });
-    console.log('[PIX] Resposta do Mercado Pago:', JSON.stringify(mpPayment, null, 2));
+    logger.log('[PIX] Resposta do Mercado Pago:', JSON.stringify(mpPayment, null, 2));
 
     // Extrair dados do PIX
     const pixData = mpPayment.point_of_interaction?.transaction_data;
-    console.log('[PIX] Dados do PIX extraídos:', pixData);
+    logger.log('[PIX] Dados do PIX extraídos:', pixData);
     
     if (!pixData || !pixData.qr_code || !pixData.qr_code_base64) {
-      console.error('[PIX] Dados do PIX inválidos:', { pixData, mpPayment });
+      logger.error('[PIX] Dados do PIX inválidos:', { pixData, mpPayment });
       return NextResponse.json(
         { 
           error: 'Erro ao gerar PIX no Mercado Pago',
@@ -158,7 +166,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (paymentError) {
-      console.error('Erro ao salvar pagamento:', paymentError);
+      logger.error('Erro ao salvar pagamento:', paymentError);
       return NextResponse.json(
         { error: 'Erro ao salvar pagamento no banco de dados' },
         { status: 500 }
@@ -172,13 +180,13 @@ export async function POST(request: NextRequest) {
       qr_code_base64: pixData.qr_code_base64,
     });
   } catch (error: any) {
-    console.error('[PIX] Erro ao criar pagamento PIX:', error);
-    console.error('[PIX] Stack trace:', error.stack);
-    console.error('[PIX] Detalhes completos do erro:', JSON.stringify(error, null, 2));
+    logger.error('[PIX] Erro ao criar pagamento PIX:', error);
+    logger.error('[PIX] Stack trace:', error.stack);
+    logger.error('[PIX] Detalhes completos do erro:', JSON.stringify(error, null, 2));
     
     // Extrair detalhes do erro do Mercado Pago
     const mpError = error?.cause || error?.response?.data || error;
-    console.error('[PIX] Erro do Mercado Pago:', JSON.stringify(mpError, null, 2));
+    logger.error('[PIX] Erro do Mercado Pago:', JSON.stringify(mpError, null, 2));
     
     return NextResponse.json(
       { 

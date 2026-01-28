@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from "@/lib/logger";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -61,7 +62,7 @@ export function PaymentModal({
 
       toast.success('QR Code PIX gerado com sucesso!');
     } catch (error) {
-      console.error('Erro ao gerar PIX:', error);
+      logger.error('Erro ao gerar PIX:', error);
       toast.error('Erro ao gerar PIX. Tente novamente.');
     } finally {
       setLoading(false);
@@ -94,7 +95,7 @@ export function PaymentModal({
 
       toast.success('Link de pagamento gerado com sucesso!');
     } catch (error) {
-      console.error('Erro ao gerar link de pagamento:', error);
+      logger.error('Erro ao gerar link de pagamento:', error);
       toast.error('Erro ao gerar link de pagamento. Tente novamente.');
     } finally {
       setLoading(false);

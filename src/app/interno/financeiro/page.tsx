@@ -17,6 +17,7 @@ import {
   FileDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { logger } from "@/lib/logger";
 import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -139,7 +140,7 @@ export default function FinanceiroPage() {
       toast.success("PDF exportado com sucesso!");
     } catch (error) {
       toast.error("Erro ao exportar PDF");
-      console.error(error);
+      logger.error(error);
     } finally {
       setExportingPdf(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,7 @@ export default function RotaAtivaPage() {
 
       setPedidos(filtrados || []);
     } catch (error: any) {
-      console.error("Erro ao carregar pedidos:", error);
+      logger.error("Erro ao carregar pedidos:", error);
       toast.error("Erro ao carregar pedidos");
     } finally {
       setLoadingPedidos(false);
@@ -100,7 +101,7 @@ export default function RotaAtivaPage() {
         "postgres_changes",
         { event: "*", table: "service_orders" },
         (payload) => {
-          console.log("Realtime update em rota ativa:", payload);
+          logger.log("Realtime update em rota ativa:", payload);
           // Delay de 300ms para dar tempo do banco atualizar previous_status
           setTimeout(() => {
             fetchPedidos();
@@ -177,7 +178,7 @@ export default function RotaAtivaPage() {
       toast.success(`Status atualizado para ${novoStatus}`);
       fetchPedidos();
     } catch (error: any) {
-      console.error("Erro ao atualizar status:", error);
+      logger.error("Erro ao atualizar status:", error);
       toast.error("Erro ao atualizar status");
     } finally {
       setUpdating(null);
@@ -212,7 +213,7 @@ export default function RotaAtivaPage() {
       toast.success("Entrega marcada como falha. Pedido movido para o final da fila.");
       fetchPedidos();
     } catch (error: any) {
-      console.error("Erro ao marcar falha:", error);
+      logger.error("Erro ao marcar falha:", error);
       toast.error("Erro ao marcar falha");
     } finally {
       setUpdating(null);
@@ -233,7 +234,7 @@ export default function RotaAtivaPage() {
       setNotesText("");
       fetchPedidos();
     } catch (error: any) {
-      console.error("Erro ao salvar observações:", error);
+      logger.error("Erro ao salvar observações:", error);
       toast.error("Erro ao salvar observações");
     }
   };
@@ -259,7 +260,7 @@ export default function RotaAtivaPage() {
       toast.success("Rota finalizada! Pedidos não concluídos voltaram para aguardando.");
       router.push("/interno/entregas");
     } catch (error: any) {
-      console.error("Erro ao finalizar rota:", error);
+      logger.error("Erro ao finalizar rota:", error);
       toast.error("Erro ao finalizar rota");
     }
   };

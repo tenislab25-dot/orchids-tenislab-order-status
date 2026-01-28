@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { canAccessPage, type UserRole } from "@/lib/auth";
@@ -28,7 +29,7 @@ export function useAuth(): AuthContextValue {
       setRole(null);
       window.location.href = "/interno/login";
     } catch (error) {
-      console.error("Erro ao sair:", error);
+      logger.error("Erro ao sair:", error);
       window.location.href = "/interno/login";
     }
   }, []);
@@ -91,7 +92,7 @@ export function useAuth(): AuthContextValue {
           }
         }
       } catch (err) {
-        console.error("Erro ao verificar autenticação:", err);
+        logger.error("Erro ao verificar autenticação:", err);
         if (isMounted) {
           // Se der erro mas tem cache, manter usuário logado
           const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;

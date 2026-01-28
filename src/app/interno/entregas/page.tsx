@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { 
   ChevronLeft, MapPin, Navigation, CheckCircle2, 
@@ -140,7 +141,7 @@ export default function EntregasPage() {
       setClienteSuggestions(data || []);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
+      logger.error('Erro ao buscar clientes:', error);
     }
   };
 
@@ -167,8 +168,8 @@ export default function EntregasPage() {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           
-          console.log('✅ GPS obtido com sucesso!');
-          console.log(`📍 Sua localização: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          logger.log('✅ GPS obtido com sucesso!');
+          logger.log(`📍 Sua localização: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
           
           setStartLocation({ lat, lng });
           setUserLocation({ lat, lng });
@@ -179,9 +180,9 @@ export default function EntregasPage() {
           setShowRouteConfigModal(true);
         },
         (error) => {
-          console.error('❌ Erro ao obter localização:', error);
-          console.error('Código do erro:', error.code);
-          console.error('Mensagem:', error.message);
+          logger.error('❌ Erro ao obter localização:', error);
+          logger.error('Código do erro:', error.code);
+          logger.error('Mensagem:', error.message);
           
           let errorMsg = 'Não foi possível obter sua localização.';
           if (error.code === 1) {
@@ -207,7 +208,7 @@ export default function EntregasPage() {
 
   const executeOptimizeRoute = async () => {
     try {
-      console.log('\n🚀 INICIANDO OTIMIZAÇÃO DE ROTA');
+      logger.log('\n🚀 INICIANDO OTIMIZAÇÃO DE ROTA');
       toast.info('🧮 Otimizando rota...');
 
       // Importar biblioteca de Plus Code
@@ -220,7 +221,7 @@ export default function EntregasPage() {
       
       // Usar localização atual como ponto de partida
       if (!startLocation) {
-        console.error('❌ Localização de início não disponível');
+        logger.error('❌ Localização de início não disponível');
         toast.error('Localização de início não disponível');
         return;
       }
@@ -228,16 +229,16 @@ export default function EntregasPage() {
       const START_LAT = startLocation.lat;
       const START_LNG = startLocation.lng;
       
-      console.log(`📍 PONTO DE PARTIDA (sua localização):`);
-      console.log(`   Lat: ${START_LAT.toFixed(6)}`);
-      console.log(`   Lng: ${START_LNG.toFixed(6)}`);
-      console.log(`🏢 Loja Tenislab: ${LOJA_LAT}, ${LOJA_LNG}`);
-      console.log(`🎯 Ponto final escolhido: ${endPointType}`);
+      logger.log(`📍 PONTO DE PARTIDA (sua localização):`);
+      logger.log(`   Lat: ${START_LAT.toFixed(6)}`);
+      logger.log(`   Lng: ${START_LNG.toFixed(6)}`);
+      logger.log(`🏢 Loja Tenislab: ${LOJA_LAT}, ${LOJA_LNG}`);
+      logger.log(`🎯 Ponto final escolhido: ${endPointType}`);
 
       // Obter data de hoje no formato YYYY-MM-DD
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      console.log('Data de hoje:', todayStr);
+      logger.log('Data de hoje:', todayStr);
       
       // Filtrar apenas pedidos do dia atual (coletas OU entregas)
       const pedidosDoDia = pedidos.filter(p => {
@@ -246,11 +247,11 @@ export default function EntregasPage() {
         const isPickupToday = pickupDate === todayStr;
         const isDeliveryToday = deliveryDate === todayStr;
         const isToday = isPickupToday || isDeliveryToday;
-        console.log(`OS ${p.os_number}: pickup_date=${pickupDate}, delivery_date=${deliveryDate}, isToday=${isToday}`);
+        logger.log(`OS ${p.os_number}: pickup_date=${pickupDate}, delivery_date=${deliveryDate}, isToday=${isToday}`);
         return isToday;
       });
       
-      console.log(`Total de pedidos: ${pedidos.length}, Pedidos do dia: ${pedidosDoDia.length}`);
+      logger.log(`Total de pedidos: ${pedidos.length}, Pedidos do dia: ${pedidosDoDia.length}`);
       
       if (pedidosDoDia.length === 0) {
         toast.error('Nenhuma entrega/coleta agendada para hoje!');
@@ -263,9 +264,9 @@ export default function EntregasPage() {
       for (const p of pedidosDoDia) {
         let lat, lng;
         
-        console.log(`Processando OS ${p.os_number} - Cliente: ${p.clients?.name}`);
-        console.log('  Plus Code:', p.clients?.plus_code);
-        console.log('  Coordinates:', p.clients?.coordinates);
+        logger.log(`Processando OS ${p.os_number} - Cliente: ${p.clients?.name}`);
+        logger.log('  Plus Code:', p.clients?.plus_code);
+        logger.log('  Coordinates:', p.clients?.coordinates);
         
         // Priorizar coordenadas diretas
         const coords = p.clients?.coordinates;
@@ -276,7 +277,7 @@ export default function EntregasPage() {
             if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
               lat = parts[0];
               lng = parts[1];
-              console.log('  ✓ Coordenadas extraídas (string):', lat, lng);
+              logger.log('  ✓ Coordenadas extraídas (string):', lat, lng);
             }
           }
           // Tentar como objeto JSON
@@ -284,7 +285,7 @@ export default function EntregasPage() {
             lat = parseFloat(coords.lat);
             lng = parseFloat(coords.lng);
             if (!isNaN(lat) && !isNaN(lng)) {
-              console.log('  ✓ Coordenadas extraídas (objeto):', lat, lng);
+              logger.log('  ✓ Coordenadas extraídas (objeto):', lat, lng);
             }
           }
         }
@@ -307,15 +308,15 @@ export default function EntregasPage() {
               const decoded = olc.decode(code);
               lat = decoded.latitudeCenter;
               lng = decoded.longitudeCenter;
-              console.log('  ✓ Coordenadas extraídas do Plus Code:', lat, lng);
+              logger.log('  ✓ Coordenadas extraídas do Plus Code:', lat, lng);
             } catch (error) {
-              console.warn(`  ✗ Não foi possível decodificar Plus Code da OS ${p.os_number}:`, error);
+              logger.warn(`  ✗ Não foi possível decodificar Plus Code da OS ${p.os_number}:`, error);
             }
           }
         }
         
         if (lat && lng) {
-          console.log('  ✓ Adicionado à rota!');
+          logger.log('  ✓ Adicionado à rota!');
           waypoints.push({
             id: p.id,
             lat,
@@ -324,7 +325,7 @@ export default function EntregasPage() {
             clientName: p.clients?.name
           });
         } else {
-          console.log('  ✗ Não foi possível obter coordenadas - IGNORADO');
+          logger.log('  ✗ Não foi possível obter coordenadas - IGNORADO');
         }
       }
 
@@ -334,7 +335,7 @@ export default function EntregasPage() {
       }
 
       // Passo 1: Algoritmo do vizinho mais próximo (solução inicial)
-      console.log('\n=== PASSO 1: Vizinho mais próximo ===');
+      logger.log('\n=== PASSO 1: Vizinho mais próximo ===');
       let route = [];
       const remaining = [...waypoints];
       let currentLat = START_LAT;
@@ -378,7 +379,7 @@ export default function EntregasPage() {
           END_LAT = decoded.latitudeCenter;
           END_LNG = decoded.longitudeCenter;
         } catch (error) {
-          console.error('Erro ao decodificar ponto final:', error);
+          logger.error('Erro ao decodificar ponto final:', error);
           toast.error('Ponto final inválido, usando localização atual');
         }
       } else if (endPointType === 'none') {
@@ -395,10 +396,10 @@ export default function EntregasPage() {
       if (endPointType !== 'none') {
         initialDistance += calculateDistance(route[route.length - 1].lat, route[route.length - 1].lng, END_LAT, END_LNG);
       }
-      console.log('Distância inicial:', initialDistance.toFixed(2), 'km');
+      logger.log('Distância inicial:', initialDistance.toFixed(2), 'km');
 
       // Passo 2: Otimização 2-opt (eliminar cruzamentos)
-      console.log('\n=== PASSO 2: Otimização 2-opt ===');
+      logger.log('\n=== PASSO 2: Otimização 2-opt ===');
       let improved = true;
       let iterations = 0;
       const maxIterations = 100;
@@ -426,7 +427,7 @@ export default function EntregasPage() {
               const segment = route.slice(i, j + 1).reverse();
               route = [...route.slice(0, i), ...segment, ...route.slice(j + 1)];
               improved = true;
-              console.log(`Iteração ${iterations}: Melhorou ${(currentDist - newDist).toFixed(3)} km`);
+              logger.log(`Iteração ${iterations}: Melhorou ${(currentDist - newDist).toFixed(3)} km`);
             }
           }
         }
@@ -442,10 +443,10 @@ export default function EntregasPage() {
       }
       
       const improvement = ((initialDistance - finalDistance) / initialDistance * 100).toFixed(1);
-      console.log('\nDistância final (com retorno):', finalDistance.toFixed(2), 'km');
-      console.log('Distância economizada:', (initialDistance - finalDistance).toFixed(2), 'km');
-      console.log('Melhoria:', improvement, '%');
-      console.log('Iterações 2-opt:', iterations);
+      logger.log('\nDistância final (com retorno):', finalDistance.toFixed(2), 'km');
+      logger.log('Distância economizada:', (initialDistance - finalDistance).toFixed(2), 'km');
+      logger.log('Melhoria:', improvement, '%');
+      logger.log('Iterações 2-opt:', iterations);
 
       const optimized = route;
 
@@ -468,7 +469,7 @@ export default function EntregasPage() {
       toast.success(`Rota iniciada! ${reordered.length} entregas | Melhoria: ${improvement}%`);
       
     } catch (error) {
-      console.error('Erro ao otimizar rota:', error);
+      logger.error('Erro ao otimizar rota:', error);
       toast.error('Erro ao otimizar rota.');
     }
   };
@@ -482,10 +483,10 @@ export default function EntregasPage() {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
-          console.log('Localização atualizada:', position.coords.latitude, position.coords.longitude);
+          logger.log('Localização atualizada:', position.coords.latitude, position.coords.longitude);
         },
         (error) => {
-          console.error('Erro ao obter localização:', error);
+          logger.error('Erro ao obter localização:', error);
           toast.error('Não foi possível acessar sua localização');
         },
         {
@@ -637,7 +638,7 @@ export default function EntregasPage() {
         setRotaAtiva(false);
       }
     } catch (error: any) {
-      console.error("Erro ao carregar entregas:", error);
+      logger.error("Erro ao carregar entregas:", error);
       toast.error("Erro ao carregar entregas");
     } finally {
       setLoading(false);
@@ -660,7 +661,7 @@ export default function EntregasPage() {
         "postgres_changes",
         { event: "*", table: "service_orders" },
         (payload) => {
-          console.log("Realtime update em entregas:", payload);
+          logger.log("Realtime update em entregas:", payload);
           fetchPedidos(); // Atualiza lista automaticamente
         }
       )
@@ -685,7 +686,7 @@ export default function EntregasPage() {
       setNotesText("");
       fetchPedidos();
     } catch (error: any) {
-      console.error("Erro ao salvar observações:", error);
+      logger.error("Erro ao salvar observações:", error);
       toast.error("Erro ao salvar observações");
     }
   };
@@ -1409,36 +1410,36 @@ export default function EntregasPage() {
             <Button
               onClick={async () => {
                 try {
-                  console.log('[CADASTRO] Iniciando cadastro de cliente...');
+                  logger.log('[CADASTRO] Iniciando cadastro de cliente...');
                   setSavingColeta(true);
                   
                   // Validações
                   if (!coletaForm.name || !coletaForm.phone) {
-                    console.log('[CADASTRO] Validação falhou: nome ou telefone vazio');
+                    logger.log('[CADASTRO] Validação falhou: nome ou telefone vazio');
                     toast.error('Preencha nome e telefone');
                     setSavingColeta(false);
                     return;
                   }
                   
-                  console.log('[CADASTRO] Dados do formulário:', coletaForm);
+                  logger.log('[CADASTRO] Dados do formulário:', coletaForm);
 
                   let clientData;
                   
                   // Se já selecionou um cliente existente, atualiza os dados dele
                   if (selectedClient) {
-                    console.log('[CADASTRO] Atualizando cliente existente:', selectedClient.id);
+                    logger.log('[CADASTRO] Atualizando cliente existente:', selectedClient.id);
                     // Processa coordenadas se fornecidas (formato: lat,lng)
                     let coordinates = null;
                     if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
                       const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
                       if (!isNaN(lat) && !isNaN(lng)) {
                         coordinates = JSON.stringify({ lat, lng });
-                        console.log('[CADASTRO] Coordenadas processadas:', coordinates);
+                        logger.log('[CADASTRO] Coordenadas processadas:', coordinates);
                       }
                     }
 
                     // Atualiza dados do cliente existente
-                    console.log('[CADASTRO] Enviando atualização para Supabase...');
+                    logger.log('[CADASTRO] Enviando atualização para Supabase...');
                     const { error: updateError } = await supabase
                       .from('clients')
                       .update({
@@ -1460,19 +1461,19 @@ export default function EntregasPage() {
                       complement: coletaForm.complement || null
                     };
                   } else {
-                    console.log('[CADASTRO] Criando novo cliente...');
+                    logger.log('[CADASTRO] Criando novo cliente...');
                     // Processa coordenadas se fornecidas (formato: lat,lng)
                     let coordinates = null;
                     if (coletaForm.plusCode && coletaForm.plusCode.includes(',')) {
                       const [lat, lng] = coletaForm.plusCode.split(',').map(s => parseFloat(s.trim()));
                       if (!isNaN(lat) && !isNaN(lng)) {
                         coordinates = JSON.stringify({ lat, lng });
-                        console.log('[CADASTRO] Coordenadas processadas:', coordinates);
+                        logger.log('[CADASTRO] Coordenadas processadas:', coordinates);
                       }
                     }
 
                     // Cria novo cliente
-                    console.log('[CADASTRO] Enviando novo cliente para Supabase...');
+                    logger.log('[CADASTRO] Enviando novo cliente para Supabase...');
                     const { data: newClientData, error: clientError } = await supabase
                       .from('clients')
                       .insert({
@@ -1490,7 +1491,7 @@ export default function EntregasPage() {
                   }
 
                   // Gera número da OS no formato 000001/2026
-                  console.log('[CADASTRO] Gerando número da OS...');
+                  logger.log('[CADASTRO] Gerando número da OS...');
                   const currentYear = new Date().getFullYear();
                   const { data: lastOSArray, error: osQueryError } = await supabase
                     .from('service_orders')
@@ -1500,7 +1501,7 @@ export default function EntregasPage() {
                     .limit(1);
                   
                   if (osQueryError) {
-                    console.error('[CADASTRO] Erro ao buscar última OS:', osQueryError);
+                    logger.error('[CADASTRO] Erro ao buscar última OS:', osQueryError);
                     throw osQueryError;
                   }
                   
@@ -1512,15 +1513,15 @@ export default function EntregasPage() {
                     nextNumber = parseInt(numPart) + 1;
                   }
                   const newOsNumber = `${String(nextNumber).padStart(3, '0')}/${currentYear}`;
-                  console.log('[CADASTRO] Número da OS gerado:', newOsNumber);
+                  logger.log('[CADASTRO] Número da OS gerado:', newOsNumber);
 
                   // Formatar data de forma compatível com Safari
                   const today = new Date();
                   const entryDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                  console.log('[CADASTRO] Data de entrada:', entryDate);
+                  logger.log('[CADASTRO] Data de entrada:', entryDate);
 
                   // Cria a OS com status "Coleta"
-                  console.log('[CADASTRO] Criando OS no Supabase...');
+                  logger.log('[CADASTRO] Criando OS no Supabase...');
                   const { error: osError } = await supabase
                     .from('service_orders')
                     .insert({
@@ -1535,27 +1536,27 @@ export default function EntregasPage() {
                     });
 
                   if (osError) {
-                    console.error('[CADASTRO] Erro ao criar OS:', osError);
+                    logger.error('[CADASTRO] Erro ao criar OS:', osError);
                     throw osError;
                   }
 
-                  console.log('[CADASTRO] OS criada com sucesso!');
+                  logger.log('[CADASTRO] OS criada com sucesso!');
                   toast.success(`Coleta cadastrada! OS #${newOsNumber} criada com sucesso.`);
                   setShowColetaModal(false);
                   setColetaForm({ name: '', phone: '', plusCode: '', complement: '', deliveryDate: getTodayDate(), returnDate: '' });
                   setSelectedClient(null);
                   setShowSuggestions(false);
                   setClienteSuggestions([]);
-                  console.log('[CADASTRO] Recarregando lista de pedidos...');
+                  logger.log('[CADASTRO] Recarregando lista de pedidos...');
                   fetchPedidos();
-                  console.log('[CADASTRO] Processo concluído com sucesso!');
+                  logger.log('[CADASTRO] Processo concluído com sucesso!');
                 } catch (error: any) {
-                  console.error('[CADASTRO] ERRO CAPTURADO:', error);
-                  console.error('[CADASTRO] Stack trace:', error.stack);
-                  console.error('[CADASTRO] Mensagem:', error.message);
+                  logger.error('[CADASTRO] ERRO CAPTURADO:', error);
+                  logger.error('[CADASTRO] Stack trace:', error.stack);
+                  logger.error('[CADASTRO] Mensagem:', error.message);
                   toast.error('Erro ao cadastrar: ' + (error.message || 'Erro desconhecido'));
                 } finally {
-                  console.log('[CADASTRO] Finalizando (setSavingColeta = false)');
+                  logger.log('[CADASTRO] Finalizando (setSavingColeta = false)');
                   setSavingColeta(false);
                 }
               }}

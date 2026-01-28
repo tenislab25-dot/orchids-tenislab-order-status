@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 
 // POST /api/coupons/validate - Validar cupom para um cliente
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error: any) {
-    console.error("Erro ao validar cupom:", error);
+    logger.error("Erro ao validar cupom:", error);
     return NextResponse.json(
       { valid: false, error: "Erro ao validar cupom: " + error.message },
       { status: 500 }

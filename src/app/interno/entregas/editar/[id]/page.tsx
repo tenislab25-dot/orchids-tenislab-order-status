@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft, Loader2, Save, Trash2 } from "lucide-react";
 import { supabase, ensureValidSession } from "@/lib/supabase";
@@ -70,7 +71,7 @@ export default function EditarEntregaPage() {
         client_complement: data.clients?.complement || ''
       });
     } catch (error: any) {
-      console.error('Erro ao carregar entrega:', error);
+      logger.error('Erro ao carregar entrega:', error);
       toast.error('Erro ao carregar entrega');
       router.push('/interno/entregas');
     } finally {
@@ -160,7 +161,7 @@ export default function EditarEntregaPage() {
       toast.success('Entrega excluída com sucesso!');
       router.push('/interno/entregas');
     } catch (error: any) {
-      console.error('Erro ao excluir:', error);
+      logger.error('Erro ao excluir:', error);
       toast.error('Erro ao excluir entrega: ' + error.message);
     } finally {
       setDeleting(false);

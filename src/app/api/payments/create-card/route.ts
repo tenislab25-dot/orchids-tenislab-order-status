@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminOrAtendente } from '@/lib/auth-middleware';
+import { logger } from '@/lib/logger';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -12,6 +14,12 @@ const preference = new Preference(client);
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticação
+    const authResult = await requireAdminOrAtendente(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const supabase = await createClient();
 
     // Pegar dados do body
@@ -63,7 +71,7 @@ export async function POST(request: NextRequest) {
         .eq('id', serviceOrderId);
 
       if (updateError) {
-        console.error('Erro ao atualizar OS com cupom:', updateError);
+        logger.error('Erro ao atualizar OS com cupom:', updateError);
       }
 
       // Registrar uso do cupom
@@ -77,7 +85,7 @@ export async function POST(request: NextRequest) {
         });
 
       if (usageError) {
-        console.error('Erro ao registrar uso do cupom:', usageError);
+        logger.error('Erro ao registrar uso do cupom:', usageError);
       }
 
       // Incrementar contador de uso do cupom
@@ -86,7 +94,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (incrementError) {
-        console.error('Erro ao incrementar uso do cupom:', incrementError);
+        logger.error('Erro ao incrementar uso do cupom:', incrementError);
         // Fallback: incrementar manualmente
         const { data: coupon } = await supabaseAdmin
           .from('coupons')
@@ -168,7 +176,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (paymentError) {
-      console.error('Erro ao salvar pagamento:', paymentError);
+      logger.error('Erro ao salvar pagamento:', paymentError);
       return NextResponse.json(
         { error: 'Erro ao salvar pagamento no banco de dados' },
         { status: 500 }
@@ -183,7 +191,7 @@ export async function POST(request: NextRequest) {
       fee_amount: feeAmount.toFixed(2),
     });
   } catch (error) {
-    console.error('Erro ao criar pagamento com cartão:', error);
+    logger.error('Erro ao criar pagamento com cartão:', error);
     return NextResponse.json(
       { error: 'Erro ao criar pagamento com cartão' },
       { status: 500 }

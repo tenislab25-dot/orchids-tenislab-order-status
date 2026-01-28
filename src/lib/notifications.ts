@@ -27,7 +27,7 @@ export function playNotificationSound() {
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.3);
   } catch (error) {
-    console.error("Error playing notification sound:", error);
+    logger.error("Error playing notification sound:", error);
   }
 }
 
@@ -65,7 +65,7 @@ export function playAcceptedSound() {
     oscillator1.stop(ctx.currentTime + 1.0);
     oscillator2.stop(ctx.currentTime + 1.0);
   } catch (error) {
-    console.error("Error playing accepted sound:", error);
+    logger.error("Error playing accepted sound:", error);
   }
 }
 

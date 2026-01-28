@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { logger } from "@/lib/logger";
 import { 
   ArrowLeft, 
   LayoutDashboard,
@@ -342,7 +343,7 @@ export default function OSViewPage() {
         }
 
       } catch (error: any) {
-        console.error("Erro na atualização:", error);
+        logger.error("Erro na atualização:", error);
         toast.error("Falha ao atualizar status: " + error.message);
       } finally {
         setStatusUpdating(null);
@@ -404,7 +405,7 @@ export default function OSViewPage() {
       setOrder({ ...order, items: newItems });
       toast.success("Foto DEPOIS adicionada com sucesso!");
     } catch (error: any) {
-      console.error("Erro no upload:", error);
+      logger.error("Erro no upload:", error);
       toast.error("Erro ao adicionar foto: " + (error.message || "Erro desconhecido"));
     } finally {
       setUploadingAfterPhoto(null);

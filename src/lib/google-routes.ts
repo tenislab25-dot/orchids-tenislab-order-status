@@ -92,7 +92,7 @@ export async function optimizeDeliveryRoute(
     };
 
     // Simulação de resposta (remover quando implementar API real)
-    console.log('Simulando otimização de rota para:', points.length, 'pontos');
+    logger.log('Simulando otimização de rota para:', points.length, 'pontos');
     
     // Por enquanto, retorna os pontos na ordem original
     return {
@@ -134,7 +134,7 @@ export async function optimizeDeliveryRoute(
     };
     */
   } catch (error) {
-    console.error('Erro ao otimizar rota:', error);
+    logger.error('Erro ao otimizar rota:', error);
     throw error;
   }
 }
@@ -182,7 +182,7 @@ export async function plusCodeToCoordinates(
 
     throw new Error('Geocoding API não implementada ainda. Configure a API Key primeiro.');
   } catch (error) {
-    console.error('Erro ao converter Plus Code:', error);
+    logger.error('Erro ao converter Plus Code:', error);
     throw error;
   }
 }

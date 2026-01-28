@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { logger } from "@/lib/logger";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { 
@@ -302,7 +303,7 @@ export default function EditOSPage() {
             .from('photos')
             .remove([filePath]);
           
-          if (storageError) console.warn("Aviso: Foto não encontrada no servidor, mas será removida da tela.");
+          if (storageError) logger.warn("Aviso: Foto não encontrada no servidor, mas será removida da tela.");
         }
 
         // 3. Remove da tela (estado local) independente do resultado do servidor
@@ -321,7 +322,7 @@ export default function EditOSPage() {
 
         toast.success("Foto removida com sucesso!");
       } catch (error: any) {
-        console.error("Erro ao processar exclusão:", error);
+        logger.error("Erro ao processar exclusão:", error);
         toast.error("Erro ao remover foto.");
       }
     }

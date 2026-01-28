@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from "@/lib/logger";
 import { createClient } from '@/lib/supabase/server';
 
 export type UserRole = 'ADMIN' | 'ATENDENTE' | 'OPERACIONAL' | 'ENTREGADOR';
@@ -65,7 +66,7 @@ export async function requireAuth(
       }
     };
   } catch (error) {
-    console.error('[AUTH] Erro na autenticação:', error);
+    logger.error('[AUTH] Erro na autenticação:', error);
     return NextResponse.json(
       { error: 'Erro ao verificar autenticação.' },
       { status: 500 }

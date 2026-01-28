@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { logger } from "@/lib/logger";
 import { 
   Search, 
   MessageCircle, 
@@ -67,7 +68,7 @@ export default function Home() {
             
             setProcessedCount(totalSneakers + 480);
         } catch (err) {
-          console.error("Error fetching count:", err);
+          logger.error("Error fetching count:", err);
           setProcessedCount(480);
         }
       }

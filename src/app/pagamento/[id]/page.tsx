@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import { useParams } from "next/navigation";
 import { 
   CheckCircle2, 
@@ -72,7 +73,7 @@ export default function PaymentPage() {
           filter: `id=eq.${id}`
         },
         (payload) => {
-          console.log("Realtime payment update:", payload);
+          logger.log("Realtime payment update:", payload);
           // Atualizar apenas se payment_confirmed mudou
           if (payload.new && 'payment_confirmed' in payload.new) {
             setOrder((prev: any) => prev ? { ...prev, payment_confirmed: payload.new.payment_confirmed } : null);
@@ -127,7 +128,7 @@ export default function PaymentPage() {
       if (errorByOS) throw errorByOS;
       setOrder(dataByOS as any);
     } catch (error: any) {
-      console.error("Erro ao carregar OS:", error);
+      logger.error("Erro ao carregar OS:", error);
     } finally {
       setLoading(false);
     }
@@ -218,7 +219,7 @@ export default function PaymentPage() {
 
       toast.success('QR Code PIX gerado com sucesso!');
     } catch (error) {
-      console.error('Erro ao gerar PIX:', error);
+      logger.error('Erro ao gerar PIX:', error);
       toast.error('Erro ao gerar PIX. Tente novamente.');
     } finally {
       setGeneratingPix(false);
@@ -257,7 +258,7 @@ export default function PaymentPage() {
       // Redirecionar para o Mercado Pago
       window.location.href = data.init_point;
     } catch (error) {
-      console.error('Erro ao gerar link de pagamento:', error);
+      logger.error('Erro ao gerar link de pagamento:', error);
       toast.error('Erro ao gerar link de pagamento. Tente novamente.');
     } finally {
       setGeneratingCard(false);

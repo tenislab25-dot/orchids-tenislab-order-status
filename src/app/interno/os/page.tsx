@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";import Link from "next/link";
+import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -188,7 +189,7 @@ interface OSItem {
       .limit(1);
 
     if (error) {
-      console.error("Error generating OS number:", error);
+      logger.error("Error generating OS number:", error);
       const sequence = Math.floor(1000 + Math.random() * 9000);
       setOsNumber(`${sequence}/${year}`);
     } else if (data && data.length > 0) {
@@ -256,7 +257,7 @@ interface OSItem {
       setClienteSuggestions(data || []);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
+      logger.error('Erro ao buscar clientes:', error);
     }
   };
 

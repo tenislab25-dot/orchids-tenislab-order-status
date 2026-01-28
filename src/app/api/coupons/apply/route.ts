@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
 
 // POST /api/coupons/apply - Aplicar cupom em uma OS
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error: any) {
-    console.error("Erro ao aplicar cupom:", error);
+    logger.error("Erro ao aplicar cupom:", error);
     return NextResponse.json(
       { success: false, error: "Erro ao aplicar cupom: " + error.message },
       { status: 500 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { logger } from "@/lib/logger";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,7 @@ export default function LoginPage() {
           }
         }
       } catch (err) {
-        console.error("Erro ao verificar sessão:", err);
+        logger.error("Erro ao verificar sessão:", err);
       } finally {
         setIsChecking(false);
       }

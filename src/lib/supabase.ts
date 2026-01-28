@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from "@/lib/logger";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -33,7 +34,7 @@ if (typeof window !== 'undefined') {
       
       // Se ficou mais de 3 segundos fora, resetar Supabase
       if (timeAway > 3000) {
-        console.log('[Supabase] Detectado retorno do background, resetando conexões...');
+        logger.log('[Supabase] Detectado retorno do background, resetando conexões...');
         
         try {
           // 1. Remover TODOS os canais Realtime
@@ -45,14 +46,14 @@ if (typeof window !== 'undefined') {
           // 2. Renovar sessão de autenticação
           const { data, error } = await supabase.auth.refreshSession();
           if (error) {
-            console.warn('[Supabase] Erro ao renovar sessão:', error);
+            logger.warn('[Supabase] Erro ao renovar sessão:', error);
           } else {
-            console.log('[Supabase] Sessão renovada com sucesso');
+            logger.log('[Supabase] Sessão renovada com sucesso');
           }
           
-          console.log('[Supabase] Reset completo!');
+          logger.log('[Supabase] Reset completo!');
         } catch (err) {
-          console.error('[Supabase] Erro ao resetar:', err);
+          logger.error('[Supabase] Erro ao resetar:', err);
         }
       }
     } else {
@@ -79,7 +80,7 @@ export async function ensureValidSession(): Promise<boolean> {
       if (timeUntilExpiry < 600) {
         const { data, error: refreshError } = await supabase.auth.refreshSession();
         if (refreshError || !data.session) {
-          console.warn('Falha ao renovar sessão:', refreshError);
+          logger.warn('Falha ao renovar sessão:', refreshError);
           return false;
         }
       }
@@ -87,7 +88,7 @@ export async function ensureValidSession(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    console.error('Erro ao verificar sessão:', err);
+    logger.error('Erro ao verificar sessão:', err);
     return false;
   }
 }
@@ -109,8 +110,8 @@ export async function reconnectRealtime(): Promise<void> {
     for (const channel of channels) {
       await supabase.removeChannel(channel);
     }
-    console.log('Realtime: canais removidos para reconexão');
+    logger.log('Realtime: canais removidos para reconexão');
   } catch (err) {
-    console.error('Erro ao reconectar Realtime:', err);
+    logger.error('Erro ao reconectar Realtime:', err);
   }
 }

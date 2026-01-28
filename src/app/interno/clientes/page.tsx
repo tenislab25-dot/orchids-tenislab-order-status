@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logger } from "@/lib/logger";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -191,7 +192,7 @@ export default function ClientsPage() {
       fetchClients();
     } catch (error: any) {
       clearTimeout(timeoutId);
-      console.error("Erro ao salvar cliente:", error);
+      logger.error("Erro ao salvar cliente:", error);
       toast.error("Erro ao salvar cliente: " + (error.message || "Tente novamente"));
     } finally {
       setSaving(false);

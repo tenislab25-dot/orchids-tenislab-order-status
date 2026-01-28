@@ -72,7 +72,7 @@ export function plusCodeToCoordinates(plusCode: string): { lat: number; lng: num
       lng: Number(lng.toFixed(6))
     };
   } catch (error) {
-    console.error('Erro ao converter Plus Code:', error);
+    logger.error('Erro ao converter Plus Code:', error);
     return null;
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
+import { logger } from "@/lib/logger";
 import { useParams, useRouter } from "next/navigation";
 import { 
   CheckCircle2, 
@@ -166,7 +167,7 @@ export default function CustomerAcceptancePage() {
             filter: `id=eq.${id}`
           },
           (payload) => {
-            console.log("Realtime aceite update:", payload);
+            logger.log("Realtime aceite update:", payload);
             if (payload.new && 'client_accepted' in payload.new) {
               setOrder((prev: any) => prev ? { ...prev, client_accepted: payload.new.client_accepted } : null);
               if (payload.new.client_accepted) {

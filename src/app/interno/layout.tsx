@@ -22,7 +22,7 @@ export default function InternoLayout({
   useEffect(() => {
     if (loading && !isLoginPage) {
       loadingTimeoutRef.current = setTimeout(() => {
-        console.warn('Loading por mais de 10s, forçando reload...');
+        logger.warn('Loading por mais de 10s, forçando reload...');
         window.location.reload();
       }, 10000);
     } else {
