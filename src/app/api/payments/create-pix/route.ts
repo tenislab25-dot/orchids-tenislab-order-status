@@ -54,41 +54,9 @@ export async function POST(request: NextRequest) {
         logger.error('Erro ao atualizar OS com cupom:', updateError);
       }
 
-      // Registrar uso do cupom
-      const { error: usageError } = await supabaseAdmin
-        .from('coupon_usage')
-        .insert({
-          coupon_id: couponId,
-          client_id: serviceOrder.client_id,
-          service_order_id: serviceOrderId,
-          discount_amount: discountAmount
-        });
-
-      if (usageError) {
-        logger.error('Erro ao registrar uso do cupom:', usageError);
-      }
-
-      // Incrementar contador de uso do cupom
-      const { error: incrementError } = await supabaseAdmin.rpc('increment_coupon_usage', {
-        coupon_id_param: couponId
-      });
-
-      if (incrementError) {
-        logger.error('Erro ao incrementar uso do cupom:', incrementError);
-        // Fallback: incrementar manualmente
-        const { data: coupon } = await supabaseAdmin
-          .from('coupons')
-          .select('times_used')
-          .eq('id', couponId)
-          .single();
-
-        if (coupon) {
-          await supabaseAdmin
-            .from('coupons')
-            .update({ times_used: coupon.times_used + 1 })
-            .eq('id', couponId);
-        }
-      }
+      // NOTA: O registro de uso do cupom e incremento do contador
+      // serão feitos apenas DEPOIS que o pagamento for confirmado,
+      // no webhook do Mercado Pago (/api/payments/webhook)
     }
 
     // Criar pagamento PIX no Mercado Pago
