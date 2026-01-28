@@ -64,6 +64,10 @@ export async function GET(request: NextRequest) {
     alerts,
     count: alerts.length,
   });
+  } catch (error: any) {
+    logger.error("Erro no GET de alerts:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
