@@ -18,6 +18,12 @@ export default function RotaAtivaPage() {
   const [notesText, setNotesText] = useState("");
   const router = useRouter();
   const { role, loading: loadingAuth } = useAuth();
+  
+  // Estados para GPS e configuração de rota
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [showRouteConfigModal, setShowRouteConfigModal] = useState(false);
+  const [endPointType, setEndPointType] = useState<'current' | 'tenislab' | 'custom' | 'none'>('none');
+  const [customEndPoint, setCustomEndPoint] = useState('');
 
   const fetchPedidos = async () => {
     try {
@@ -330,6 +336,58 @@ export default function RotaAtivaPage() {
       return;
     }
 
+    // Obter localização GPS atual
+    toast.info('📍 Obtendo sua localização GPS...');
+    
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          setUserLocation({ lat, lng });
+          toast.success(`✅ Localização obtida! Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+          
+          // Abrir modal de configuração de ponto final
+          setShowRouteConfigModal(true);
+        },
+        (error) => {
+          logger.error('❌ Erro ao obter localização:', error);
+          
+          let errorMsg = 'Não foi possível obter sua localização.';
+          if (error.code === 1) {
+            errorMsg = 'Permissão de localização negada. Ative nas configurações do navegador.';
+          } else if (error.code === 2) {
+            errorMsg = 'Localização indisponível. Verifique se o GPS está ativo.';
+          } else if (error.code === 3) {
+            errorMsg = 'Tempo esgotado ao obter localização. Tente novamente.';
+          }
+          
+          toast.error(errorMsg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      toast.error('GPS não disponível neste dispositivo');
+    }
+  };
+
+  // Executar otimização após configuração
+  const executeOptimizeRoute = () => {
+    if (!userLocation) {
+      toast.error('Localização GPS não disponível');
+      return;
+    }
+
+    if (pedidosEmRota.length === 0) {
+      toast.error("Nenhum pedido Em Rota para otimizar.");
+      return;
+    }
+
     const pedidosComCoordenadas = pedidosEmRota
       .map(p => ({ pedido: p, coords: extrairCoordenadas(p) }))
       .filter(p => p.coords !== null);
@@ -348,62 +406,152 @@ export default function RotaAtivaPage() {
       return;
     }
 
-    // Algoritmo do vizinho mais próximo
+    // Algoritmo do vizinho mais próximo considerando GPS inicial e ponto final
+    toast.info('🧠 Otimizando rota...');
+    
     const rotaOtimizada: any[] = [];
     const naoVisitados = [...pedidosComCoordenadas];
     
-    // Começar com o primeiro pedido da lista
-    let atual = naoVisitados[0];
-    rotaOtimizada.push(atual.pedido);
-    naoVisitados.splice(0, 1);
-
-    // Enquanto houver pedidos não visitados
+    // Ponto inicial: localização GPS atual
+    let pontoAtual = { lat: userLocation.lat, lng: userLocation.lng };
+    
+    logger.log(`📍 Ponto inicial (GPS): ${pontoAtual.lat.toFixed(6)}, ${pontoAtual.lng.toFixed(6)}`);
+    logger.log(`🎯 Tipo de ponto final: ${endPointType}`);
+    
+    // Determinar ponto final
+    let pontoFinal: { lat: number, lng: number } | null = null;
+    
+    if (endPointType === 'current') {
+      // Voltar para onde está agora
+      pontoFinal = { lat: userLocation.lat, lng: userLocation.lng };
+      logger.log(`🔙 Ponto final: Localização atual (GPS)`);
+    } else if (endPointType === 'tenislab') {
+      // Voltar para Tenislab
+      const LOJA_LAT = parseFloat(process.env.NEXT_PUBLIC_STORE_LATITUDE || '-9.619938');
+      const LOJA_LNG = parseFloat(process.env.NEXT_PUBLIC_STORE_LONGITUDE || '-35.709313');
+      pontoFinal = { lat: LOJA_LAT, lng: LOJA_LNG };
+      logger.log(`🏢 Ponto final: Tenislab (${LOJA_LAT}, ${LOJA_LNG})`);
+    } else if (endPointType === 'custom' && customEndPoint.trim()) {
+      // Endereço personalizado - não temos coordenadas, usar como waypoint
+      logger.log(`📍 Ponto final: Endereço personalizado (${customEndPoint})`);
+    } else {
+      // Terminar no último ponto
+      logger.log(`🎯 Ponto final: Último ponto da rota`);
+    }
+    
+    // Algoritmo do vizinho mais próximo
     while (naoVisitados.length > 0) {
       let maisProximo = naoVisitados[0];
       let menorDistancia = calcularDistancia(
-        atual.coords!.lat, 
-        atual.coords!.lon,
+        pontoAtual.lat,
+        pontoAtual.lng,
         maisProximo.coords!.lat,
         maisProximo.coords!.lon
       );
-
-      // Encontrar o mais próximo
-      for (let i = 1; i < naoVisitados.length; i++) {
-        const distancia = calcularDistancia(
-          atual.coords!.lat,
-          atual.coords!.lon,
-          naoVisitados[i].coords!.lat,
-          naoVisitados[i].coords!.lon
-        );
-
-        if (distancia < menorDistancia) {
-          menorDistancia = distancia;
-          maisProximo = naoVisitados[i];
+      
+      // Se houver ponto final e for o último pedido, considerar distância até o ponto final
+      if (pontoFinal && naoVisitados.length === 1) {
+        // Último pedido - escolher o mais próximo do ponto final
+        for (let i = 0; i < naoVisitados.length; i++) {
+          const distanciaAteFinal = calcularDistancia(
+            naoVisitados[i].coords!.lat,
+            naoVisitados[i].coords!.lon,
+            pontoFinal.lat,
+            pontoFinal.lng
+          );
+          
+          const distanciaAtual = calcularDistancia(
+            pontoAtual.lat,
+            pontoAtual.lng,
+            naoVisitados[i].coords!.lat,
+            naoVisitados[i].coords!.lon
+          );
+          
+          // Considerar tanto a distância do ponto atual quanto do ponto final
+          const distanciaTotal = distanciaAtual + distanciaAteFinal;
+          
+          if (i === 0 || distanciaTotal < menorDistancia) {
+            menorDistancia = distanciaTotal;
+            maisProximo = naoVisitados[i];
+          }
+        }
+      } else {
+        // Encontrar o mais próximo do ponto atual
+        for (let i = 1; i < naoVisitados.length; i++) {
+          const distancia = calcularDistancia(
+            pontoAtual.lat,
+            pontoAtual.lng,
+            naoVisitados[i].coords!.lat,
+            naoVisitados[i].coords!.lon
+          );
+          
+          if (distancia < menorDistancia) {
+            menorDistancia = distancia;
+            maisProximo = naoVisitados[i];
+          }
         }
       }
-
+      
       // Adicionar o mais próximo à rota
       rotaOtimizada.push(maisProximo.pedido);
-      atual = maisProximo;
+      pontoAtual = { lat: maisProximo.coords!.lat, lng: maisProximo.coords!.lon };
       naoVisitados.splice(naoVisitados.indexOf(maisProximo), 1);
     }
+    
+    logger.log(`✅ Rota otimizada com ${rotaOtimizada.length} paradas`);
+
 
     // Construir URL do Google Maps com waypoints
-    const destino = rotaOtimizada[rotaOtimizada.length - 1];
-    const destinoLocation = destino.clients?.plus_code || destino.clients?.coordinates || destino.clients?.complement;
+    // Origem: localização GPS atual
+    const origem = `${userLocation.lat},${userLocation.lng}`;
     
-    const waypoints = rotaOtimizada.slice(0, -1).map(p => {
-      return p.clients?.plus_code || p.clients?.coordinates || p.clients?.complement;
-    }).filter(Boolean);
-
-    let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destinoLocation)}`;
+    // Determinar destino final
+    let destinoFinal: string;
+    
+    if (endPointType === 'current') {
+      // Voltar para onde está agora
+      destinoFinal = `${userLocation.lat},${userLocation.lng}`;
+    } else if (endPointType === 'tenislab') {
+      // Voltar para Tenislab
+      const LOJA_LAT = parseFloat(process.env.NEXT_PUBLIC_STORE_LATITUDE || '-9.619938');
+      const LOJA_LNG = parseFloat(process.env.NEXT_PUBLIC_STORE_LONGITUDE || '-35.709313');
+      destinoFinal = `${LOJA_LAT},${LOJA_LNG}`;
+    } else if (endPointType === 'custom' && customEndPoint.trim()) {
+      // Endereço personalizado
+      destinoFinal = customEndPoint;
+    } else {
+      // Terminar no último ponto
+      const ultimoPedido = rotaOtimizada[rotaOtimizada.length - 1];
+      destinoFinal = ultimoPedido.clients?.plus_code || ultimoPedido.clients?.coordinates || ultimoPedido.clients?.complement;
+    }
+    
+    // Waypoints: todos os pedidos (se terminar em ponto específico) ou todos menos o último (se terminar no último pedido)
+    let waypoints: string[];
+    
+    if (endPointType === 'none') {
+      // Terminar no último pedido - waypoints são todos menos o último
+      waypoints = rotaOtimizada.slice(0, -1).map(p => {
+        return p.clients?.plus_code || p.clients?.coordinates || p.clients?.complement;
+      }).filter(Boolean);
+    } else {
+      // Terminar em ponto específico - waypoints são todos os pedidos
+      waypoints = rotaOtimizada.map(p => {
+        return p.clients?.plus_code || p.clients?.coordinates || p.clients?.complement;
+      }).filter(Boolean);
+    }
+    
+    // Construir URL
+    let mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origem)}&destination=${encodeURIComponent(destinoFinal)}`;
     
     if (waypoints.length > 0) {
       mapsUrl += `&waypoints=${waypoints.map(w => encodeURIComponent(w)).join('|')}`;
     }
-
+    
+    logger.log(`🗺️ URL do Google Maps: ${mapsUrl}`);
+    
     window.open(mapsUrl, "_blank");
-    toast.success(`Rota otimizada com ${rotaOtimizada.length} paradas!`);
+    toast.success(`✅ Rota otimizada com ${rotaOtimizada.length} paradas!`);
+
   };
 
   // Mostrar loading enquanto carrega autenticação
@@ -768,6 +916,102 @@ export default function RotaAtivaPage() {
           )}
         </section>
       </main>
+
+      {/* Modal de Configuração de Ponto Final */}
+      {showRouteConfigModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-black text-gray-800 mb-2">🗺️ Otimizar Rota</h2>
+              <p className="text-sm text-gray-600">Onde você quer terminar a rota?</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => setEndPointType('none')}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  endPointType === 'none'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-bold text-gray-800">🎯 Terminar no último ponto</div>
+                <div className="text-sm text-gray-600">Finalizar no endereço da última entrega</div>
+              </button>
+
+              <button
+                onClick={() => setEndPointType('current')}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  endPointType === 'current'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-bold text-gray-800">📍 Voltar para onde estou agora</div>
+                <div className="text-sm text-gray-600">Retornar à sua localização atual (GPS)</div>
+              </button>
+
+              <button
+                onClick={() => setEndPointType('tenislab')}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  endPointType === 'tenislab'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-bold text-gray-800">🏢 Voltar para Tenislab</div>
+                <div className="text-sm text-gray-600">Retornar à loja após entregas</div>
+              </button>
+
+              <button
+                onClick={() => setEndPointType('custom')}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  endPointType === 'custom'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="font-bold text-gray-800">📍 Outro endereço</div>
+                <div className="text-sm text-gray-600">Informar um endereço personalizado</div>
+              </button>
+
+              {endPointType === 'custom' && (
+                <input
+                  type="text"
+                  value={customEndPoint}
+                  onChange={(e) => setCustomEndPoint(e.target.value)}
+                  placeholder="Digite o endereço ou Plus Code"
+                  className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-600 focus:outline-none"
+                />
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowRouteConfigModal(false);
+                  setEndPointType('none');
+                  setCustomEndPoint('');
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowRouteConfigModal(false);
+                  executeOptimizeRoute();
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                disabled={endPointType === 'custom' && !customEndPoint.trim()}
+              >
+                Otimizar Rota
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
