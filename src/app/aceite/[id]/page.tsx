@@ -134,7 +134,8 @@ export default function CustomerAcceptancePage() {
       } else {
         setOrder(data);
         setOrderFound(true);
-        if (data.status !== "Recebido" && data.status !== "Cancelado") {
+        // Verificar se já foi aceito: tem accepted_at OU status diferente de Recebido/Cancelado
+        if (data.accepted_at || (data.status !== "Recebido" && data.status !== "Cancelado")) {
           setIsConfirmed(true);
         }
       }
