@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // POST /api/coupons/validate - Validar cupom para um cliente
 export async function POST(request: NextRequest) {
@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Buscar cupom pelo código
-    const { data: coupon, error: couponError } = await supabase
+    // 1. Buscar cupom pelo código (usar supabaseAdmin para bypassar RLS)
+    const { data: coupon, error: couponError } = await supabaseAdmin
       .from("coupons")
       .select("*")
       .eq("code", code.toUpperCase().trim())
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // 5. Verificar se o cliente já usou este cupom (se clientId fornecido)
     if (clientId) {
-      const { data: usage, error: usageError } = await supabase
+      const { data: usage, error: usageError } = await supabaseAdmin
         .from("coupon_usage")
         .select("id")
         .eq("coupon_id", coupon.id)

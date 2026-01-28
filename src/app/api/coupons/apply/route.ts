@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // POST /api/coupons/apply - Aplicar cupom em uma OS
 export async function POST(request: NextRequest) {
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
     const discount_amount = (service_value * coupon.discount_percent) / 100;
     const new_total = service_value - discount_amount + (freight_value || 0);
 
-    // 3. Atualizar OS com cupom e desconto
-    const { error: osError } = await supabase
+    // 3. Atualizar OS com cupom e desconto (usar supabaseAdmin para bypassar RLS)
+    const { error: osError } = await supabaseAdmin
       .from("service_orders")
       .update({
         coupon_id: coupon.id,
@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
 
     if (osError) throw osError;
 
-    // 4. Registrar uso do cupom
-    const { error: usageError } = await supabase
+    // 4. Registrar uso do cupom (usar supabaseAdmin para bypassar RLS)
+    const { error: usageError } = await supabaseAdmin
       .from("coupon_usage")
       .insert({
         coupon_id: coupon.id,
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
 
     if (usageError) throw usageError;
 
-    // 5. Incrementar contador de uso do cupom
-    const { error: updateError } = await supabase
+    // 5. Incrementar contador de uso do cupom (usar supabaseAdmin para bypassar RLS)
+    const { error: updateError } = await supabaseAdmin
       .from("coupons")
       .update({
         times_used: coupon.times_used + 1
