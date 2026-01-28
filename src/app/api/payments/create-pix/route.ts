@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminOrAtendente } from '@/lib/auth-middleware';
 import { logger } from '@/lib/logger';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createClient } from '@/lib/supabase/server';
@@ -14,12 +13,7 @@ const payment = new Payment(client);
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticação
-    const authResult = await requireAdminOrAtendente(request);
-    if (authResult instanceof NextResponse) {
-      return authResult;
-    }
-
+    // API pública - não requer autenticação (cliente pode pagar sem login)
     const supabase = await createClient();
 
     // Pegar dados do body
