@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Coupon {
   id: string;
@@ -42,11 +43,11 @@ interface Coupon {
 
 export default function CuponsPage() {
   const router = useRouter();
+  const { role, loading: authLoading } = useAuth();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -57,19 +58,11 @@ export default function CuponsPage() {
   });
 
   useEffect(() => {
-    // Verificar role no localStorage (mesmo padrão das outras páginas)
-    const storedRole = localStorage.getItem("tenislab_role");
-    if (!storedRole) {
-      router.push("/interno/login");
-      return;
+    // Só buscar cupons quando a autenticação estiver pronta e o usuário tiver permissão
+    if (!authLoading && role && (role === "ADMIN" || role === "ATENDENTE")) {
+      fetchCoupons();
     }
-    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/interno/dashboard");
-      return;
-    }
-    setRole(storedRole);
-    fetchCoupons();
-  }, [router]);
+  }, [authLoading, role]);
 
   async function fetchCoupons() {
     try {
@@ -247,16 +240,15 @@ export default function CuponsPage() {
   const totalUsage = coupons.reduce((sum, c) => sum + c.usage_count, 0);
   const totalDiscount = coupons.reduce((sum, c) => sum + (c.usage_count * c.discount_percent), 0);
 
-  // Se não tem role, mostrar loading (está verificando)
-  if (!role) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="text-slate-500 mt-4">Verificando autenticação...</p>
-        </div>
-      </div>
-    );
+  // Se ainda está carregando autenticação ou não tem permissão, não renderizar nada
+  // O layout já cuida do redirecionamento e do loading
+  if (authLoading || !role) {
+    return null;
+  }
+
+  // Se não tem permissão, não mostrar nada (o layout já redireciona)
+  if (role !== "ADMIN" && role !== "ATENDENTE") {
+    return null;
   }
 
   return (
