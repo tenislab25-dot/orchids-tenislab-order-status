@@ -339,7 +339,7 @@ export default function TodosPedidosPage() {
                       </TableCell>
                       <TableCell className="pr-8">
                         <div className="flex items-center gap-2">
-                          <Link href={`/interno/os/${order.id}`} prefetch={false}>
+                          <Link href={`/interno/os/${order.os_number?.replace("/", "-")}`} prefetch={false}>
                             <Button variant="ghost" size="icon" className="rounded-full hover:bg-blue-50 hover:text-blue-600">
                               <Eye className="w-4 h-4" />
                             </Button>
