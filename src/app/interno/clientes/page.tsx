@@ -93,12 +93,62 @@ export default function ClientsPage() {
     try {
       setLoading(true);
       
-      // Buscar todos os clientes com estatísticas
-      const response = await fetch("/api/clients", {
-        cache: 'no-store'
+      // Buscar todos os clientes com estatísticas diretamente do Supabase
+      const { data: clientsData, error } = await supabase
+        .from("clients")
+        .select(`
+          id,
+          name,
+          phone,
+          email,
+          is_vip,
+          created_at,
+          service_orders (
+            id,
+            total,
+            created_at,
+            payment_confirmed
+          )
+        `);
+
+      if (error) throw new Error(error.message);
+
+      // Processar dados para adicionar estatísticas
+      const data = clientsData?.map((client: any) => {
+        const orders = client.service_orders || [];
+        const totalServices = orders.length;
+        const totalSpent = orders.reduce((sum: number, order: any) => sum + (Number(order.total) || 0), 0);
+        const ticketMedio = totalServices > 0 ? totalSpent / totalServices : 0;
+        
+        const sortedOrders = orders.sort((a: any, b: any) => 
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+        
+        const firstServiceDate = sortedOrders[0]?.created_at || null;
+        const lastServiceDate = sortedOrders[sortedOrders.length - 1]?.created_at || null;
+
+        return {
+          id: client.id,
+          name: client.name,
+          phone: client.phone,
+          email: client.email,
+          is_vip: client.is_vip || false,
+          created_at: client.created_at,
+          total_services: totalServices,
+          total_spent: totalSpent,
+          ticket_medio: ticketMedio,
+          first_service_date: firstServiceDate,
+          last_service_date: lastServiceDate,
+        };
+      }) || [];
+
+      // Ordenar por total de serviços
+      data.sort((a, b) => {
+        if (b.total_services !== a.total_services) {
+          return b.total_services - a.total_services;
+        }
+        return b.total_spent - a.total_spent;
       });
-      if (!response.ok) throw new Error("Erro ao carregar clientes");
-      const data = await response.json();
       
       setClients(data);
       

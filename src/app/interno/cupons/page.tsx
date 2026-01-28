@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 interface Coupon {
   id: string;
@@ -70,12 +71,42 @@ export default function CuponsPage() {
   async function fetchCoupons() {
     try {
       setLoading(true);
-      const response = await fetch("/api/coupons", { cache: "no-store",
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error("Erro ao buscar cupons");
-      const data = await response.json();
-      setCoupons(data);
+      
+      // Buscar cupons diretamente do Supabase
+      const { data, error } = await supabase
+        .from("coupons")
+        .select(`
+          id,
+          code,
+          discount_percent,
+          expires_at,
+          total_limit,
+          times_used,
+          is_active,
+          created_at,
+          coupon_usage (count)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw new Error(error.message);
+
+      // Processar dados
+      const processedData = data?.map((coupon: any) => {
+        const usageCount = coupon.coupon_usage?.[0]?.count || 0;
+        const remaining = coupon.total_limit - usageCount;
+        const isExpired = new Date(coupon.expires_at) < new Date();
+        const isAvailable = coupon.is_active && !isExpired && remaining > 0;
+
+        return {
+          ...coupon,
+          usage_count: usageCount,
+          remaining,
+          is_expired: isExpired,
+          is_available: isAvailable,
+        };
+      }) || [];
+
+      setCoupons(processedData);
     } catch (error: any) {
       toast.error("Erro ao carregar cupons: " + error.message);
     } finally {
