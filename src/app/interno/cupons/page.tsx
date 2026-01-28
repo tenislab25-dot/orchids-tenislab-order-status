@@ -46,6 +46,7 @@ export default function CuponsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -56,17 +57,41 @@ export default function CuponsPage() {
   });
 
   useEffect(() => {
-    const storedRole = localStorage.getItem("tenislab_role");
-    if (!storedRole) {
-      router.push("/interno/login");
-      return;
-    }
-    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/interno/dashboard");
-      return;
-    }
-    fetchCoupons();
+    checkAuthAndFetch();
   }, []);
+
+  async function checkAuthAndFetch() {
+    try {
+      // Verificar sessão do Supabase
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        // Tentar renovar a sessão
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError || !refreshData.session) {
+          router.push("/interno/login");
+          return;
+        }
+      }
+
+      // Verificar role no localStorage
+      const storedRole = localStorage.getItem("tenislab_role");
+      if (!storedRole) {
+        router.push("/interno/login");
+        return;
+      }
+      if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+        router.push("/interno/dashboard");
+        return;
+      }
+
+      setIsAuthenticated(true);
+      fetchCoupons();
+    } catch (err) {
+      router.push("/interno/login");
+    }
+  }
 
   async function fetchCoupons() {
     try {
@@ -122,31 +147,65 @@ export default function CuponsPage() {
       return;
     }
 
+    const code = formData.code.toUpperCase().trim();
+    const discountPercent = parseFloat(formData.discount_percent);
+    const totalLimit = parseInt(formData.total_limit);
+
+    // Validações
+    if (code.length < 3 || code.length > 50) {
+      toast.error("O código deve ter entre 3 e 50 caracteres");
+      return;
+    }
+
+    if (discountPercent < 1 || discountPercent > 100) {
+      toast.error("O desconto deve ser entre 1% e 100%");
+      return;
+    }
+
+    if (totalLimit < 1) {
+      toast.error("O limite deve ser pelo menos 1");
+      return;
+    }
+
     try {
       setCreating(true);
-      const response = await fetch("/api/coupons", { cache: "no-store",
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: formData.code.toUpperCase().trim(),
-          discount_percent: parseFloat(formData.discount_percent),
-          expires_at: new Date(formData.expires_at).toISOString(),
-          total_limit: parseInt(formData.total_limit)
-        })
-      });
 
-      const data = await response.json();
+      // Verificar se código já existe
+      const { data: existing, error: checkError } = await supabase
+        .from("coupons")
+        .select("id")
+        .eq("code", code)
+        .maybeSingle();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao criar cupom");
+      if (checkError) throw new Error(checkError.message);
+
+      if (existing) {
+        toast.error("Já existe um cupom com este código");
+        return;
       }
+
+      // Criar cupom diretamente no Supabase
+      const { data, error } = await supabase
+        .from("coupons")
+        .insert({
+          code,
+          discount_percent: discountPercent,
+          expires_at: new Date(formData.expires_at).toISOString(),
+          total_limit: totalLimit,
+          times_used: 0,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
 
       toast.success("Cupom criado com sucesso!");
       setShowCreateModal(false);
       setFormData({ code: "", discount_percent: "", expires_at: "", total_limit: "" });
       fetchCoupons();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Erro ao criar cupom: " + error.message);
     } finally {
       setCreating(false);
     }
@@ -154,18 +213,18 @@ export default function CuponsPage() {
 
   async function toggleCouponStatus(coupon: Coupon) {
     try {
-      const response = await fetch(`/api/coupons/${coupon.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: !coupon.is_active })
-      });
+      // Atualizar status diretamente no Supabase
+      const { error } = await supabase
+        .from("coupons")
+        .update({ is_active: !coupon.is_active })
+        .eq("id", coupon.id);
 
-      if (!response.ok) throw new Error("Erro ao atualizar cupom");
+      if (error) throw new Error(error.message);
 
       toast.success(coupon.is_active ? "Cupom desativado" : "Cupom ativado");
       fetchCoupons();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Erro ao atualizar cupom: " + error.message);
     }
   }
 
@@ -173,16 +232,32 @@ export default function CuponsPage() {
     if (!confirm(`Tem certeza que deseja deletar o cupom ${coupon.code}?`)) return;
 
     try {
-      const response = await fetch(`/api/coupons/${coupon.id}`, {
-        method: "DELETE"
-      });
+      // Verificar se o cupom já foi usado
+      const { data: usageData, error: usageError } = await supabase
+        .from("coupon_usage")
+        .select("id")
+        .eq("coupon_id", coupon.id)
+        .limit(1);
 
-      if (!response.ok) throw new Error("Erro ao deletar cupom");
+      if (usageError) throw new Error(usageError.message);
+
+      if (usageData && usageData.length > 0) {
+        toast.error("Não é possível deletar um cupom que já foi utilizado. Desative-o em vez disso.");
+        return;
+      }
+
+      // Deletar cupom diretamente no Supabase
+      const { error } = await supabase
+        .from("coupons")
+        .delete()
+        .eq("id", coupon.id);
+
+      if (error) throw new Error(error.message);
 
       toast.success("Cupom deletado");
       fetchCoupons();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Erro ao deletar cupom: " + error.message);
     }
   }
 
@@ -193,6 +268,18 @@ export default function CuponsPage() {
   const activeCoupons = coupons.filter(c => c.is_active && !c.is_expired);
   const totalUsage = coupons.reduce((sum, c) => sum + c.usage_count, 0);
   const totalDiscount = coupons.reduce((sum, c) => sum + (c.usage_count * c.discount_percent), 0);
+
+  // Se não está autenticado, mostrar loading
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="text-slate-500 mt-4">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 pb-20">
