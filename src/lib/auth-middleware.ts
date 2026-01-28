@@ -19,17 +19,29 @@ export async function requireAuth(
   allowedRoles?: UserRole[]
 ): Promise<{ user: AuthenticatedUser } | NextResponse> {
   try {
+    logger.log('[AUTH] Iniciando verificação de autenticação');
     const supabase = await createClient();
     
     // Verificar autenticação
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (authError || !user) {
+    if (authError) {
+      logger.error('[AUTH] Erro ao obter usuário:', authError);
+      return NextResponse.json(
+        { error: 'Não autenticado. Faça login para continuar.', details: authError.message },
+        { status: 401 }
+      );
+    }
+    
+    if (!user) {
+      logger.warn('[AUTH] Usuário não encontrado');
       return NextResponse.json(
         { error: 'Não autenticado. Faça login para continuar.' },
         { status: 401 }
       );
     }
+    
+    logger.log('[AUTH] Usuário autenticado:', user.id);
     
     // Buscar perfil do usuário
     const { data: profile, error: profileError } = await supabase

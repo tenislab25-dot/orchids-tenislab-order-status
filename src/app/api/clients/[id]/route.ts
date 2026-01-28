@@ -42,8 +42,12 @@ export async function GET(
       .single();
 
     if (clientError) {
-      logger.error("Erro ao buscar cliente:", clientError);
-      return NextResponse.json({ error: clientError.message }, { status: 500 });
+      logger.error("Erro ao buscar cliente:", { clientId, error: clientError });
+      return NextResponse.json({ 
+        error: "Erro ao buscar cliente", 
+        details: clientError.message,
+        code: clientError.code 
+      }, { status: 500 });
     }
 
     if (!clientData) {
@@ -87,8 +91,11 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error: any) {
-    logger.error("Erro no endpoint de cliente:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error("Erro no endpoint de cliente:", { error: error.message, stack: error.stack });
+    return NextResponse.json({ 
+      error: "Erro interno do servidor", 
+      details: error.message 
+    }, { status: 500 });
   }
 }
 
