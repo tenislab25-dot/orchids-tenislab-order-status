@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { requireAdminOrAtendente } from "@/lib/auth-middleware";
 import { UpdateClientSchema, validateSchema } from "@/schemas";
 import { logger } from "@/lib/logger";
+import { requireAdminOrAtendente } from "@/lib/auth-middleware";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -12,12 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Verificar autenticação
-    const authResult = await requireAdminOrAtendente(request);
-    if (authResult instanceof NextResponse) {
-      return authResult;
-    }
-
+    // Usar service key para bypassar RLS (API pública)
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const resolvedParams = await params;
     const clientId = resolvedParams.id;
