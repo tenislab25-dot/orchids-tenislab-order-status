@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
-import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // Configurar Mercado Pago
@@ -14,7 +13,7 @@ const payment = new Payment(client);
 export async function POST(request: NextRequest) {
   try {
     // API pública - não requer autenticação (cliente pode pagar sem login)
-    const supabase = await createClient();
+    // Usar supabaseAdmin para bypassar RLS
 
     // Pegar dados do body
     const { serviceOrderId, amount, couponId, discountAmount, couponCode } = await request.json();
@@ -26,8 +25,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Buscar dados da OS
-    const { data: serviceOrder, error: osError } = await supabase
+    // Buscar dados da OS (usar supabaseAdmin para bypassar RLS)
+    const { data: serviceOrder, error: osError } = await supabaseAdmin
       .from('service_orders')
       .select('*, clients(*)')
       .eq('id', serviceOrderId)
@@ -39,9 +38,9 @@ export async function POST(request: NextRequest) {
 
     // Se tem cupom, atualizar OS e registrar uso
     if (couponId && discountAmount) {
-      // Atualizar OS com cupom
+      // Atualizar OS com cupom (usar supabaseAdmin para bypassar RLS)
       const baseAmount = parseFloat(String(amount).replace(',', '.'));
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from('service_orders')
         .update({
           coupon_id: couponId,
@@ -140,8 +139,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Salvar pagamento no Supabase
-    const { data: paymentRecord, error: paymentError } = await supabase
+    // Salvar pagamento no Supabase (usar supabaseAdmin para bypassar RLS)
+    const { data: paymentRecord, error: paymentError } = await supabaseAdmin
       .from('payments')
       .insert({
         service_order_id: serviceOrderId,
