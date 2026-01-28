@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         .from('service_orders')
         .update({
           payment_confirmed: true,
+          payment_confirmed_at: new Date().toISOString(),
         })
         .eq('id', existingPayment.service_order_id);
 
