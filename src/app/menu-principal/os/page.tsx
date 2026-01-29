@@ -554,20 +554,6 @@ interface OSItem {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
-      <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
-        <div className="grid grid-cols-3 items-center max-w-md mx-auto">
-          <Link href="/menu-principal" prefetch={false} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          
-              <div className="text-center">
-                <h1 className="text-lg font-black tracking-tighter">{osNumber}</h1>
-              </div>
-
-          <div />
-        </div>
-      </header>
-
       <main className="flex flex-col gap-6 p-4 max-w-md mx-auto w-full animate-in fade-in duration-500">
         
         <section>

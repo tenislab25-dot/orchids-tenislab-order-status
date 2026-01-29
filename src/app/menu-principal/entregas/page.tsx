@@ -902,16 +902,11 @@ export default function EntregasPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-10">
-      <header className="bg-slate-900 p-6 text-white sticky top-0 z-10 shadow-xl">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/menu-principal")} className="rounded-full hover:bg-white/10 text-white">
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-            <div>
-              <h1 className="font-black text-xl tracking-tight">Entregas</h1>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Logística Tenislab</p>
-            </div>
+      <div className="bg-slate-900 p-4 text-white shadow-xl">
+        <div className="max-w-2xl mx-auto flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="font-black text-xl tracking-tight">Entregas</h1>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Logística Tenislab</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button
@@ -968,7 +963,7 @@ export default function EntregasPage() {
             </Badge>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="p-4 w-full mt-4">
         {pedidos.length === 0 ? (
