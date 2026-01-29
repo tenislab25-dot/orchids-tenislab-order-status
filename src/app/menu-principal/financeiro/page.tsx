@@ -61,6 +61,7 @@ interface Order {
   card_discount: number;
   delivery_fee: number;
   coupon_code: string | null;
+  mp_payment_id: string | null;
   items: any[];
   clients: {
     name: string;
@@ -80,14 +81,36 @@ export default function FinanceiroPage() {
   const [exportingPdf, setExportingPdf] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [monthlyGoal, setMonthlyGoal] = useState<number>(0);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [newGoalValue, setNewGoalValue] = useState<string>("");
 
   useEffect(() => {
     const storedRole = localStorage.getItem("tenislab_role");
     setRole(storedRole);
     if (storedRole === "ADMIN") {
       fetchOrders();
+      fetchMonthlyGoal();
     }
   }, []);
+
+  const fetchMonthlyGoal = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("financial_settings")
+        .select("monthly_goal")
+        .limit(1)
+        .single();
+
+      if (error) {
+        logger.error("Erro ao buscar meta mensal:", error);
+      } else if (data) {
+        setMonthlyGoal(Number(data.monthly_goal || 0));
+      }
+    } catch (err) {
+      logger.error("Erro ao buscar meta mensal:", err);
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -110,6 +133,7 @@ export default function FinanceiroPage() {
           card_discount,
           delivery_fee,
           coupon_code,
+          mp_payment_id,
           items,
           clients (
             name
@@ -145,8 +169,9 @@ export default function FinanceiroPage() {
       // Desconto de Cupom (discount_amount)
       totalCouponDiscounts += Number(o.discount_amount || 0);
       
-      // Desconto do Pix (0,99% quando payment_method = 'Pix')
-      if (o.payment_method === 'Pix') {
+      // Desconto do Pix (0,99% quando payment_method = 'Pix' E tem mp_payment_id)
+      // Só desconta se foi pelo sistema (Mercado Pago), não desconta Pix manual
+      if (o.payment_method === 'Pix' && o.mp_payment_id) {
         totalPixDiscounts += Number(o.total || 0) * 0.0099;
       }
       
@@ -158,7 +183,7 @@ export default function FinanceiroPage() {
     
     // Valor Recebido (Líquido) = Total - Todos os Descontos
     const totalReceived = confirmedOrders.reduce((acc, o) => {
-      const pixDiscount = o.payment_method === 'Pix' ? Number(o.total || 0) * 0.0099 : 0;
+      const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
       const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
       return acc + (Number(o.total || 0) - pixDiscount - cardFee);
     }, 0);
@@ -173,7 +198,7 @@ export default function FinanceiroPage() {
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .reduce((acc, o) => {
-        const pixDiscount = o.payment_method === 'Pix' ? Number(o.total || 0) * 0.0099 : 0;
+        const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
         const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
         return acc + (Number(o.total || 0) - pixDiscount - cardFee);
       }, 0);
@@ -191,7 +216,7 @@ export default function FinanceiroPage() {
         return d >= startOfWeek && d <= endOfWeek;
       })
       .reduce((acc, o) => {
-        const pixDiscount = o.payment_method === 'Pix' ? Number(o.total || 0) * 0.0099 : 0;
+        const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
         const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
         return acc + (Number(o.total || 0) - pixDiscount - cardFee);
       }, 0);
@@ -219,7 +244,7 @@ export default function FinanceiroPage() {
     const paymentBreakdown: Record<string, number> = {};
     confirmedOrders.forEach(o => {
       const method = o.payment_method || "Não informado";
-      const pixDiscount = o.payment_method === 'Pix' ? Number(o.total || 0) * 0.0099 : 0;
+      const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
       const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
       paymentBreakdown[method] = (paymentBreakdown[method] || 0) + (Number(o.total || 0) - pixDiscount - cardFee);
     });
@@ -250,6 +275,33 @@ export default function FinanceiroPage() {
         return dateB - dateA; // Mais recente primeiro
       })
       .slice(0, 10); // Últimos 10 pagamentos
+  }, [orders]);
+
+  // Serviços Mais Vendidos (Top 5)
+  const topServices = useMemo(() => {
+    const servicesCount: Record<string, { count: number; revenue: number }> = {};
+    
+    orders.forEach(order => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item: any) => {
+          if (item.services && Array.isArray(item.services)) {
+            item.services.forEach((service: any) => {
+              const name = service.name || 'Desconhecido';
+              if (!servicesCount[name]) {
+                servicesCount[name] = { count: 0, revenue: 0 };
+              }
+              servicesCount[name].count += 1;
+              servicesCount[name].revenue += Number(service.price || 0);
+            });
+          }
+        });
+      }
+    });
+
+    return Object.entries(servicesCount)
+      .sort(([, a], [, b]) => b.count - a.count)
+      .slice(0, 5)
+      .map(([name, data]) => ({ name, count: data.count, revenue: data.revenue }));
   }, [orders]);
 
   // ============================================
@@ -357,6 +409,44 @@ export default function FinanceiroPage() {
     if (selectedMonth === null) return null;
     return monthlyBreakdown[selectedMonth];
   }, [monthlyBreakdown, selectedMonth]);
+
+  // ============================================
+  // FUNÇÕES DA META MENSAL
+  // ============================================
+  
+  const handleSaveGoal = async () => {
+    const goalValue = parseFloat(newGoalValue.replace(/[^0-9,]/g, '').replace(',', '.'));
+    
+    if (isNaN(goalValue) || goalValue < 0) {
+      toast.error("Por favor, insira um valor válido");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("financial_settings")
+        .update({ monthly_goal: goalValue, updated_at: new Date().toISOString() })
+        .eq("id", "3048ab63-fa82-455c-a1ef-43a21a0e2728"); // ID do registro criado
+
+      if (error) {
+        toast.error("Erro ao salvar meta: " + error.message);
+        logger.error(error);
+      } else {
+        setMonthlyGoal(goalValue);
+        setIsEditingGoal(false);
+        setNewGoalValue("");
+        toast.success("Meta mensal atualizada com sucesso!");
+      }
+    } catch (err) {
+      toast.error("Erro ao salvar meta");
+      logger.error(err);
+    }
+  };
+
+  const handleOpenEditGoal = () => {
+    setNewGoalValue(monthlyGoal.toFixed(2));
+    setIsEditingGoal(true);
+  };
 
   // ============================================
   // FUNÇÕES DE EXPORTAÇÃO
@@ -738,6 +828,148 @@ export default function FinanceiroPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* SERVIÇOS MAIS VENDIDOS */}
+            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+              <CardHeader>
+                <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-purple-500" />
+                  Top 5 Serviços Mais Vendidos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {topServices.map((service, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-white rounded-2xl border border-purple-100">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-purple-500 text-white flex items-center justify-center font-black text-xl">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <span className="text-sm font-black text-slate-900">{service.name}</span>
+                          <p className="text-xs text-slate-500 font-bold">{service.count} vendas</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-black text-purple-600">
+                          R$ {service.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                        <p className="text-xs text-slate-500 font-bold">Faturamento</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* META MENSAL COM PROGRESSO */}
+            <Card className="rounded-[2rem] border-none shadow-xl shadow-emerald-200/30 bg-gradient-to-br from-emerald-50 to-white">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                    Meta Mensal
+                  </CardTitle>
+                  <Button
+                    onClick={handleOpenEditGoal}
+                    size="sm"
+                    className="rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
+                  >
+                    Editar Meta
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white p-6 rounded-2xl border-2 border-emerald-200">
+                    <span className="text-xs font-black text-emerald-600 uppercase tracking-widest">Meta</span>
+                    <p className="text-3xl font-black text-emerald-600 mt-2">
+                      R$ {monthlyGoal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border-2 border-blue-200">
+                    <span className="text-xs font-black text-blue-600 uppercase tracking-widest">Realizado</span>
+                    <p className="text-3xl font-black text-blue-600 mt-2">
+                      R$ {stats.thisMonthTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border-2 border-slate-200">
+                    <span className="text-xs font-black text-slate-600 uppercase tracking-widest">Falta</span>
+                    <p className="text-3xl font-black text-slate-900 mt-2">
+                      R$ {Math.max(0, monthlyGoal - stats.thisMonthTotal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* BARRA DE PROGRESSO */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-black text-slate-900">Progresso</span>
+                    <span className="text-sm font-black text-emerald-600">
+                      {monthlyGoal > 0 ? Math.min(100, (stats.thisMonthTotal / monthlyGoal) * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full h-6 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-500 flex items-center justify-end pr-2"
+                      style={{ width: `${monthlyGoal > 0 ? Math.min(100, (stats.thisMonthTotal / monthlyGoal) * 100) : 0}%` }}
+                    >
+                      {monthlyGoal > 0 && (stats.thisMonthTotal / monthlyGoal) * 100 > 10 && (
+                        <span className="text-xs font-black text-white">
+                          {Math.min(100, (stats.thisMonthTotal / monthlyGoal) * 100).toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {stats.thisMonthTotal >= monthlyGoal && monthlyGoal > 0 && (
+                  <div className="bg-emerald-100 border-2 border-emerald-500 p-4 rounded-2xl">
+                    <p className="text-center text-sm font-black text-emerald-700">
+                      🎉 Parabéns! Você atingiu a meta deste mês!
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* MODAL DE EDIÇÃO DA META */}
+            {isEditingGoal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <Card className="w-full max-w-md rounded-[2rem] border-none shadow-2xl">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-black uppercase tracking-tight">Editar Meta Mensal</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-bold text-slate-700 mb-2 block">Valor da Meta (R$)</label>
+                      <input
+                        type="text"
+                        value={newGoalValue}
+                        onChange={(e) => setNewGoalValue(e.target.value)}
+                        placeholder="0,00"
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl font-bold text-lg focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setIsEditingGoal(false)}
+                        variant="outline"
+                        className="flex-1 rounded-xl font-bold"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleSaveGoal}
+                        className="flex-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
+                      >
+                        Salvar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           {/* ============================================ */}
