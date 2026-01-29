@@ -98,6 +98,7 @@ export default function InternoLayout({
               <LogOut className="w-4 h-4" />
               Sair
             </Button>
+          </div>
             </div>
           </div>
         </div>
