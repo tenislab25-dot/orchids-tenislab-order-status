@@ -52,11 +52,9 @@ export default function InternoLayout({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
       {!isLoginPage && !isMainMenuPage && user && (
-        <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm mb-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
           <Link href="/menu-principal" prefetch={false} className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto hover:bg-slate-50 p-1 rounded-xl transition-colors">
             <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
               <User className="w-5 h-5 text-slate-400" />
@@ -98,13 +96,10 @@ export default function InternoLayout({
               <LogOut className="w-4 h-4" />
               Sair
             </Button>
-            </div>
           </div>
         </div>
       )}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

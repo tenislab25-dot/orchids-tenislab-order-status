@@ -902,6 +902,74 @@ export default function EntregasPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-10">
+      <header className="bg-slate-900 p-6 text-white sticky top-0 z-10 shadow-xl">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => router.push("/menu-principal")} className="rounded-full hover:bg-white/10 text-white">
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+            <div>
+              <h1 className="font-black text-xl tracking-tight">Entregas</h1>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Logística Tenislab</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              onClick={() => setShowColetaModal(true)}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold"
+            >
+              <UserPlus className="w-4 h-4 mr-1" />
+              Coleta
+            </Button>
+            {role?.toLowerCase() === 'entregador' && !rotaAtiva && (
+              <Button
+                onClick={handleOptimizeRoute}
+                disabled={selectedPedidos.size === 0}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
+              >
+                <Route className="w-4 h-4 mr-1" />
+                Iniciar Rota {selectedPedidos.size > 0 && `(${selectedPedidos.size})`}
+              </Button>
+            )}
+            {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente') && (
+              <Button
+                onClick={() => router.push('/menu-principal/rota-ativa')}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold"
+              >
+                <Route className="w-4 h-4 mr-1" />
+                Ver Rota
+              </Button>
+            )}
+            {role?.toLowerCase() === 'entregador' && rotaAtiva && (
+              <>
+                <Button
+                  onClick={handleFinalizarRota}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-full font-bold"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-1" />
+                  Finalizar
+                </Button>
+                <Button
+                  onClick={handleResetRoute}
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-full font-bold"
+                >
+                  <XCircle className="w-4 h-4 mr-1" />
+                  Resetar
+                </Button>
+              </>
+            )}
+            <Badge className="bg-blue-500 text-white border-none px-4 py-1 rounded-full font-black">
+              {pedidos.length}
+            </Badge>
+          </div>
+        </div>
+      </header>
+
       <main className="p-4 w-full mt-4">
         {pedidos.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-200 shadow-sm max-w-2xl mx-auto">

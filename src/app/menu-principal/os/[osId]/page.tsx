@@ -744,6 +744,24 @@ export default function OSViewPage() {
 
     return (
     <div className="min-h-screen bg-slate-50 pb-20">
+      <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
+        <div className="grid grid-cols-3 items-center max-w-6xl mx-auto">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full -ml-2 w-fit"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          </Button>
+            <div className="flex flex-col items-center text-center">
+              <h1 className="text-sm font-bold text-slate-900 leading-none">Detalhes</h1>
+              <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">{order.os_number}</span>
+            </div>
+          <div />
+        </div>
+      </header>
+
       <main className="max-w-6xl mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-8 items-start animate-in fade-in duration-500">
         
         <div className="lg:col-span-4 lg:col-start-9 flex flex-col gap-5 mb-5 lg:mb-0">

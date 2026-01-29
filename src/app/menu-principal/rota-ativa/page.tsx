@@ -584,6 +584,35 @@ export default function RotaAtivaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
+      <header className="bg-white shadow-md sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/menu-principal/entregas")}
+              className="rounded-full"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-black text-gray-800">Rota Ativa</h1>
+              <p className="text-sm text-gray-600">
+                {pedidosEmRota.length} em rota • {pedidosAguardando.length} aguardando
+              </p>
+            </div>
+            {role?.toLowerCase() === 'entregador' && (
+              <Button
+                onClick={finalizarRota}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl"
+              >
+                Finalizar Rota
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Em Rota */}
         <section className="bg-white rounded-2xl shadow-lg p-6">
