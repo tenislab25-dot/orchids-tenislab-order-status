@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     let paymentStatus = 'pending';
+    let mercadoPagoFee = 0;
     try {
       const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
         headers: {
@@ -65,6 +66,17 @@ export async function POST(request: NextRequest) {
         const mpData = await mpResponse.json();
         paymentStatus = mpData.status; // approved, pending, rejected, etc.
         logger.log('[WEBHOOK] Status do MP:', paymentStatus);
+        
+        // Extrair taxa do Mercado Pago de fee_details
+        if (mpData.fee_details && Array.isArray(mpData.fee_details) && mpData.fee_details.length > 0) {
+          // Somar todas as taxas
+          mercadoPagoFee = mpData.fee_details.reduce((total: number, fee: any) => {
+            return total + (Number(fee.amount) || 0);
+          }, 0);
+          logger.log('[WEBHOOK] Taxa do Mercado Pago:', mercadoPagoFee);
+        } else {
+          logger.log('[WEBHOOK] Nenhuma taxa encontrada em fee_details');
+        }
       } else {
         logger.error('[WEBHOOK] Erro ao consultar MP:', mpResponse.status);
       }
@@ -101,6 +113,7 @@ export async function POST(request: NextRequest) {
           payment_confirmed: true,
           payment_confirmed_at: new Date().toISOString(),
           mp_payment_id: String(paymentId), // Salvar o payment_id do Mercado Pago
+          machine_fee: mercadoPagoFee, // Salvar a taxa do Mercado Pago automaticamente
         })
         .eq('id', existingPayment.service_order_id);
 
