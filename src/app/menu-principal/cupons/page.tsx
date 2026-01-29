@@ -257,38 +257,6 @@ export default function CuponsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 pb-20">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.back()}
-                className="rounded-full"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                  <Ticket className="w-6 h-6 text-purple-600" />
-                  Cupons de Desconto
-                </h1>
-                <p className="text-sm text-slate-500">Gerencie cupons e promoções</p>
-              </div>
-            </div>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Cupom
-            </Button>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

@@ -178,25 +178,7 @@ export default function EditarEntregaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
-      <header className="bg-slate-900/50 backdrop-blur-sm border-b border-slate-700/50 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/menu-principal/entregas')}
-              className="text-white hover:bg-slate-800"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl font-black text-white">Editar Entrega</h1>
-              <p className="text-sm text-slate-400">OS #{pedido?.os_number}</p>
-            </div>
-          </div>
-        </div>
-      </header>
+
 
       {/* Main Content */}
       <main className="p-4 max-w-2xl mx-auto w-full space-y-4 mt-4">
