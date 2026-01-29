@@ -143,6 +143,7 @@ export default function PainelPage() {
     direction: 'asc'
   });
   const [manualAlertsByOrder, setManualAlertsByOrder] = useState<Record<string, any[]>>({});
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   const sortOptions = [
     { label: "✨ Inteligente", value: "smart", icon: "sparkles" },
@@ -200,6 +201,18 @@ export default function PainelPage() {
     }
   };
 
+  const handleDismissAlert = (alertId: string) => {
+    const newDismissed = new Set(dismissedAlerts);
+    newDismissed.add(alertId);
+    setDismissedAlerts(newDismissed);
+    
+    // Salvar no localStorage
+    localStorage.setItem("dismissed_alerts", JSON.stringify(Array.from(newDismissed)));
+    
+    // Remover da lista de alertas
+    setAlerts(prev => prev.filter(a => a.id !== alertId));
+  };
+
   const soundEnabledRef = useRef(soundEnabled);
   soundEnabledRef.current = soundEnabled;
 
@@ -212,6 +225,17 @@ export default function PainelPage() {
     }
 
     setRole(storedRole);
+    
+    // Carregar alertas dismissed do localStorage
+    const stored = localStorage.getItem("dismissed_alerts");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setDismissedAlerts(new Set(parsed));
+      } catch (e) {
+        console.error("Erro ao carregar alertas dismissed", e);
+      }
+    }
     requestNotificationPermission();
     fetchOrders();
 
@@ -285,7 +309,20 @@ export default function PainelPage() {
         setOrders(dashboardOrders as Order[]);
         
         const orderAlerts = await checkOrderAlerts(dashboardOrders || []);
-        setAlerts(orderAlerts);
+        
+        // Filtrar alertas dismissed
+        const stored = localStorage.getItem("dismissed_alerts");
+        let dismissedSet = new Set<string>();
+        if (stored) {
+          try {
+            dismissedSet = new Set(JSON.parse(stored));
+          } catch (e) {
+            console.error("Erro ao carregar dismissed alerts", e);
+          }
+        }
+        
+        const filteredAlerts = orderAlerts.filter(alert => !dismissedSet.has(alert.id));
+        setAlerts(filteredAlerts);
         
         // Buscar alertas manuais para cada OS
         const orderIds = dashboardOrders?.map((o: any) => o.id) || [];
@@ -958,40 +995,55 @@ export default function PainelPage() {
                       return (
                         <div 
                           key={alert.id} 
-                          onClick={() => {
-                            if (alert.osNumber) {
-                              const osIdFormatted = alert.osNumber.replace('/', '-');
-                              router.push(`/menu-principal/os/${osIdFormatted}`);
-                            }
-                          }}
-                          className={`p-3 rounded-xl text-xs border ${alertBgClass} ${alertTextClass} cursor-pointer hover:opacity-80 transition-opacity`}
+                          className={`p-3 rounded-xl text-xs border ${alertBgClass} ${alertTextClass} relative`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <p className="font-bold mb-1">{alert.title}</p>
-                              <p className="opacity-80 text-xs">{alert.message}</p>
-                              {alert.clientName && (
-                                <p className="opacity-60 text-xs mt-1">Cliente: {alert.clientName}</p>
-                              )}
-                            </div>
-                            <div className="flex gap-1 flex-shrink-0 items-center">
-                              {alert.osNumber && (
-                                <span className="text-[10px] opacity-60 font-bold">#{alert.osNumber}</span>
-                              )}
-                              {isManualAlert && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleResolveAlert(alert.id.replace('manual-', ''));
-                                  }}
-                                  className="h-7 px-2 text-xs hover:bg-white/50"
-                                  title="Resolver"
-                                >
-                                  <CheckCircle2 className="w-3 h-3" />
-                                </Button>
-                              )}
+                          {/* Botão X para dismiss */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDismissAlert(alert.id)}
+                            className="absolute -top-1 -right-1 h-5 w-5 rounded-full hover:bg-white/50"
+                            title="Dispensar alerta"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                          
+                          <div 
+                            onClick={() => {
+                              if (alert.osNumber) {
+                                const osIdFormatted = alert.osNumber.replace('/', '-');
+                                router.push(`/menu-principal/os/${osIdFormatted}`);
+                              }
+                            }}
+                            className="cursor-pointer hover:opacity-80 transition-opacity"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <p className="font-bold mb-1">{alert.title}</p>
+                                <p className="opacity-80 text-xs">{alert.message}</p>
+                                {alert.clientName && (
+                                  <p className="opacity-60 text-xs mt-1">Cliente: {alert.clientName}</p>
+                                )}
+                              </div>
+                              <div className="flex gap-1 flex-shrink-0 items-center">
+                                {alert.osNumber && (
+                                  <span className="text-[10px] opacity-60 font-bold">#{alert.osNumber}</span>
+                                )}
+                                {isManualAlert && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleResolveAlert(alert.id.replace('manual-', ''));
+                                    }}
+                                    className="h-7 px-2 text-xs hover:bg-white/50"
+                                    title="Resolver"
+                                  >
+                                    <CheckCircle2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
