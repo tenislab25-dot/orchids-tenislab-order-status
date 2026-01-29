@@ -87,7 +87,7 @@ export default function EditOSPage() {
   const [entryDate, setEntryDate] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
-  const [discountPercent, setDiscountPercent] = useState(0);
+  // Desconto removido - apenas cupons
   const [paymentMethod, setPaymentMethod] = useState("Pix");
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [items, setItems] = useState<OSItem[]>([]);
@@ -152,7 +152,7 @@ export default function EditOSPage() {
         setEntryDate(data.entry_date || "");
         setDeliveryDate(data.delivery_date || "");
         setDeliveryFee(data.delivery_fee || 0);
-        setDiscountPercent(data.discount_percent || 0);
+        // Desconto removido
         setPaymentMethod(data.payment_method || "Pix");
         setPaymentConfirmed(data.payment_confirmed || false);
         setItems(data.items || []);
@@ -271,8 +271,7 @@ export default function EditOSPage() {
   };
 
   const globalSubtotal = items.reduce((acc, curr) => acc + Number(curr.subtotal), 0);
-  const discountValue = (globalSubtotal * Number(discountPercent)) / 100;
-  const finalTotal = globalSubtotal - discountValue + Number(deliveryFee);
+  const finalTotal = globalSubtotal + Number(deliveryFee);
 
   const confirmDeletePhoto = async () => {
     if (!photoToDelete || !order) return;
@@ -368,7 +367,7 @@ export default function EditOSPage() {
           entry_date: entryDate,
           delivery_date: deliveryDate || null,
           delivery_fee: deliveryFee,
-          discount_percent: discountPercent,
+          discount_percent: 0,
           payment_method: paymentMethod,
           payment_confirmed: paymentConfirmed,
           total: finalTotal,
@@ -751,45 +750,7 @@ export default function EditOSPage() {
                   <span className="text-white/70 font-medium">Subtotal dos itens</span>
                   <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
                 </div>
-                <div className="flex flex-col gap-3 pt-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Aplicar Desconto</span>
-                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                      {[5, 8, 10, 15, 20].map((p) => (
-                      <Button 
-                        key={p}
-                        variant={discountPercent === p ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setDiscountPercent(p)}
-                        className={`min-w-[50px] flex-1 rounded-xl border-white/20 h-10 ${
-                          discountPercent === p 
-                          ? "bg-blue-500 hover:bg-blue-600 border-blue-500 text-white" 
-                          : "bg-transparent text-white hover:bg-white/10"
-                        }`}
-                      >
-                        {p}%
-                      </Button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 bg-white/5 p-3 rounded-2xl border border-white/10">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">Personalizado</span>
-                    <div className="relative flex-1">
-                      <Input 
-                        type="number"
-                        placeholder="%"
-                        value={discountPercent || ""}
-                        onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                        className="h-10 bg-white/10 border-white/10 text-white placeholder:text-white/20 rounded-xl pr-8"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-xs font-bold">%</span>
-                    </div>
-                  </div>
-                </div>
-                {discountValue > 0 && (
-                  <div className="flex justify-between items-center text-sm text-red-400 font-bold pt-2">
-                    <span>Desconto ({discountPercent}%)</span>
-                    <span>- R$ {Number(discountValue).toFixed(2)}</span>
-                  </div>
-                )}
+                {/* Desconto manual removido - use cupons */}
                 {deliveryFee > 0 && (
                   <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">
                     <span>Taxa de Entrega</span>

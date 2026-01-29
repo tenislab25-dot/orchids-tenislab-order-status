@@ -98,9 +98,9 @@ export default function InternoPage() {
           {(role === 'ADMIN' || role === 'ATENDENTE') && (
             <MenuButton 
               href="/interno/os"
-              title="Ordens de Serviço"
+              title="Nova OS"
               icon={ClipboardList}
-              description="Criar e Gerenciar OS"
+              description="Criar Ordem de Serviço"
             />
           )}
 
