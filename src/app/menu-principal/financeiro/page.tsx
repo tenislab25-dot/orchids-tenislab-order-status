@@ -169,11 +169,9 @@ export default function FinanceiroPage() {
       // Desconto de Cupom (discount_amount)
       totalCouponDiscounts += Number(o.discount_amount || 0);
       
-      // Desconto do Pix (0,99% quando payment_method = 'Pix' E tem mp_payment_id)
-      // Só desconta se foi pelo sistema (Mercado Pago), não desconta Pix manual
-      if (o.payment_method === 'Pix' && o.mp_payment_id) {
-        totalPixDiscounts += Number(o.total || 0) * 0.0099;
-      }
+      // Desconto do Pix - NÃO precisa mais calcular 0,99%
+      // A taxa real do Mercado Pago já está em machine_fee (salva pelo webhook)
+      // totalPixDiscounts agora é sempre 0 (mantido apenas para compatibilidade)
       
       // Taxa de Cartão (machine_fee + card_discount)
       totalCardFees += Number(o.machine_fee || 0) + Number(o.card_discount || 0);
@@ -183,9 +181,9 @@ export default function FinanceiroPage() {
     
     // Valor Recebido (Líquido) = Total - Todos os Descontos
     const totalReceived = confirmedOrders.reduce((acc, o) => {
-      const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
+      // NÃO calcula mais 0,99% para Pix - taxa real já está em machine_fee
       const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
-      return acc + (Number(o.total || 0) - pixDiscount - cardFee);
+      return acc + (Number(o.total || 0) - cardFee);
     }, 0);
 
     // Este Mês (confirmados - líquido)
@@ -198,9 +196,9 @@ export default function FinanceiroPage() {
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .reduce((acc, o) => {
-        const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
+        // NÃO calcula mais 0,99% para Pix - taxa real já está em machine_fee
         const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
-        return acc + (Number(o.total || 0) - pixDiscount - cardFee);
+        return acc + (Number(o.total || 0) - cardFee);
       }, 0);
 
     // Esta Semana (confirmados - líquido)
@@ -216,9 +214,9 @@ export default function FinanceiroPage() {
         return d >= startOfWeek && d <= endOfWeek;
       })
       .reduce((acc, o) => {
-        const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
+        // NÃO calcula mais 0,99% para Pix - taxa real já está em machine_fee
         const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
-        return acc + (Number(o.total || 0) - pixDiscount - cardFee);
+        return acc + (Number(o.total || 0) - cardFee);
       }, 0);
 
     // A Receber: apenas ordens entregues e não pagas
@@ -244,9 +242,9 @@ export default function FinanceiroPage() {
     const paymentBreakdown: Record<string, number> = {};
     confirmedOrders.forEach(o => {
       const method = o.payment_method || "Não informado";
-      const pixDiscount = (o.payment_method === 'Pix' && o.mp_payment_id) ? Number(o.total || 0) * 0.0099 : 0;
+      // NÃO calcula mais 0,99% para Pix - taxa real já está em machine_fee
       const cardFee = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
-      paymentBreakdown[method] = (paymentBreakdown[method] || 0) + (Number(o.total || 0) - pixDiscount - cardFee);
+      paymentBreakdown[method] = (paymentBreakdown[method] || 0) + (Number(o.total || 0) - cardFee);
     });
 
     return { 
