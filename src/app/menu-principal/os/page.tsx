@@ -1069,7 +1069,7 @@ interface OSItem {
           className="w-full h-14 rounded-2xl text-slate-500 font-bold"
           asChild
         >
-          <Link href="/menu-principal" prefetch={false}>Voltar ao Dashboard</Link>
+          <Link href="/menu-principal" prefetch={false}>Voltar ao Painel</Link>
         </Button>
       </section>
 
@@ -1099,7 +1099,7 @@ interface OSItem {
               onClick={() => router.push("/menu-principal")}
               className="w-full h-12 rounded-2xl text-slate-500 font-bold"
             >
-              Ir para o Dashboard
+              Ir para o Painel
             </Button>
           </DialogFooter>
         </DialogContent>

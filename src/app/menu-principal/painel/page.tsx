@@ -125,7 +125,7 @@ const MetricCardSkeleton = () => (
   </Card>
 );
 
-export default function DashboardPage() {
+export default function PainelPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

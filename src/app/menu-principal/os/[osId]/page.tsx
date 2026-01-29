@@ -737,7 +737,7 @@ export default function OSViewPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
         <h1 className="text-xl font-bold">OS não encontrada</h1>
         <Button asChild>
-          <Link href="/menu-principal" prefetch={false}>Voltar ao Dashboard</Link>
+          <Link href="/menu-principal" prefetch={false}>Voltar ao Painel</Link>
         </Button>
       </div>
     );

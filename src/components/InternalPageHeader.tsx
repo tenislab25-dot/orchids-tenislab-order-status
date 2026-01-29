@@ -38,7 +38,7 @@ export function InternalPageHeader({ title, subtitle }: InternalPageHeaderProps)
         className="flex items-center gap-2"
       >
         <LayoutDashboard className="w-4 h-4" />
-        <span className="hidden sm:inline">Dashboard</span>
+        <span className="hidden sm:inline">Painel</span>
       </Button>
     </div>
   );
