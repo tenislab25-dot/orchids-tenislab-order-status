@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
     logger.log('[WEBHOOK] OS:', existingPayment.service_orders?.os_number);
 
     // Consultar API do Mercado Pago para obter status real do pagamento
-    const mpAccessToken = process.env.MP_ACCESS_TOKEN;
+    const mpAccessToken = process.env.MP_ACCESS_TOKEN || process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!mpAccessToken) {
-      logger.error('[WEBHOOK] MP_ACCESS_TOKEN não configurado');
-      return NextResponse.json({ received: true, error: 'MP_ACCESS_TOKEN não configurado' });
+      logger.error('[WEBHOOK] MP_ACCESS_TOKEN ou MERCADO_PAGO_ACCESS_TOKEN não configurado');
+      return NextResponse.json({ received: true, error: 'Token do Mercado Pago não configurado' });
     }
 
     let paymentStatus = 'pending';
