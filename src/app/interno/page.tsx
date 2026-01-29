@@ -77,7 +77,7 @@ export default function InternoPage() {
             />
           </Link>
           <div className="text-center">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Painel Interno</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Menu Principal</h1>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
               Bem-vindo, {getRoleLabel(role as UserRole)}
             </p>
@@ -89,7 +89,7 @@ export default function InternoPage() {
           {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
             <MenuButton 
               href="/interno/dashboard"
-              title="Dashboard"
+              title="Painel"
               icon={LayoutDashboard}
               description="Visão Geral"
             />
