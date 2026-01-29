@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Home, LayoutGrid, LogOut, User, Loader2, ArrowLeft } from "lucide-react";
+import { LayoutGrid, LogOut, User, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/auth";
@@ -87,12 +87,6 @@ export default function InternoLayout({
               </Link>
             )}
 
-            <Link href="/" prefetch={false} className="flex-1 sm:flex-initial">
-              <Button variant="ghost" size="sm" className="w-full rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
-                <Home className="w-4 h-4" />
-                <span className="hidden xs:inline">Site</span>
-              </Button>
-            </Link>
             <Button 
               variant="ghost" 
               size="sm" 
