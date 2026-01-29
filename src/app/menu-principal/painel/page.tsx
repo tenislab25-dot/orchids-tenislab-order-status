@@ -130,7 +130,7 @@ export default function PainelPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalSearch, setGlobalSearch] = useState("");
-  const [filter, setFilter] = useState<Status | "all" | "pendentes" | "cadastro_pendente">("all");
+  const [filter, setFilter] = useState<Status | "all" | "pendentes" | "cadastro_pendente" | "atrasadas">("all");
   const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -142,6 +142,7 @@ export default function PainelPage() {
     key: 'smart',
     direction: 'asc'
   });
+  const [manualAlertsByOrder, setManualAlertsByOrder] = useState<Record<string, any[]>>({});
 
   const sortOptions = [
     { label: "✨ Inteligente", value: "smart", icon: "sparkles" },
@@ -285,6 +286,27 @@ export default function PainelPage() {
         
         const orderAlerts = await checkOrderAlerts(dashboardOrders || []);
         setAlerts(orderAlerts);
+        
+        // Buscar alertas manuais para cada OS
+        const orderIds = dashboardOrders?.map((o: any) => o.id) || [];
+        if (orderIds.length > 0) {
+          const { data: manualAlerts } = await supabase
+            .from('manual_alerts')
+            .select('*')
+            .in('order_id', orderIds)
+            .eq('resolved', false)
+            .order('created_at', { ascending: false });
+          
+          // Organizar alertas por order_id
+          const alertsByOrder: Record<string, any[]> = {};
+          manualAlerts?.forEach((alert: any) => {
+            if (!alertsByOrder[alert.order_id]) {
+              alertsByOrder[alert.order_id] = [];
+            }
+            alertsByOrder[alert.order_id].push(alert);
+          });
+          setManualAlertsByOrder(alertsByOrder);
+        }
         
         previousOrdersRef.current = dashboardOrders as Order[];
       }
@@ -468,6 +490,15 @@ export default function PainelPage() {
         o.status === "Recebido" && 
         (!o.items || o.items.length === 0)
       );
+    } else if (filter === "atrasadas") {
+      // OSs atrasadas (prazo de entrega passou)
+      result = result.filter(o => {
+        if (!o.delivery_date || o.status === "Entregue" || o.status === "Cancelado") return false;
+        const deliveryDate = new Date(o.delivery_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return deliveryDate < today;
+      });
     } else if (filter !== "all") {
       result = result.filter(o => o.status === filter);
     }
@@ -666,6 +697,25 @@ export default function PainelPage() {
                   </Button>
                 )}
               </div>
+
+            {/* Alertas Manuais */}
+            {manualAlertsByOrder[order.id] && manualAlertsByOrder[order.id].length > 0 && (
+              <div className="space-y-1.5 mb-3">
+                {manualAlertsByOrder[order.id].map((alert: any) => {
+                  const alertColors = {
+                    bloqueio: 'bg-red-50 border-red-200 text-red-700',
+                    cliente_perguntou: 'bg-amber-50 border-amber-200 text-amber-700',
+                    observacao: 'bg-blue-50 border-blue-200 text-blue-700'
+                  };
+                  return (
+                    <div key={alert.id} className={`p-2 rounded-lg border text-[10px] ${alertColors[alert.type as keyof typeof alertColors]}`}>
+                      <p className="font-bold">{alert.title}</p>
+                      <p className="opacity-80 mt-0.5">{alert.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <Button 
@@ -1009,7 +1059,19 @@ export default function PainelPage() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-              <Card className={`border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden ${metrics.overdue > 0 ? 'ring-2 ring-red-100' : ''}`}>
+              <Card 
+                onClick={() => {
+                  setFilter(filter === "atrasadas" ? "all" : "atrasadas");
+                  // Rolar até a lista de OSs
+                  setTimeout(() => {
+                    const osList = document.querySelector('[data-os-list]');
+                    if (osList) {
+                      osList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 100);
+                }}
+                className={`border-none shadow-sm rounded-2xl sm:rounded-3xl bg-white overflow-hidden cursor-pointer hover:ring-2 hover:ring-red-200 transition-all ${filter === "atrasadas" ? 'ring-2 ring-red-500 bg-red-50/30' : metrics.overdue > 0 ? 'ring-2 ring-red-100' : ''}`}
+              >
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-2 sm:gap-3 mb-2">
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center ${metrics.overdue > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'}`}>
