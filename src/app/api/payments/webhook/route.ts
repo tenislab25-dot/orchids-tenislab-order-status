@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
         .update({
           payment_confirmed: true,
           payment_confirmed_at: new Date().toISOString(),
+          mp_payment_id: String(paymentId), // Salvar o payment_id do Mercado Pago
         })
         .eq('id', existingPayment.service_order_id);
 
