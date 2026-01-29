@@ -740,7 +740,7 @@ export default function FinanceiroPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100">
                     <div className="flex items-center gap-3 mb-2">
                       <Ticket className="w-5 h-5 text-orange-600" />
@@ -749,18 +749,10 @@ export default function FinanceiroPage() {
                     <span className="text-3xl font-black text-orange-600">R$ {stats.totalCouponDiscounts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
 
-                  <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Banknote className="w-5 h-5 text-blue-600" />
-                      <span className="text-xs font-black text-blue-600 uppercase tracking-widest">Pix (0,99%)</span>
-                    </div>
-                    <span className="text-3xl font-black text-blue-600">R$ {stats.totalPixDiscounts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                  </div>
-
                   <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100">
                     <div className="flex items-center gap-3 mb-2">
                       <CreditCard className="w-5 h-5 text-purple-600" />
-                      <span className="text-xs font-black text-purple-600 uppercase tracking-widest">Taxas Cartão</span>
+                      <span className="text-xs font-black text-purple-600 uppercase tracking-widest">Taxas Mercado Pago</span>
                     </div>
                     <span className="text-3xl font-black text-purple-600">R$ {stats.totalCardFees.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
