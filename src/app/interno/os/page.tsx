@@ -988,9 +988,8 @@ interface OSItem {
                   <span className="text-white/70 font-medium">Subtotal dos itens</span>
                   <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
                 </div>
-                  {/* Desconto manual removido - use cupons */}
-                </div>
-              {deliveryFee > 0 && (
+                {/* Desconto manual removido - use cupons */}
+                {deliveryFee > 0 && (
                 <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">
                   <span>Taxa de Entrega</span>
                   <span>+ R$ {Number(deliveryFee).toFixed(2)}</span>
