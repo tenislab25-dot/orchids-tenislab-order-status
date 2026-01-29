@@ -118,7 +118,7 @@ export default function CuponsPage() {
       return;
     }
 
-    const code = formData.code.toUpperCase().trim();
+    const code = formData.code.toUpperCase().trim().replace(/\s+/g, '');
     const discountPercent = parseFloat(formData.discount_percent);
     const totalLimit = parseInt(formData.total_limit);
 
