@@ -742,7 +742,7 @@ export default function PainelPage() {
                   const alertColors = {
                     bloqueio: 'bg-red-50 border-red-200 text-red-700',
                     cliente_perguntou: 'bg-amber-50 border-amber-200 text-amber-700',
-                    observacao: 'bg-blue-50 border-blue-200 text-blue-700'
+                    observacao: 'bg-red-50 border-red-200 text-red-700'
                   };
                   return (
                     <div key={alert.id} className={`p-2 rounded-lg border text-[10px] ${alertColors[alert.type as keyof typeof alertColors]}`}>

@@ -881,7 +881,7 @@ export default function OSViewPage() {
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alertas Ativos</span>
                 {manualAlerts.map((alert) => {
-                  const alertBgClass = alert.type === 'bloqueio' ? 'bg-red-50 border-red-200 text-red-700' : alert.type === 'cliente_perguntou' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-blue-50 border-blue-200 text-blue-700';
+                  const alertBgClass = alert.type === 'bloqueio' ? 'bg-red-50 border-red-200 text-red-700' : alert.type === 'cliente_perguntou' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-red-50 border-red-200 text-red-700';
                   
                   return (
                     <div key={alert.id} className={`p-3 rounded-xl border ${alertBgClass}`}>
