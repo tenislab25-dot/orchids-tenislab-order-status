@@ -72,7 +72,7 @@ export default function InternoLayout({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => router.push("/menu-principal")}
+              onClick={() => router.back()}
               className="flex-1 sm:flex-initial rounded-xl gap-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100"
             >
               <ArrowLeft className="w-4 h-4" />

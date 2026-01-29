@@ -750,7 +750,7 @@ export default function OSViewPage() {
             variant="ghost" 
             size="icon" 
             className="rounded-full -ml-2 w-fit"
-            onClick={() => window.location.href = '/menu-principal'}
+            onClick={() => router.back()}
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </Button>
