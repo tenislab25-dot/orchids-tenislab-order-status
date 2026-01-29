@@ -107,7 +107,7 @@ export default function OSViewPage() {
   const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
   const [alertModalOpen, setAlertModalOpen] = useState(false);
-  const [alertType, setAlertType] = useState<'bloqueio' | 'cliente_perguntou' | 'observacao'>('bloqueio');
+  const [alertType, setAlertType] = useState<'observacao'>('observacao');
   const [alertDescription, setAlertDescription] = useState("");
   const [savingAlert, setSavingAlert] = useState(false);
   const [manualAlerts, setManualAlerts] = useState<any[]>([]);
@@ -554,9 +554,7 @@ export default function OSViewPage() {
     setSavingAlert(true);
     try {
       const alertTitles = {
-        bloqueio: "🔴 BLOQUEIO",
-        cliente_perguntou: "🟡 CLIENTE PERGUNTOU",
-        observacao: "🔵 OBSERVAÇÃO"
+        observacao: "🔴 OBSERVAÇÃO"
       };
 
       const userId = localStorage.getItem("tenislab_user_id");
@@ -576,7 +574,23 @@ export default function OSViewPage() {
       toast.success("Alerta adicionado com sucesso!");
       setAlertModalOpen(false);
       setAlertDescription("");
-      setAlertType("bloqueio");
+      setAlertType("observacao");
+      
+      // Dismiss alertas automáticos desta OS
+      const stored = localStorage.getItem("dismissed_alerts");
+      let dismissedSet = new Set<string>();
+      if (stored) {
+        try {
+          dismissedSet = new Set(JSON.parse(stored));
+        } catch (e) {
+          console.error("Erro ao carregar dismissed alerts", e);
+        }
+      }
+      
+      // Adicionar alerta desta OS ao dismissed
+      const osNumber = order.os_number;
+      dismissedSet.add(`overdue-${osNumber}`);
+      localStorage.setItem("dismissed_alerts", JSON.stringify(Array.from(dismissedSet)));
       
       // Recarregar alertas
       fetchOrder();
@@ -1441,9 +1455,7 @@ export default function OSViewPage() {
                 onChange={(e) => setAlertType(e.target.value as any)}
                 className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
-                <option value="bloqueio">🔴 Bloqueio (Falta material, problema técnico)</option>
-                <option value="cliente_perguntou">🟡 Cliente Perguntou (Ligou, mandou mensagem)</option>
-                <option value="observacao">🔵 Observação (Nota importante)</option>
+                <option value="observacao">🔴 Observação (Nota importante)</option>
               </select>
             </div>
 
@@ -1466,7 +1478,7 @@ export default function OSViewPage() {
               onClick={() => {
                 setAlertModalOpen(false);
                 setAlertDescription("");
-                setAlertType("bloqueio");
+                setAlertType("observacao");
               }}
               className="rounded-xl"
               disabled={savingAlert}
