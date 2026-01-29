@@ -546,7 +546,7 @@ export default function OSViewPage() {
       if (error) throw error;
 
       toast.success("OS excluída permanentemente");
-      router.push("/menu-principal/painel");
+      router.push("/menu-principal");
     } catch (error: any) {
       toast.error("Erro ao excluir OS: " + error.message);
     } finally {
@@ -737,7 +737,7 @@ export default function OSViewPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-4">
         <h1 className="text-xl font-bold">OS não encontrada</h1>
         <Button asChild>
-          <Link href="/menu-principal/painel" prefetch={false}>Voltar ao Dashboard</Link>
+          <Link href="/menu-principal" prefetch={false}>Voltar ao Dashboard</Link>
         </Button>
       </div>
     );
@@ -750,7 +750,7 @@ export default function OSViewPage() {
             variant="ghost" 
             size="icon" 
             className="rounded-full -ml-2 w-fit"
-            onClick={() => window.location.href = '/menu-principal/painel'}
+            onClick={() => window.location.href = '/menu-principal'}
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </Button>

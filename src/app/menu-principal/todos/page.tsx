@@ -121,7 +121,7 @@ export default function TodosPedidosPage() {
           return;
         }
         if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-          router.push("/menu-principal/painel");
+          router.push("/menu-principal");
           return;
         }
       }, []);
@@ -217,7 +217,7 @@ export default function TodosPedidosPage() {
     <div className="flex flex-col gap-8 pb-10 max-w-7xl mx-auto px-4 lg:px-8">
       <header className="flex items-center justify-between pt-8">
           <div className="flex items-center gap-4">
-            <Link href="/menu-principal/painel" prefetch={false}>
+            <Link href="/menu-principal" prefetch={false}>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <ArrowLeft className="w-5 h-5" />
               </Button>

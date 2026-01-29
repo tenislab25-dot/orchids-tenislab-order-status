@@ -69,7 +69,7 @@ export default function ClientDetailsPage() {
       return;
     }
     if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/menu-principal/painel");
+      router.push("/menu-principal");
       return;
     }
     setUserRole(storedRole);

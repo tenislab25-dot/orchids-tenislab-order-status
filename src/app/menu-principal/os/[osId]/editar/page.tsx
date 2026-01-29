@@ -146,7 +146,7 @@ export default function EditOSPage() {
 
       if (error) {
         toast.error("Erro ao carregar OS. Tente novamente.");
-        router.push("/menu-principal/painel");
+        router.push("/menu-principal");
       } else {
         setOrder(data);
         setEntryDate(data.entry_date || "");
@@ -183,7 +183,7 @@ export default function EditOSPage() {
 
       if (profileError || !profile || (profile.role !== "ADMIN" && profile.role !== "ATENDENTE")) {
         toast.error("Você não tem permissão para acessar esta página.");
-        router.push("/menu-principal/painel");
+        router.push("/menu-principal");
         return;
       }
       

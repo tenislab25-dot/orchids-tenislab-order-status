@@ -364,7 +364,7 @@ export default function RelatorioFinanceiroPage() {
     return (
       <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in">
         <header className="flex items-center gap-4 mb-12">
-          <Link href="/menu-principal/painel" prefetch={false}>
+          <Link href="/menu-principal" prefetch={false}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ArrowLeft className="w-6 h-6" />
             </Button>

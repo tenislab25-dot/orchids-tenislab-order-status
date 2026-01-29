@@ -213,7 +213,7 @@ interface OSItem {
     }
 
     if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/menu-principal/painel");
+      router.push("/menu-principal");
       return;
     }
 
@@ -549,14 +549,14 @@ interface OSItem {
         );
         
         window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
-        router.push("/menu-principal/painel");
+        router.push("/menu-principal");
       };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pb-32">
       <header className="bg-slate-900 text-white p-6 sticky top-0 z-10 shadow-lg">
         <div className="grid grid-cols-3 items-center max-w-md mx-auto">
-          <Link href="/menu-principal/painel" prefetch={false} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
+          <Link href="/menu-principal" prefetch={false} className="p-2 -ml-2 rounded-full active:bg-white/10 w-fit">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           
@@ -1083,7 +1083,7 @@ interface OSItem {
           className="w-full h-14 rounded-2xl text-slate-500 font-bold"
           asChild
         >
-          <Link href="/menu-principal/painel" prefetch={false}>Voltar ao Dashboard</Link>
+          <Link href="/menu-principal" prefetch={false}>Voltar ao Dashboard</Link>
         </Button>
       </section>
 
@@ -1110,7 +1110,7 @@ interface OSItem {
             </Button>
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/menu-principal/painel")}
+              onClick={() => router.push("/menu-principal")}
               className="w-full h-12 rounded-2xl text-slate-500 font-bold"
             >
               Ir para o Dashboard

@@ -10,9 +10,9 @@ const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
 };
 
 const ROLE_PAGES: Record<UserRole, string[]> = {
-  OPERACIONAL: ['/menu-principal', '/menu-principal/painel', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/os/[osId]'],
-  ATENDENTE: ['/menu-principal', '/menu-principal/painel', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/clientes', '/menu-principal/servicos', '/menu-principal/financeiro'],
-  ADMIN: ['/menu-principal', '/menu-principal/painel', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/clientes', '/menu-principal/servicos', '/menu-principal/financeiro', '/menu-principal/banco-de-dados'],
+  OPERACIONAL: ['/menu-principal', '/menu-principal', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/os/[osId]'],
+  ATENDENTE: ['/menu-principal', '/menu-principal', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/clientes', '/menu-principal/servicos', '/menu-principal/financeiro'],
+  ADMIN: ['/menu-principal', '/menu-principal', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/clientes', '/menu-principal/servicos', '/menu-principal/financeiro', '/menu-principal/banco-de-dados'],
   ENTREGADOR: ['/menu-principal', '/menu-principal/todos', '/menu-principal/entregas'],
 };
 

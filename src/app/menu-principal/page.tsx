@@ -88,7 +88,7 @@ export default function InternoPage() {
         <main className="flex flex-col gap-4">
           {(role === 'ADMIN' || role === 'ATENDENTE' || role === 'OPERACIONAL') && (
             <MenuButton 
-              href="/menu-principal/painel"
+              href="/menu-principal"
               title="Painel"
               icon={LayoutDashboard}
               description="Visão Geral"

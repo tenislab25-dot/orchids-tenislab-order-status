@@ -82,7 +82,7 @@ export default function ClientsPage() {
       return;
     }
     if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
-      router.push("/menu-principal/painel");
+      router.push("/menu-principal");
       return;
     }
     setRole(storedRole);
@@ -283,7 +283,7 @@ export default function ClientsPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/menu-principal/painel" prefetch={false}>
+          <Link href="/menu-principal" prefetch={false}>
             <Button variant="ghost" size="icon" className="rounded-full">
               <ChevronLeft className="w-6 h-6" />
             </Button>
