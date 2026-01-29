@@ -906,7 +906,16 @@ export default function PainelPage() {
                       const alertTextClass = alert.type === 'danger' ? 'text-red-700' : alert.type === 'info' ? 'text-blue-700' : 'text-amber-700';
                       
                       return (
-                        <div key={alert.id} className={`p-3 rounded-xl text-xs border ${alertBgClass} ${alertTextClass}`}>
+                        <div 
+                          key={alert.id} 
+                          onClick={() => {
+                            if (alert.osNumber) {
+                              const osIdFormatted = alert.osNumber.replace('/', '-');
+                              router.push(`/menu-principal/os/${osIdFormatted}`);
+                            }
+                          }}
+                          className={`p-3 rounded-xl text-xs border ${alertBgClass} ${alertTextClass} cursor-pointer hover:opacity-80 transition-opacity`}
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
                               <p className="font-bold mb-1">{alert.title}</p>
@@ -915,26 +924,18 @@ export default function PainelPage() {
                                 <p className="opacity-60 text-xs mt-1">Cliente: {alert.clientName}</p>
                               )}
                             </div>
-                            <div className="flex gap-1 flex-shrink-0">
+                            <div className="flex gap-1 flex-shrink-0 items-center">
                               {alert.osNumber && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    const osId = orders.find(o => o.os_number === alert.osNumber)?.id;
-                                    if (osId) router.push(`/menu-principal/os/${osId}`);
-                                  }}
-                                  className="h-7 px-2 text-xs hover:bg-white/50"
-                                  title="Ver OS"
-                                >
-                                  <Eye className="w-3 h-3" />
-                                </Button>
+                                <span className="text-[10px] opacity-60 font-bold">#{alert.osNumber}</span>
                               )}
                               {isManualAlert && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => handleResolveAlert(alert.id.replace('manual-', ''))}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleResolveAlert(alert.id.replace('manual-', ''));
+                                  }}
                                   className="h-7 px-2 text-xs hover:bg-white/50"
                                   title="Resolver"
                                 >
