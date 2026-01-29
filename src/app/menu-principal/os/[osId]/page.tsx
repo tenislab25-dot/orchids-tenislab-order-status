@@ -106,6 +106,11 @@ export default function OSViewPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<{itemIdx: number, photoIdx: number} | null>(null);
     const [cancellationReason, setCancellationReason] = useState("");
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
+  const [alertType, setAlertType] = useState<'bloqueio' | 'cliente_perguntou' | 'observacao'>('bloqueio');
+  const [alertDescription, setAlertDescription] = useState("");
+  const [savingAlert, setSavingAlert] = useState(false);
+  const [manualAlerts, setManualAlerts] = useState<any[]>([]);
 
     const handleWhatsAppDirect = () => {
       if (!order || !order.clients?.phone) return;
@@ -155,6 +160,18 @@ export default function OSViewPage() {
         toast.error("Erro ao carregar OS: " + (error.message || "Tente novamente"));
       } else {
         setOrder(data as OrderData);
+        
+        // Buscar alertas manuais desta OS
+        const { data: alerts, error: alertsError } = await supabase
+          .from('manual_alerts')
+          .select('*')
+          .eq('order_id', data.id)
+          .eq('resolved', false)
+          .order('created_at', { ascending: false });
+        
+        if (!alertsError && alerts) {
+          setManualAlerts(alerts);
+        }
       }
     } catch (err: any) {
       toast.error("Erro de conexão. Tente novamente.");
@@ -528,6 +545,47 @@ export default function OSViewPage() {
         }
       };
 
+  const handleSaveAlert = async () => {
+    if (!order || !alertDescription.trim()) {
+      toast.error("Descrição do alerta é obrigatória");
+      return;
+    }
+
+    setSavingAlert(true);
+    try {
+      const alertTitles = {
+        bloqueio: "🔴 BLOQUEIO",
+        cliente_perguntou: "🟡 CLIENTE PERGUNTOU",
+        observacao: "🔵 OBSERVAÇÃO"
+      };
+
+      const userId = localStorage.getItem("tenislab_user_id");
+      
+      const { error } = await supabase
+        .from("manual_alerts")
+        .insert({
+          order_id: order.id,
+          type: alertType,
+          title: alertTitles[alertType],
+          description: alertDescription,
+          created_by: userId
+        });
+
+      if (error) throw error;
+
+      toast.success("Alerta adicionado com sucesso!");
+      setAlertModalOpen(false);
+      setAlertDescription("");
+      setAlertType("bloqueio");
+      
+      // Recarregar alertas
+      fetchOrder();
+    } catch (error: any) {
+      toast.error("Erro ao adicionar alerta: " + error.message);
+    } finally {
+      setSavingAlert(false);
+    }
+  };
 
     const handleDeleteOS = async () => {
     try {
@@ -806,6 +864,62 @@ export default function OSViewPage() {
                 <MessageCircle className="w-4 h-4" />
                 WhatsApp do Cliente
               </Button>
+            )}
+
+            {(role === "ADMIN" || role === "ATENDENTE") && (
+              <Button 
+                onClick={() => setAlertModalOpen(true)}
+                className="w-full h-12 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold gap-2 shadow-lg shadow-amber-100 transition-all active:scale-[0.98]"
+              >
+                <AlertTriangle className="w-4 h-4" />
+                Adicionar Alerta
+              </Button>
+            )}
+
+            {/* Exibir alertas manuais existentes */}
+            {manualAlerts.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alertas Ativos</span>
+                {manualAlerts.map((alert) => {
+                  const alertBgClass = alert.type === 'bloqueio' ? 'bg-red-50 border-red-200 text-red-700' : alert.type === 'cliente_perguntou' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-blue-50 border-blue-200 text-blue-700';
+                  
+                  return (
+                    <div key={alert.id} className={`p-3 rounded-xl border ${alertBgClass}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="font-bold text-xs mb-1">{alert.title}</p>
+                          <p className="text-xs opacity-80">{alert.description}</p>
+                          <p className="text-[10px] opacity-60 mt-1">{formatDateTime(alert.created_at)}</p>
+                        </div>
+                        {(role === "ADMIN" || role === "ATENDENTE") && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={async () => {
+                              const userId = localStorage.getItem("tenislab_user_id");
+                              const { error } = await supabase
+                                .from('manual_alerts')
+                                .update({ resolved: true, resolved_at: new Date().toISOString(), resolved_by: userId })
+                                .eq('id', alert.id);
+                              
+                              if (error) {
+                                toast.error("Erro ao resolver alerta");
+                              } else {
+                                toast.success("Alerta resolvido!");
+                                fetchOrder();
+                              }
+                            }}
+                            className="h-7 px-2 text-xs"
+                            title="Resolver"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
 
 {(role === "ADMIN" || role === "ATENDENTE") && (
@@ -1302,8 +1416,83 @@ export default function OSViewPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+       </Dialog>
 
+      {/* Modal de Adicionar Alerta */}
+      <Dialog open={alertModalOpen} onOpenChange={setAlertModalOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              Adicionar Alerta
+            </DialogTitle>
+            <DialogDescription>
+              Adicione um alerta para esta OS que aparecerá no painel principal.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-bold text-slate-700 mb-2 block">
+                Tipo de Alerta
+              </label>
+              <select
+                value={alertType}
+                onChange={(e) => setAlertType(e.target.value as any)}
+                className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="bloqueio">🔴 Bloqueio (Falta material, problema técnico)</option>
+                <option value="cliente_perguntou">🟡 Cliente Perguntou (Ligou, mandou mensagem)</option>
+                <option value="observacao">🔵 Observação (Nota importante)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-slate-700 mb-2 block">
+                Descrição
+              </label>
+              <textarea
+                value={alertDescription}
+                onChange={(e) => setAlertDescription(e.target.value)}
+                placeholder="Ex: Aguardando cola especial - fornecedor enviou errado. Previsão: 02/02/2026"
+                className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[100px] resize-none"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAlertModalOpen(false);
+                setAlertDescription("");
+                setAlertType("bloqueio");
+              }}
+              className="rounded-xl"
+              disabled={savingAlert}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveAlert}
+              className="bg-amber-600 hover:bg-amber-700 rounded-xl"
+              disabled={savingAlert || !alertDescription.trim()}
+            >
+              {savingAlert ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Adicionar Alerta
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

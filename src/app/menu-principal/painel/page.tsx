@@ -174,6 +174,31 @@ export default function PainelPage() {
     }
   };
 
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      const userId = localStorage.getItem("tenislab_user_id");
+      
+      const { error } = await supabase
+        .from('manual_alerts')
+        .update({ 
+          resolved: true, 
+          resolved_at: new Date().toISOString(),
+          resolved_by: userId 
+        })
+        .eq('id', alertId);
+
+      if (error) {
+        toast.error("Erro ao resolver alerta: " + error.message);
+      } else {
+        toast.success("Alerta resolvido!");
+        // Remover o alerta da lista local
+        setAlerts(prev => prev.filter(a => a.id !== `manual-${alertId}`));
+      }
+    } catch (err: any) {
+      toast.error("Erro ao resolver alerta");
+    }
+  };
+
   const soundEnabledRef = useRef(soundEnabled);
   soundEnabledRef.current = soundEnabled;
 
@@ -258,7 +283,7 @@ export default function PainelPage() {
         });
         setOrders(dashboardOrders as Order[]);
         
-        const orderAlerts = checkOrderAlerts(dashboardOrders || []);
+        const orderAlerts = await checkOrderAlerts(dashboardOrders || []);
         setAlerts(orderAlerts);
         
         previousOrdersRef.current = dashboardOrders as Order[];
@@ -874,13 +899,53 @@ export default function PainelPage() {
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {alerts.map((alert) => (
-                      <div key={alert.id} className={`p-3 rounded-xl text-xs ${alert.type === 'danger' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                        <p className="font-bold">{alert.title}</p>
-                        <p className="opacity-80">{alert.message}</p>
-                      </div>
-                    ))}
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {alerts.map((alert) => {
+                      const isManualAlert = alert.id.startsWith('manual-');
+                      const alertBgClass = alert.type === 'danger' ? 'bg-red-100 border-red-200' : alert.type === 'info' ? 'bg-blue-100 border-blue-200' : 'bg-amber-100 border-amber-200';
+                      const alertTextClass = alert.type === 'danger' ? 'text-red-700' : alert.type === 'info' ? 'text-blue-700' : 'text-amber-700';
+                      
+                      return (
+                        <div key={alert.id} className={`p-3 rounded-xl text-xs border ${alertBgClass} ${alertTextClass}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="font-bold mb-1">{alert.title}</p>
+                              <p className="opacity-80 text-xs">{alert.message}</p>
+                              {alert.clientName && (
+                                <p className="opacity-60 text-xs mt-1">Cliente: {alert.clientName}</p>
+                              )}
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              {alert.osNumber && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    const osId = orders.find(o => o.os_number === alert.osNumber)?.id;
+                                    if (osId) router.push(`/menu-principal/os/${osId}`);
+                                  }}
+                                  className="h-7 px-2 text-xs hover:bg-white/50"
+                                  title="Ver OS"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                              )}
+                              {isManualAlert && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleResolveAlert(alert.id.replace('manual-', ''))}
+                                  className="h-7 px-2 text-xs hover:bg-white/50"
+                                  title="Resolver"
+                                >
+                                  <CheckCircle2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>

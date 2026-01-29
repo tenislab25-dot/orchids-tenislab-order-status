@@ -94,11 +94,63 @@ export interface Alert {
   clientName?: string;
 }
 
-export function checkOrderAlerts(orders: any[]): Alert[] {
+export async function checkOrderAlerts(orders: any[]): Promise<Alert[]> {
   const alerts: Alert[] = [];
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+  // Buscar alertas manuais não resolvidos
+  try {
+    const { createClient } = await import('@/lib/supabase');
+    const supabase = createClient();
+    
+    const { data: manualAlerts, error } = await supabase
+      .from('manual_alerts')
+      .select(`
+        id,
+        order_id,
+        type,
+        title,
+        description,
+        created_at,
+        service_orders!inner (
+          os_number,
+          clients (
+            name
+          )
+        )
+      `)
+      .eq('resolved', false)
+      .order('created_at', { ascending: false });
+
+    if (!error && manualAlerts) {
+      manualAlerts.forEach((alert: any) => {
+        const alertTypeMap: Record<string, 'warning' | 'danger' | 'info'> = {
+          bloqueio: 'danger',
+          cliente_perguntou: 'warning',
+          observacao: 'info'
+        };
+
+        const titlePrefix: Record<string, string> = {
+          bloqueio: '🔴',
+          cliente_perguntou: '🟡',
+          observacao: '🔵'
+        };
+
+        alerts.push({
+          id: `manual-${alert.id}`,
+          type: alertTypeMap[alert.type] || 'info',
+          title: `${titlePrefix[alert.type] || ''} ${alert.title || alert.type.toUpperCase()}`,
+          message: `OS ${alert.service_orders.os_number}: ${alert.description}`,
+          osNumber: alert.service_orders.os_number,
+          clientName: alert.service_orders.clients?.name
+        });
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao buscar alertas manuais:', error);
+  }
 
   orders.forEach((order) => {
     if (order.status === "Entregue" && !(order.payment_confirmed)) {
