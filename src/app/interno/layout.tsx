@@ -18,6 +18,7 @@ export default function InternoLayout({
   const router = useRouter();
   const { user, role, loading, signOut } = useAuth();
   const isLoginPage = pathname === "/interno/login";
+  const isDashboardPage = pathname === "/interno" || pathname === "/interno/dashboard";
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Timeout de segurança: se ficar em loading por mais de 10s, força reload
@@ -52,7 +53,7 @@ export default function InternoLayout({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
-      {!isLoginPage && user && (
+      {!isLoginPage && !isDashboardPage && user && (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
           <Link href="/interno" prefetch={false} className="flex items-center gap-3 text-sm text-slate-500 w-full sm:w-auto hover:bg-slate-50 p-1 rounded-xl transition-colors">
             <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">

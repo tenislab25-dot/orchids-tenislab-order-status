@@ -712,7 +712,7 @@ export default function DashboardPage() {
             </Link>
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Dashboard Interno
+                Painel
               </h1>
               <p className="text-slate-500 font-medium text-sm sm:text-base">
                 Gestão de OS Tenislab
