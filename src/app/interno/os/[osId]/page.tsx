@@ -98,7 +98,7 @@ export default function OSViewPage() {
   const [loading, setLoading] = useState(true);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [confirmRevertPaymentOpen, setConfirmRevertPaymentOpen] = useState(false);
+
   const [confirmStatusChangeOpen, setConfirmStatusChangeOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<Status | null>(null);
 
@@ -229,21 +229,6 @@ export default function OSViewPage() {
 
       setIsConfirmingPayment(false);
       toast.success("Pagamento Confirmado!");
-    }
-  };
-
-  const handleRevertPayment = async () => {
-    setConfirmRevertPaymentOpen(false);
-    const { error } = await supabase
-      .from("service_orders")
-      .update({ payment_confirmed: false })
-      .eq("os_number", osNumber);
-
-    if (error) {
-      toast.error("Erro ao reverter pagamento: " + error.message);
-    } else {
-      setOrder(prev => prev ? { ...prev, payment_confirmed: false } : null);
-      toast.success("Pagamento marcado como pendente");
     }
   };
 
@@ -1102,24 +1087,15 @@ export default function OSViewPage() {
               </div>
 
               {(role === "ADMIN" || role === "ATENDENTE") && (
-                <div className="flex gap-2 pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-slate-100">
                   <Button 
                     onClick={handleSharePaymentLink}
                     disabled={order.payment_confirmed}
-                    className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     {order.payment_confirmed ? "Já Pago" : "Enviar Link de Pagamento"}
                   </Button>
-                  {order.payment_confirmed ? (
-                    <Button 
-                      onClick={() => setConfirmRevertPaymentOpen(true)}
-                      variant="outline"
-                      className="h-10 rounded-xl border-amber-200 text-amber-600 font-bold text-xs hover:bg-amber-50"
-                    >
-                      <Clock className="w-4 h-4" />
-                    </Button>
-                  ) : null}
                 </div>
               )}
             </CardContent>
@@ -1310,34 +1286,6 @@ export default function OSViewPage() {
             <Button onClick={handleDeletePhoto} className="bg-red-600 hover:bg-red-700 rounded-xl">
               <Trash2 className="w-4 h-4 mr-2" />
               Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Confirmação - Reverter Pagamento */}
-      <Dialog open={confirmRevertPaymentOpen} onOpenChange={setConfirmRevertPaymentOpen}>
-        <DialogContent className="rounded-3xl max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black">Reverter Pagamento?</DialogTitle>
-            <DialogDescription className="text-slate-600">
-              Esta ação marcará o pagamento como <strong>pendente</strong>. O cliente precisará pagar novamente.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmRevertPaymentOpen(false)}
-              className="rounded-xl"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleRevertPayment}
-              className="rounded-xl bg-amber-600 hover:bg-amber-700"
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              Sim, Reverter
             </Button>
           </DialogFooter>
         </DialogContent>
