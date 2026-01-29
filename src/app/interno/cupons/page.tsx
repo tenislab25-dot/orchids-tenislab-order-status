@@ -161,7 +161,11 @@ export default function CuponsPage() {
         .insert({
           code,
           discount_percent: discountPercent,
-          expires_at: new Date(formData.expires_at).toISOString(),
+          expires_at: (() => {
+            const date = new Date(formData.expires_at);
+            date.setHours(23, 59, 59, 999);
+            return date.toISOString();
+          })(),
           total_limit: totalLimit,
           times_used: 0,
           is_active: true
