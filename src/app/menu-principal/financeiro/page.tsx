@@ -800,27 +800,46 @@ export default function FinanceiroPage() {
                         <TableHead className="font-black uppercase text-[10px]">Cliente</TableHead>
                         <TableHead className="font-black uppercase text-[10px]">Data</TableHead>
                         <TableHead className="font-black uppercase text-[10px]">Método</TableHead>
-                        <TableHead className="text-right font-black uppercase text-[10px]">Valor</TableHead>
+                        <TableHead className="text-right font-black uppercase text-[10px]">Valor Bruto</TableHead>
+                        <TableHead className="text-right font-black uppercase text-[10px]">Cupom</TableHead>
+                        <TableHead className="text-right font-black uppercase text-[10px]">Taxa</TableHead>
+                        <TableHead className="text-right font-black uppercase text-[10px] text-green-600">Valor Líquido</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {recentPayments.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-bold">{order.os_number}</TableCell>
-                          <TableCell>{order.clients?.name || "N/A"}</TableCell>
-                          <TableCell className="text-xs text-slate-500">
-                            {formatDate(order.payment_confirmed_at || order.entry_date)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={order.payment_method === 'Pix' ? 'default' : 'secondary'} className="text-[10px]">
-                              {order.payment_method || "N/A"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-green-600">
-                            R$ {Number(order.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {recentPayments.map((order) => {
+                        const total = Number(order.total || 0);
+                        const cupomDiscount = Number(order.discount_amount || 0);
+                        const taxa = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
+                        const valorLiquido = total - cupomDiscount - taxa;
+                        
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-bold">{order.os_number}</TableCell>
+                            <TableCell>{order.clients?.name || "N/A"}</TableCell>
+                            <TableCell className="text-xs text-slate-500">
+                              {formatDate(order.payment_confirmed_at || order.entry_date)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={order.payment_method === 'Pix' ? 'default' : 'secondary'} className="text-[10px]">
+                                {order.payment_method || "N/A"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-medium text-slate-600">
+                              R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                            <TableCell className="text-right font-medium text-orange-600">
+                              {cupomDiscount > 0 ? `- R$ ${cupomDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-medium text-red-600">
+                              {taxa > 0 ? `- R$ ${taxa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-green-600">
+                              R$ {valorLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
