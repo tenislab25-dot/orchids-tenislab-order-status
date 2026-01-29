@@ -108,7 +108,7 @@ export default function FinanceiroPage() {
       doc.setFont("helvetica", "bold");
       doc.text("Transações Confirmadas", 14, lastY);
 
-      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+      const confirmedOrders = orders.filter(o => o.payment_confirmed);
       const transactionsData = confirmedOrders.slice(0, 30).map(o => [
         o.os_number,
         o.clients?.name || "N/A",
@@ -190,7 +190,7 @@ export default function FinanceiroPage() {
     };
 
     const stats = useMemo(() => {
-      const confirmedOrders = orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+      const confirmedOrders = orders.filter(o => o.payment_confirmed);
       const totalReceived = confirmedOrders.reduce((acc, o) => acc + (Number(o.total || 0) - Number(o.machine_fee || 0)), 0);
       
       const totalDiscounts = orders.reduce((acc, o) => {
@@ -228,7 +228,7 @@ export default function FinanceiroPage() {
 
       // A Receber: apenas ordens entregues e não pagas
       const projectedRevenue = orders
-        .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
+        .filter(o => o.status === "Entregue" && !(o.payment_confirmed))
         .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
       // Projeção Total: Tudo que não foi cancelado (recebido + em serviço + pronto + entregue pendente)
@@ -305,7 +305,7 @@ export default function FinanceiroPage() {
     const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     
     orders
-      .filter(o => o.payment_confirmed || o.pay_on_entry)
+      .filter(o => o.payment_confirmed)
       .forEach(o => {
         const date = new Date(o.entry_date);
         const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
@@ -747,8 +747,8 @@ export default function FinanceiroPage() {
                     </TableHeader>
                     <TableBody>
                       {orders.filter(o => {
-                        if (activeTab === "confirmados") return (o.payment_confirmed || o.pay_on_entry);
-                        if (activeTab === "a_receber") return (o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
+                        if (activeTab === "confirmados") return (o.payment_confirmed);
+                        if (activeTab === "a_receber") return (o.status === "Entregue" && !(o.payment_confirmed));
                         if (activeTab === "total_projecao") return o.status !== "Cancelado";
                         return true;
                       }).length === 0 ? (
@@ -760,8 +760,8 @@ export default function FinanceiroPage() {
                       ) : (
                         orders
                           .filter(o => {
-                            if (activeTab === "confirmados") return (o.payment_confirmed || o.pay_on_entry);
-                            if (activeTab === "a_receber") return (o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
+                            if (activeTab === "confirmados") return (o.payment_confirmed);
+                            if (activeTab === "a_receber") return (o.status === "Entregue" && !(o.payment_confirmed));
                             if (activeTab === "total_projecao") return o.status !== "Cancelado";
                             return true;
                           })
@@ -781,7 +781,7 @@ export default function FinanceiroPage() {
                                   <Badge variant="outline" className="w-fit text-[9px] font-bold border-slate-200 text-slate-500">
                                     {order.payment_method || "N/A"}
                                   </Badge>
-                                  {(order.payment_confirmed || order.pay_on_entry) ? (
+                                  {(order.payment_confirmed) ? (
                                     <span className="text-[8px] font-bold text-green-500 uppercase">Pago</span>
                                   ) : (
                                     <span className="text-[8px] font-bold text-amber-500 uppercase">Pendente</span>

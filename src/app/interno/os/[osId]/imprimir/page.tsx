@@ -211,7 +211,7 @@ export default function PrintOSPage() {
             </div>
             <div className="flex justify-between text-[8px] text-slate-500 mt-1">
               <span>Pagamento</span>
-              <span>{order.payment_method} ({order.pay_on_entry ? 'Pago' : 'A pagar'})</span>
+              <span>{order.payment_method} ({order.payment_confirmed ? 'Pago' : 'A pagar'})</span>
             </div>
           </div>
 

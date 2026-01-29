@@ -101,7 +101,7 @@ export function checkOrderAlerts(orders: any[]): Alert[] {
   const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
 
   orders.forEach((order) => {
-    if (order.status === "Entregue" && !(order.payment_confirmed || order.pay_on_entry)) {
+    if (order.status === "Entregue" && !(order.payment_confirmed)) {
       const deliveredAt = new Date(order.updated_at || order.entry_date);
       if (deliveredAt < sevenDaysAgo) {
         alerts.push({

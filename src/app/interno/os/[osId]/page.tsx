@@ -358,7 +358,7 @@ export default function OSViewPage() {
       if (!order) return;
       if (order.status === "Entregue") return;
       
-      if (!order.payment_confirmed && !order.pay_on_entry) {
+      if (!order.payment_confirmed) {
         setDeliveryModalOpen(true);
       } else {
         handleStatusUpdate("Entregue");
@@ -1087,10 +1087,10 @@ export default function OSViewPage() {
               <div className="flex items-center justify-center">
                 <div className="flex flex-col gap-1 items-center">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status do Pagamento</span>
-                  {order.payment_confirmed || order.pay_on_entry ? (
+                  {order.payment_confirmed ? (
                     <Badge className="bg-green-100 text-green-700 font-bold">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
-                      {order.pay_on_entry ? "Pago na Entrada" : "Confirmado"}
+                      Confirmado
                     </Badge>
                   ) : (
                     <Badge className="bg-amber-100 text-amber-700 font-bold">
@@ -1105,13 +1105,13 @@ export default function OSViewPage() {
                 <div className="flex gap-2 pt-4 border-t border-slate-100">
                   <Button 
                     onClick={handleSharePaymentLink}
-                    disabled={order.pay_on_entry || order.payment_confirmed}
+                    disabled={order.payment_confirmed}
                     className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
-                    {order.pay_on_entry ? "Pago na Entrada" : order.payment_confirmed ? "Já Pago" : "Enviar Link de Pagamento"}
+                    {order.payment_confirmed ? "Já Pago" : "Enviar Link de Pagamento"}
                   </Button>
-                  {order.payment_confirmed || order.pay_on_entry ? (
+                  {order.payment_confirmed ? (
                     <Button 
                       onClick={() => setConfirmRevertPaymentOpen(true)}
                       variant="outline"

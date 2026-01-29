@@ -39,7 +39,6 @@ export async function GET(request: NextRequest) {
     `)
     .eq("status", "Entregue")
     .eq("payment_confirmed", false)
-    .eq("pay_on_entry", false)
     .lt("updated_at", sevenDaysAgo.toISOString());
 
   if (paymentError) {

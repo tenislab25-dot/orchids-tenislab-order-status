@@ -101,7 +101,7 @@ export default function RelatorioFinanceiroPage() {
   }, [orders]);
 
   const confirmedOrders = useMemo(() => {
-    return orders.filter(o => o.payment_confirmed || o.pay_on_entry);
+    return orders.filter(o => o.payment_confirmed);
   }, [orders]);
 
   const yearlyStats = useMemo(() => {

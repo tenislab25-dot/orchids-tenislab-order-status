@@ -144,7 +144,7 @@ interface OSItem {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
     const [paymentMethod, setPaymentMethod] = useState("Pix");
-    const [payOnEntry, setPayOnEntry] = useState(false);
+    const [paymentConfirmed, setPaymentConfirmed] = useState(false);
     
     const [createdOS, setCreatedOS] = useState<any>(null);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -512,7 +512,7 @@ interface OSItem {
             delivery_fee: deliveryFee,
             discount_percent: discountPercent,
             payment_method: paymentMethod,
-            pay_on_entry: payOnEntry,
+            payment_confirmed: paymentConfirmed,
             total: finalTotal,
             items: itemsWithPhotosBefore,
             status: "Recebido",
@@ -1078,17 +1078,17 @@ interface OSItem {
 
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${payOnEntry ? "bg-green-100 text-green-600" : "bg-slate-200 text-slate-400"}`}>
+                <div className={`p-2 rounded-full ${paymentConfirmed ? "bg-green-100 text-green-600" : "bg-slate-200 text-slate-400"}`}>
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">Pagar na entrada</h4>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Pagamento antecipado</p>
+                  <h4 className="text-sm font-bold text-slate-900">Pagamento Confirmado</h4>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Marcar como pago</p>
                 </div>
               </div>
               <Switch 
-                checked={payOnEntry}
-                onCheckedChange={setPayOnEntry}
+                checked={paymentConfirmed}
+                onCheckedChange={setPaymentConfirmed}
               />
             </div>
           </CardContent>

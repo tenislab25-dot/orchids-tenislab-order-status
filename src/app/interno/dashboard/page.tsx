@@ -436,7 +436,7 @@ export default function DashboardPage() {
     }
 
     if (filter === "pendentes") {
-      result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry));
+      result = result.filter(o => o.status === "Entregue" && !(o.payment_confirmed));
     } else if (filter === "cadastro_pendente") {
       // OS recebidas mas sem cadastro completo (sem serviços/items)
       result = result.filter(o => 
@@ -691,9 +691,9 @@ export default function DashboardPage() {
       return delivery < today;
     }).length;
 
-    const pendingPayments = orders.filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry)).length;
+    const pendingPayments = orders.filter(o => o.status === "Entregue" && !(o.payment_confirmed)).length;
     const pendingAmount = orders
-      .filter(o => o.status === "Entregue" && !(o.payment_confirmed || o.pay_on_entry))
+      .filter(o => o.status === "Entregue" && !(o.payment_confirmed))
       .reduce((acc, o) => acc + Number(o.total || 0), 0);
     
     const pendingCollections = orders.filter(o => o.status === "Coleta").length;
