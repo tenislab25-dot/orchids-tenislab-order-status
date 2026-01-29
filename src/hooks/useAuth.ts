@@ -37,10 +37,10 @@ export function useAuth(): AuthContextValue {
       await supabase.auth.signOut();
       localStorage.removeItem("tenislab_role");
       clearAuthState();
-      window.location.href = "/interno/login";
+      window.location.href = "/menu-principal/login";
     } catch (error) {
       logger.error("Erro ao sair:", error);
-      window.location.href = "/interno/login";
+      window.location.href = "/menu-principal/login";
     }
   }, []);
 
@@ -109,22 +109,22 @@ export function useAuth(): AuthContextValue {
             
             setLoading(false);
 
-            if (pathname?.startsWith("/interno") && !canAccessPage(userRole, pathname)) {
-              router.push("/interno");
+            if (pathname?.startsWith("/menu-principal") && !canAccessPage(userRole, pathname)) {
+              router.push("/menu-principal");
             }
           } else if (isMounted) {
             // Sem perfil, redirecionar para login
             setAuthState({ hasChecked: true });
-            if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-              router.push("/interno/login");
+            if (pathname?.startsWith("/menu-principal") && pathname !== "/menu-principal/login") {
+              router.push("/menu-principal/login");
             }
             setLoading(false);
           }
         } else {
           // SEM sessão E SEM cache - redirecionar para login
           setAuthState({ hasChecked: true });
-          if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-            router.push("/interno/login");
+          if (pathname?.startsWith("/menu-principal") && pathname !== "/menu-principal/login") {
+            router.push("/menu-principal/login");
           }
           if (isMounted) setLoading(false);
         }
@@ -141,8 +141,8 @@ export function useAuth(): AuthContextValue {
             });
           } else {
             setAuthState({ hasChecked: true });
-            if (pathname?.startsWith("/interno") && pathname !== "/interno/login") {
-              router.push("/interno/login");
+            if (pathname?.startsWith("/menu-principal") && pathname !== "/menu-principal/login") {
+              router.push("/menu-principal/login");
             }
           }
           setLoading(false);
@@ -161,7 +161,7 @@ export function useAuth(): AuthContextValue {
       if (event === "SIGNED_OUT") {
         localStorage.removeItem("tenislab_role");
         clearAuthState();
-        router.push("/interno/login");
+        router.push("/menu-principal/login");
       } else if (event === "SIGNED_IN" && session) {
         const cachedRole = localStorage.getItem("tenislab_role") as UserRole | null;
         if (cachedRole) {
@@ -184,8 +184,8 @@ export function useAuth(): AuthContextValue {
 
   // Efeito separado para verificar permissões quando pathname muda
   useEffect(() => {
-    if (authState.role && pathname?.startsWith("/interno") && !canAccessPage(authState.role, pathname)) {
-      router.push("/interno");
+    if (authState.role && pathname?.startsWith("/menu-principal") && !canAccessPage(authState.role, pathname)) {
+      router.push("/menu-principal");
     }
   }, [pathname, authState.role, router]);
 

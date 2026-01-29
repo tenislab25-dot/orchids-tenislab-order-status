@@ -10,10 +10,10 @@ const ROLE_STATUS_PERMISSIONS: Record<UserRole, Status[]> = {
 };
 
 const ROLE_PAGES: Record<UserRole, string[]> = {
-  OPERACIONAL: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/os/[osId]'],
-  ATENDENTE: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro'],
-  ADMIN: ['/interno', '/interno/dashboard', '/interno/os', '/interno/todos', '/interno/clientes', '/interno/servicos', '/interno/financeiro', '/interno/banco-de-dados'],
-  ENTREGADOR: ['/interno', '/interno/todos', '/interno/entregas'],
+  OPERACIONAL: ['/menu-principal', '/menu-principal/painel', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/os/[osId]'],
+  ATENDENTE: ['/menu-principal', '/menu-principal/painel', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/clientes', '/menu-principal/servicos', '/menu-principal/financeiro'],
+  ADMIN: ['/menu-principal', '/menu-principal/painel', '/menu-principal/os', '/menu-principal/todos', '/menu-principal/clientes', '/menu-principal/servicos', '/menu-principal/financeiro', '/menu-principal/banco-de-dados'],
+  ENTREGADOR: ['/menu-principal', '/menu-principal/todos', '/menu-principal/entregas'],
 };
 
 export function canChangeToStatus(role: UserRole, status: Status, currentStatus?: Status): boolean {

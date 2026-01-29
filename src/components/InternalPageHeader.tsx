@@ -34,7 +34,7 @@ export function InternalPageHeader({ title, subtitle }: InternalPageHeaderProps)
 
       <Button
         variant="outline"
-        onClick={() => router.push("/interno")}
+        onClick={() => router.push("/menu-principal")}
         className="flex items-center gap-2"
       >
         <LayoutDashboard className="w-4 h-4" />

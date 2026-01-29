@@ -22,7 +22,7 @@ export default function LoginPage() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push("/interno");
+        router.push("/menu-principal");
       }
     };
     checkSession();
@@ -65,7 +65,7 @@ export default function LoginPage() {
         }
 
         localStorage.setItem("tenislab_role", profileData.role);
-        router.push("/interno");
+        router.push("/menu-principal");
       }
     } catch (err) {
       setError("Erro ao realizar login");
