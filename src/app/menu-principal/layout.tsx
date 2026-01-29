@@ -53,7 +53,7 @@ export default function InternoLayout({
 
   return (
     <div className="w-full">
-      {!isLoginPage && !isMainMenuPage && user && (
+      {!isLoginPage && !isMainMenuPage && (
         <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm mb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -62,7 +62,7 @@ export default function InternoLayout({
               <User className="w-5 h-5 text-slate-400" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-slate-900 truncate">{user.email}</span>
+              <span className="font-bold text-slate-900 truncate">{user?.email || 'Usuário'}</span>
               {role && (
                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
                   {getRoleLabel(role)}
