@@ -703,8 +703,8 @@ export default function DashboardPage() {
   }, [orders]);
 
   return (
-    <div className="flex flex-col gap-6 sm:gap-8 pb-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-      <header className="flex flex-col gap-4 pt-6 sm:pt-8">
+    <div className="flex flex-col gap-6 sm:gap-8 pb-10">
+      <header className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6">
           <div className="flex flex-col gap-2 sm:gap-4">
             <Link href="/menu-principal" prefetch={false}>
