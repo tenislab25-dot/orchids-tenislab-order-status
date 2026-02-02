@@ -29,6 +29,7 @@ interface OrderData {
   discount_percent?: number;
   machine_fee?: number;
   delivery_fee?: number;
+  sold_products?: any[];
   clients: {
     phone: string;
   } | null;
@@ -263,6 +264,7 @@ function OrderContent() {
               discount_percent,
               machine_fee,
               delivery_fee,
+              sold_products,
               clients!inner (
                 phone
               )
@@ -377,6 +379,17 @@ function OrderContent() {
                         <span className="text-slate-500">Subtotal</span>
                         <span className="font-bold text-slate-700">R$ {order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0).toFixed(2)}</span>
                       </div>
+                      {order.sold_products && order.sold_products.length > 0 && (
+                        <div className="flex flex-col gap-1.5 py-2 border-y border-slate-200">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Produtos</span>
+                          {order.sold_products.map((product: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center text-xs">
+                              <span className="text-slate-600">{product.quantity}x {product.product_name}</span>
+                              <span className="font-bold text-slate-700">R$ {(Number(product.quantity) * Number(product.unit_price)).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                         {order.discount_percent && order.discount_percent > 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-red-500 font-medium">Desconto ({order.discount_percent}%)</span>
