@@ -82,6 +82,8 @@ export default function EditOSPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [services, setServices] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   
   const [order, setOrder] = useState<any>(null);
   const [entryDate, setEntryDate] = useState("");
@@ -134,6 +136,19 @@ export default function EditOSPage() {
       .select("*")
       .eq("status", "Active");
     if (data) setServices(data);
+  }, []);
+
+  const fetchProducts = useCallback(async () => {
+    setLoadingProducts(true);
+    try {
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("status", "Active");
+      if (data) setProducts(data);
+    } finally {
+      setLoadingProducts(false);
+    }
   }, []);
 
   const fetchOrder = useCallback(async () => {
@@ -192,10 +207,11 @@ export default function EditOSPage() {
       setRole(profile.role);
       fetchOrder();
       fetchServices();
+      fetchProducts();
     };
 
     checkAuthAndFetch();
-  }, [fetchOrder, fetchServices, router]);
+  }, [fetchOrder, fetchServices, fetchProducts, router]);
 
   const serviceCatalog = useMemo(() => {
     return services.reduce((acc, service) => {
@@ -276,6 +292,7 @@ export default function EditOSPage() {
   const addSoldProduct = () => {
     const newProduct = {
       id: Date.now().toString(),
+      productId: "",
       name: "",
       quantity: 1,
       price: 0
@@ -285,6 +302,20 @@ export default function EditOSPage() {
 
   const removeSoldProduct = (id: string) => {
     setSoldProducts(soldProducts.filter(p => p.id !== id));
+  };
+
+  const selectProduct = (productLocalId: string, productId: string) => {
+    const selectedProduct = products.find(p => p.id === productId);
+    if (selectedProduct) {
+      setSoldProducts(soldProducts.map(p => 
+        p.id === productLocalId ? {
+          ...p,
+          productId: selectedProduct.id,
+          name: selectedProduct.name,
+          price: Number(selectedProduct.price)
+        } : p
+      ));
+    }
   };
 
   const updateSoldProduct = (id: string, field: 'name' | 'quantity' | 'price', value: string | number) => {
@@ -688,12 +719,30 @@ export default function EditOSPage() {
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-1">
                       <Label className="text-xs font-bold text-slate-500 mb-1.5">Produto</Label>
-                      <Input
-                        placeholder="Nome do produto"
-                        value={product.name}
-                        onChange={(e) => updateSoldProduct(product.id, 'name', e.target.value)}
-                        className="h-10 rounded-xl"
-                      />
+                      <Select
+                        value={product.productId || ""}
+                        onValueChange={(value) => selectProduct(product.id, value)}
+                      >
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="Selecione um produto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Produtos Disponíveis</SelectLabel>
+                            {loadingProducts ? (
+                              <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                            ) : products.length === 0 ? (
+                              <SelectItem value="empty" disabled>Nenhum produto cadastrado</SelectItem>
+                            ) : (
+                              products.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.name} - R$ {Number(p.price).toFixed(2)}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label className="text-xs font-bold text-slate-500 mb-1.5">Quantidade</Label>
@@ -714,8 +763,8 @@ export default function EditOSPage() {
                         step="0.01"
                         placeholder="R$ 0,00"
                         value={product.price}
-                        onChange={(e) => updateSoldProduct(product.id, 'price', Number(e.target.value))}
-                        className="h-10 rounded-xl"
+                        readOnly
+                        className="h-10 rounded-xl bg-slate-50 cursor-not-allowed"
                       />
                     </div>
                   </div>
