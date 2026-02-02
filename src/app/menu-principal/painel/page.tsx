@@ -48,13 +48,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDateTime, formatDateShort } from "@/lib/date-utils";
-import { 
-  playNotificationSound, 
+import {
+  playNotificationSound,
   playAcceptedSound,
-  requestNotificationPermission, 
-  showBrowserNotification,
-  checkOrderAlerts,
-  type Alert 
+  requestNotificationPermission,
+  showBrowserNotification
 } from "@/lib/notifications";
 
 type Status = "Recebido" | "Em espera" | "Em serviço" | "Em finalização" | "Pronto" | "Em Rota" | "Entregue" | "Cancelado";
@@ -134,8 +132,6 @@ export default function PainelPage() {
   const [role, setRole] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [showAlerts, setShowAlerts] = useState(false);
   const [changedOrderId, setChangedOrderId] = useState<string | null>(null);
   const previousOrdersRef = useRef<Order[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
@@ -143,7 +139,6 @@ export default function PainelPage() {
     direction: 'asc'
   });
   const [manualAlertsByOrder, setManualAlertsByOrder] = useState<Record<string, any[]>>({});
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   const sortOptions = [
     { label: "✨ Inteligente", value: "smart", icon: "sparkles" },
@@ -176,42 +171,7 @@ export default function PainelPage() {
     }
   };
 
-  const handleResolveAlert = async (alertId: string) => {
-    try {
-      const userId = localStorage.getItem("tenislab_user_id");
-      
-      const { error } = await supabase
-        .from('manual_alerts')
-        .update({ 
-          resolved: true, 
-          resolved_at: new Date().toISOString(),
-          resolved_by: userId 
-        })
-        .eq('id', alertId);
 
-      if (error) {
-        toast.error("Erro ao resolver alerta: " + error.message);
-      } else {
-        toast.success("Alerta resolvido!");
-        // Remover o alerta da lista local
-        setAlerts(prev => prev.filter(a => a.id !== `manual-${alertId}`));
-      }
-    } catch (err: any) {
-      toast.error("Erro ao resolver alerta");
-    }
-  };
-
-  const handleDismissAlert = (alertId: string) => {
-    const newDismissed = new Set(dismissedAlerts);
-    newDismissed.add(alertId);
-    setDismissedAlerts(newDismissed);
-    
-    // Salvar no localStorage
-    localStorage.setItem("dismissed_alerts", JSON.stringify(Array.from(newDismissed)));
-    
-    // Remover da lista de alertas
-    setAlerts(prev => prev.filter(a => a.id !== alertId));
-  };
 
   const soundEnabledRef = useRef(soundEnabled);
   soundEnabledRef.current = soundEnabled;
@@ -225,17 +185,6 @@ export default function PainelPage() {
     }
 
     setRole(storedRole);
-    
-    // Carregar alertas dismissed do localStorage
-    const stored = localStorage.getItem("dismissed_alerts");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setDismissedAlerts(new Set(parsed));
-      } catch (e) {
-        console.error("Erro ao carregar alertas dismissed", e);
-      }
-    }
     requestNotificationPermission();
     fetchOrders();
 
@@ -307,22 +256,6 @@ export default function PainelPage() {
           return updatedAt > thirtyDaysAgo;
         });
         setOrders(dashboardOrders as Order[]);
-        
-        const orderAlerts = await checkOrderAlerts(dashboardOrders || []);
-        
-        // Filtrar alertas dismissed
-        const stored = localStorage.getItem("dismissed_alerts");
-        let dismissedSet = new Set<string>();
-        if (stored) {
-          try {
-            dismissedSet = new Set(JSON.parse(stored));
-          } catch (e) {
-            console.error("Erro ao carregar dismissed alerts", e);
-          }
-        }
-        
-        const filteredAlerts = orderAlerts.filter(alert => !dismissedSet.has(alert.id));
-        setAlerts(filteredAlerts);
         
         // Buscar alertas manuais para cada OS
         const orderIds = dashboardOrders?.map((o: any) => o.id) || [];
@@ -842,20 +775,6 @@ export default function PainelPage() {
               {soundEnabled ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />}
             </Button>
             
-            {alerts.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => setShowAlerts(!showAlerts)}
-                className={`rounded-xl gap-2 h-10 sm:h-11 px-3 sm:px-4 relative ${showAlerts ? 'border-red-200 text-red-600' : 'border-amber-200 text-amber-600'}`}
-              >
-                <Bell className="w-4 h-4" />
-                <span className="hidden sm:inline font-bold text-xs sm:text-sm">Alertas</span>
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                  {alerts.length}
-                </span>
-              </Button>
-            )}
-
 {(role === "ADMIN") && (
                 <Link href="/menu-principal/financeiro" prefetch={false}>
                   <Button variant="outline" className="border-emerald-200 text-emerald-600 font-bold rounded-xl gap-2 h-10 sm:h-11 text-xs sm:text-sm px-3 sm:px-4">
@@ -969,91 +888,7 @@ export default function PainelPage() {
               </Card>
             </motion.div>
           )}
-          {showAlerts && alerts.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-            >
-              <Card className="border-red-100 bg-red-50/50 rounded-2xl">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-black text-red-600 uppercase tracking-widest flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" /> Alertas do Sistema
-                    </span>
-                    <Button variant="ghost" size="icon" onClick={() => setShowAlerts(false)} className="h-6 w-6">
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {alerts.map((alert) => {
-                      const isManualAlert = alert.id.startsWith('manual-');
-                      const alertBgClass = alert.type === 'danger' ? 'bg-red-100 border-red-200' : alert.type === 'info' ? 'bg-blue-100 border-blue-200' : 'bg-amber-100 border-amber-200';
-                      const alertTextClass = alert.type === 'danger' ? 'text-red-700' : alert.type === 'info' ? 'text-blue-700' : 'text-amber-700';
-                      
-                      return (
-                        <div 
-                          key={alert.id} 
-                          className={`p-3 rounded-xl text-xs border ${alertBgClass} ${alertTextClass} relative`}
-                        >
-                          {/* Botão X para dismiss */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDismissAlert(alert.id)}
-                            className="absolute -top-1 -right-1 h-5 w-5 rounded-full hover:bg-white/50"
-                            title="Dispensar alerta"
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                          
-                          <div 
-                            onClick={() => {
-                              if (alert.osNumber) {
-                                const osIdFormatted = alert.osNumber.replace('/', '-');
-                                router.push(`/menu-principal/os/${osIdFormatted}`);
-                              }
-                            }}
-                            className="cursor-pointer hover:opacity-80 transition-opacity"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <p className="font-bold mb-1">{alert.title}</p>
-                                <p className="opacity-80 text-xs">{alert.message}</p>
-                                {alert.clientName && (
-                                  <p className="opacity-60 text-xs mt-1">Cliente: {alert.clientName}</p>
-                                )}
-                              </div>
-                              <div className="flex gap-1 flex-shrink-0 items-center">
-                                {alert.osNumber && (
-                                  <span className="text-[10px] opacity-60 font-bold">#{alert.osNumber}</span>
-                                )}
-                                {isManualAlert && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleResolveAlert(alert.id.replace('manual-', ''));
-                                    }}
-                                    className="h-7 px-2 text-xs hover:bg-white/50"
-                                    title="Resolver"
-                                  >
-                                    <CheckCircle2 className="w-3 h-3" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+
         </AnimatePresence>
       </header>
 

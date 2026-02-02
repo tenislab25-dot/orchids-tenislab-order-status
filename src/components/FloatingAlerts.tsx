@@ -6,15 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-
-interface Alert {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  osNumber?: string;
-  clientName?: string;
-}
+import { checkOrderAlerts, type Alert } from "@/lib/notifications";
 
 export default function FloatingAlerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -43,129 +35,51 @@ export default function FloatingAlerts() {
 
   async function fetchAlerts() {
     try {
-      const alertsList: Alert[] = [];
-      const now = new Date();
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // Buscar OSs dos últimos 30 dias
-      const { data: orders } = await supabase
+      // Buscar OSs dos últimos 30 dias (igual ao painel)
+      const { data, error } = await supabase
         .from("service_orders")
         .select(`
           *,
           clients (
-            id,
             name,
             phone,
-            email,
-            vip
+            is_vip
           )
         `)
         .gte("created_at", thirtyDaysAgo.toISOString())
         .order("created_at", { ascending: false });
 
-      if (!orders) return;
-
-      // Buscar alertas manuais não resolvidos
-      const { data: manualAlerts } = await supabase
-        .from('manual_alerts')
-        .select(`
-          id,
-          order_id,
-          type,
-          title,
-          description,
-          created_at,
-          service_orders!inner (
-            os_number,
-            clients (
-              name
-            )
-          )
-        `)
-        .eq('resolved', false)
-        .order('created_at', { ascending: false });
-
-      // Adicionar alertas manuais
-      if (manualAlerts) {
-        manualAlerts.forEach((alert: any) => {
-          const titlePrefix: Record<string, string> = {
-            bloqueio: '🔴',
-            cliente_perguntou: '🟡',
-            observacao: '🔴'
-          };
-
-          alertsList.push({
-            id: `manual-${alert.id}`,
-            type: 'danger',
-            title: `${titlePrefix[alert.type] || '🔴'} ${alert.title || alert.type.toUpperCase()}`,
-            description: alert.description,
-            osNumber: alert.service_orders.os_number,
-            clientName: alert.service_orders.clients?.name
-          });
-        });
+      if (error) {
+        console.error("[FloatingAlerts] Erro ao buscar OSs:", error);
+        return;
       }
 
-      // Verificar alertas automáticos
-      orders.forEach((order: any) => {
-        // Pagamento pendente há 7+ dias
-        if (order.status === "Entregue" && !order.payment_confirmed) {
-          const deliveredAt = new Date(order.updated_at || order.entry_date);
-          if (deliveredAt < sevenDaysAgo) {
-            alertsList.push({
-              id: `payment-overdue-${order.id}`,
-              type: "danger",
-              title: "Pagamento Pendente há 7+ dias",
-              description: `OS ${order.os_number} entregue há mais de 7 dias sem confirmação de pagamento`,
-              osNumber: order.os_number,
-              clientName: order.clients?.name,
-            });
-          }
-        }
-
-        // Pronto há 3+ dias
-        if (order.status === "Pronto") {
-          const readyAt = new Date(order.updated_at || order.entry_date);
-          if (readyAt < threeDaysAgo) {
-            alertsList.push({
-              id: `ready-waiting-${order.id}`,
-              type: "warning",
-              title: "Pronto há 3+ dias",
-              description: `OS ${order.os_number} está pronta há mais de 3 dias aguardando retirada`,
-              osNumber: order.os_number,
-              clientName: order.clients?.name,
-            });
-          }
-        }
-
-        // OS atrasada
-        if (
-          order.delivery_date &&
-          order.status !== "Entregue" &&
-          order.status !== "Cancelado"
-        ) {
-          const deliveryDate = new Date(order.delivery_date);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          if (deliveryDate < today) {
-            alertsList.push({
-              id: `overdue-${order.id}`,
-              type: "danger",
-              title: "OS Atrasada",
-              description: `OS ${order.os_number} passou do prazo de entrega`,
-              osNumber: order.os_number,
-              clientName: order.clients?.name,
-            });
-          }
-        }
+      // Filtrar OSs ativas (igual ao painel)
+      const dashboardOrders = data?.filter((o: any) => {
+        const isDone = o.status === "Entregue" || o.status === "Cancelado";
+        if (!isDone) return true;
+        const updatedAt = new Date(o.updated_at || o.created_at);
+        return updatedAt > thirtyDaysAgo;
       });
 
-      // Filtrar alertas dismissed
-      const dismissed = JSON.parse(localStorage.getItem("dismissed_alerts") || "[]");
-      const filteredAlerts = alertsList.filter((alert: Alert) => !dismissed.includes(alert.id));
+      // Usar a mesma função do painel para gerar alertas
+      const orderAlerts = await checkOrderAlerts(dashboardOrders || []);
 
+      // Filtrar alertas dismissed
+      const stored = localStorage.getItem("dismissed_alerts");
+      let dismissedSet = new Set<string>();
+      if (stored) {
+        try {
+          dismissedSet = new Set(JSON.parse(stored));
+        } catch (e) {
+          console.error("Erro ao carregar dismissed alerts", e);
+        }
+      }
+
+      const filteredAlerts = orderAlerts.filter(alert => !dismissedSet.has(alert.id));
       setAlerts(filteredAlerts);
     } catch (error) {
       console.error("[FloatingAlerts] Erro ao carregar alertas:", error);
@@ -173,15 +87,24 @@ export default function FloatingAlerts() {
   }
 
   function dismissAlert(alertId: string) {
-    const dismissed = JSON.parse(localStorage.getItem("dismissed_alerts") || "[]");
-    dismissed.push(alertId);
-    localStorage.setItem("dismissed_alerts", JSON.stringify(dismissed));
+    const stored = localStorage.getItem("dismissed_alerts");
+    let dismissedSet = new Set<string>();
+    if (stored) {
+      try {
+        dismissedSet = new Set(JSON.parse(stored));
+      } catch (e) {
+        console.error("Erro ao carregar dismissed alerts", e);
+      }
+    }
+    dismissedSet.add(alertId);
+    localStorage.setItem("dismissed_alerts", JSON.stringify(Array.from(dismissedSet)));
     setAlerts(prev => prev.filter(a => a.id !== alertId));
   }
 
   function handleAlertClick(osNumber?: string) {
     if (osNumber) {
-      router.push(`/menu-principal/os/${osNumber}`);
+      const osIdFormatted = osNumber.replace('/', '-');
+      router.push(`/menu-principal/os/${osIdFormatted}`);
     }
   }
 
@@ -191,7 +114,7 @@ export default function FloatingAlerts() {
       <>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-red-500 text-white  hover:bg-red-600 transition-all flex items-center justify-center"
+          className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-red-500 text-white hover:bg-red-600 transition-all flex items-center justify-center"
         >
           <Bell className="w-6 h-6" />
           {alerts.length > 0 && (
@@ -204,7 +127,7 @@ export default function FloatingAlerts() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Alertas do Sistema ({alerts.length})</DialogTitle>
+              <DialogTitle>🚨 Alertas do Sistema ({alerts.length})</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               {alerts.length === 0 ? (
@@ -217,19 +140,19 @@ export default function FloatingAlerts() {
                       handleAlertClick(alert.osNumber);
                       setIsModalOpen(false);
                     }}
-                    className={`p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative cursor-pointer`}
+                    className="p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative cursor-pointer hover:bg-red-100 transition-colors"
                   >
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         dismissAlert(alert.id);
                       }}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-red-50"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
                     <h3 className="font-bold text-sm mb-1">{alert.title}</h3>
-                    <p className="text-xs mb-2">{alert.description}</p>
+                    <p className="text-xs mb-2">{alert.message}</p>
                     {alert.clientName && (
                       <p className="text-xs font-medium">Cliente: {alert.clientName}</p>
                     )}
@@ -252,19 +175,19 @@ export default function FloatingAlerts() {
   return (
     <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
       {isExpanded && (
-        <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto scrollbar-hide">
-          {alerts.slice(0, 4).map((alert, index) => (
+        <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
+          {alerts.slice(0, 4).map((alert) => (
             <div
               key={alert.id}
               onClick={() => handleAlertClick(alert.osNumber)}
-              className="w-64 p-4 rounded-xl border-2  bg-red-50 border-red-200 text-red-900 relative transition-all  cursor-pointer"
+              className="w-64 p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative transition-all cursor-pointer hover:bg-red-100"
             >
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   dismissAlert(alert.id);
                 }}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50 transition-colors"
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-red-50 transition-colors"
               >
                 <X className="w-4 h-4 text-red-500" />
               </button>
@@ -272,7 +195,7 @@ export default function FloatingAlerts() {
                 <Bell className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <h3 className="font-bold text-sm">{alert.title}</h3>
               </div>
-              <p className="text-xs mb-2">{alert.description}</p>
+              <p className="text-xs mb-2">{alert.message}</p>
               {alert.clientName && (
                 <p className="text-xs font-medium">Cliente: {alert.clientName}</p>
               )}
@@ -288,7 +211,7 @@ export default function FloatingAlerts() {
         onClick={() => setIsExpanded(!isExpanded)}
         variant="outline"
         size="icon"
-        className="w-12 h-12 rounded-full  bg-red-500 hover:bg-red-600 text-white border-red-600"
+        className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white border-red-600"
       >
         {isExpanded ? <X className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
         {!isExpanded && alerts.length > 0 && (
