@@ -63,6 +63,7 @@ interface Order {
   coupon_code: string | null;
   mp_payment_id: string | null;
   items: any[];
+  sold_products?: any[];
   clients: {
     name: string;
   } | null;
@@ -135,6 +136,7 @@ export default function FinanceiroPage() {
           coupon_code,
           mp_payment_id,
           items,
+          sold_products,
           clients (
             name
           )
@@ -297,6 +299,32 @@ export default function FinanceiroPage() {
     });
 
     return Object.entries(servicesCount)
+      .sort(([, a], [, b]) => b.count - a.count)
+      .slice(0, 5)
+      .map(([name, data]) => ({ name, count: data.count, revenue: data.revenue }));
+  }, [orders]);
+
+  // Produtos Mais Vendidos (Top 5)
+  const topProducts = useMemo(() => {
+    const productsCount: Record<string, { count: number; revenue: number }> = {};
+    
+    orders.forEach(order => {
+      if (order.sold_products && Array.isArray(order.sold_products)) {
+        order.sold_products.forEach((product: any) => {
+          const name = product.name || 'Desconhecido';
+          const quantity = Number(product.quantity || 1);
+          const price = Number(product.price || 0);
+          
+          if (!productsCount[name]) {
+            productsCount[name] = { count: 0, revenue: 0 };
+          }
+          productsCount[name].count += quantity;
+          productsCount[name].revenue += price * quantity;
+        });
+      }
+    });
+    
+    return Object.entries(productsCount)
       .sort(([, a], [, b]) => b.count - a.count)
       .slice(0, 5)
       .map(([name, data]) => ({ name, count: data.count, revenue: data.revenue }));
@@ -868,6 +896,46 @@ export default function FinanceiroPage() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* PRODUTOS MAIS VENDIDOS */}
+            <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
+              <CardHeader>
+                <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+                  <Package className="w-5 h-5 text-blue-500" />
+                  Top 5 Produtos Mais Vendidos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {topProducts.length > 0 ? (
+                  <div className="space-y-4">
+                    {topProducts.map((product, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-white rounded-2xl border border-blue-100">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xl">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <span className="text-sm font-black text-slate-900">{product.name}</span>
+                            <p className="text-xs text-slate-500 font-bold">{product.count} unidades vendidas</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-lg font-black text-blue-600">
+                            R$ {product.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </span>
+                          <p className="text-xs text-slate-500 font-bold">Faturamento</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-400">
+                    <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm font-bold">Nenhum produto vendido ainda</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
