@@ -384,8 +384,8 @@ function OrderContent() {
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Produtos</span>
                           {order.sold_products.map((product: any, idx: number) => (
                             <div key={idx} className="flex justify-between items-center text-xs">
-                              <span className="text-slate-600">{product.quantity}x {product.product_name}</span>
-                              <span className="font-bold text-slate-700">R$ {(Number(product.quantity) * Number(product.unit_price)).toFixed(2)}</span>
+                              <span className="text-slate-600">{product.quantity}x {product.name}</span>
+                              <span className="font-bold text-slate-700">R$ {(Number(product.quantity) * Number(product.price)).toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
