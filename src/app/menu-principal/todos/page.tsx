@@ -51,6 +51,7 @@ interface Order {
   payment_confirmed?: boolean;
   items: any[];
   clients: {
+    id: string;
     name: string;
     phone: string;
   } | null;
@@ -137,6 +138,7 @@ export default function TodosPedidosPage() {
         .select(`
           *,
           clients (
+            id,
             name,
             phone
           )
@@ -306,12 +308,31 @@ export default function TodosPedidosPage() {
                 ) : (
                   orders.map((order) => (
                       <TableRow key={order.id} className={`hover:bg-slate-50/50 border-b border-slate-50 ${order.priority ? 'bg-amber-50/30' : ''}`}>
-                        <TableCell className="pl-8 font-mono font-black text-blue-600">{order.os_number}</TableCell>
+                        <TableCell className="pl-8">
+                          <Link 
+                            href={`/menu-principal/os/${order.os_number?.replace("/", "-")}`} 
+                            className="font-mono font-black text-blue-600 hover:text-blue-700 hover:underline cursor-pointer transition-all"
+                            prefetch={false}
+                          >
+                            {order.os_number}
+                          </Link>
+                        </TableCell>
                         <TableCell className="font-bold text-slate-700">
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="w-4 h-4 text-slate-400" />
-                            {order.clients?.name || "—"}
-                          </div>
+                          {order.clients ? (
+                            <Link 
+                              href={`/menu-principal/clientes/${order.clients.id}`}
+                              className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition-colors"
+                              prefetch={false}
+                            >
+                              <UserIcon className="w-4 h-4 text-slate-400" />
+                              <span className="hover:underline">{order.clients.name}</span>
+                            </Link>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <UserIcon className="w-4 h-4 text-slate-400" />
+                              —
+                            </div>
+                          )}
                         </TableCell>
                       <TableCell className="text-slate-500 text-xs font-bold">
                         {order.entry_date ? formatDate(order.entry_date) : "—"}
