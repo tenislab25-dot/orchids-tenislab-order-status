@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { checkOrderAlerts } from "@/lib/notifications";
 
 interface Alert {
   id: string;
@@ -44,11 +43,14 @@ export default function FloatingAlerts() {
 
   async function fetchAlerts() {
     try {
-      
-      // Buscar OSs dos últimos 30 dias (mesma lógica do painel)
+      const alertsList: Alert[] = [];
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+      // Buscar OSs dos últimos 30 dias
       const { data: orders } = await supabase
         .from("service_orders")
         .select(`
@@ -66,12 +68,103 @@ export default function FloatingAlerts() {
 
       if (!orders) return;
 
-      // Usar checkOrderAlerts (mesma função do painel)
-      const orderAlerts = await checkOrderAlerts(orders);
+      // Buscar alertas manuais não resolvidos
+      const { data: manualAlerts } = await supabase
+        .from('manual_alerts')
+        .select(`
+          id,
+          order_id,
+          type,
+          title,
+          description,
+          created_at,
+          service_orders!inner (
+            os_number,
+            clients (
+              name
+            )
+          )
+        `)
+        .eq('resolved', false)
+        .order('created_at', { ascending: false });
+
+      // Adicionar alertas manuais
+      if (manualAlerts) {
+        manualAlerts.forEach((alert: any) => {
+          const titlePrefix: Record<string, string> = {
+            bloqueio: '🔴',
+            cliente_perguntou: '🟡',
+            observacao: '🔴'
+          };
+
+          alertsList.push({
+            id: `manual-${alert.id}`,
+            type: 'danger',
+            title: `${titlePrefix[alert.type] || '🔴'} ${alert.title || alert.type.toUpperCase()}`,
+            description: alert.description,
+            osNumber: alert.service_orders.os_number,
+            clientName: alert.service_orders.clients?.name
+          });
+        });
+      }
+
+      // Verificar alertas automáticos
+      orders.forEach((order: any) => {
+        // Pagamento pendente há 7+ dias
+        if (order.status === "Entregue" && !order.payment_confirmed) {
+          const deliveredAt = new Date(order.updated_at || order.entry_date);
+          if (deliveredAt < sevenDaysAgo) {
+            alertsList.push({
+              id: `payment-overdue-${order.id}`,
+              type: "danger",
+              title: "Pagamento Pendente há 7+ dias",
+              description: `OS ${order.os_number} entregue há mais de 7 dias sem confirmação de pagamento`,
+              osNumber: order.os_number,
+              clientName: order.clients?.name,
+            });
+          }
+        }
+
+        // Pronto há 3+ dias
+        if (order.status === "Pronto") {
+          const readyAt = new Date(order.updated_at || order.entry_date);
+          if (readyAt < threeDaysAgo) {
+            alertsList.push({
+              id: `ready-waiting-${order.id}`,
+              type: "warning",
+              title: "Pronto há 3+ dias",
+              description: `OS ${order.os_number} está pronta há mais de 3 dias aguardando retirada`,
+              osNumber: order.os_number,
+              clientName: order.clients?.name,
+            });
+          }
+        }
+
+        // OS atrasada
+        if (
+          order.delivery_date &&
+          order.status !== "Entregue" &&
+          order.status !== "Cancelado"
+        ) {
+          const deliveryDate = new Date(order.delivery_date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (deliveryDate < today) {
+            alertsList.push({
+              id: `overdue-${order.id}`,
+              type: "danger",
+              title: "OS Atrasada",
+              description: `OS ${order.os_number} passou do prazo de entrega`,
+              osNumber: order.os_number,
+              clientName: order.clients?.name,
+            });
+          }
+        }
+      });
 
       // Filtrar alertas dismissed
       const dismissed = JSON.parse(localStorage.getItem("dismissed_alerts") || "[]");
-      const filteredAlerts = orderAlerts.filter((alert: Alert) => !dismissed.includes(alert.id));
+      const filteredAlerts = alertsList.filter((alert: Alert) => !dismissed.includes(alert.id));
 
       setAlerts(filteredAlerts);
     } catch (error) {
