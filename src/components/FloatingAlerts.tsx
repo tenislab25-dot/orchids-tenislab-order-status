@@ -94,7 +94,7 @@ export default function FloatingAlerts() {
       <>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 transition-all flex items-center justify-center"
+          className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-red-500 text-white  hover:bg-red-600 transition-all flex items-center justify-center"
         >
           <Bell className="w-6 h-6" />
           {alerts.length > 0 && (
@@ -125,7 +125,7 @@ export default function FloatingAlerts() {
                         e.stopPropagation();
                         dismissAlert(alert.id);
                       }}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
@@ -154,14 +154,14 @@ export default function FloatingAlerts() {
             <div
               key={alert.id}
               onClick={() => handleAlertClick(alert.osNumber)}
-              className="w-64 p-4 rounded-xl border-2 shadow-lg bg-red-50 border-red-200 text-red-900 relative transition-all hover:scale-105 cursor-pointer"
+              className="w-64 p-4 rounded-xl border-2  bg-red-50 border-red-200 text-red-900 relative transition-all hover:scale-105 cursor-pointer"
             >
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   dismissAlert(alert.id);
                 }}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 transition-colors"
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50 transition-colors"
               >
                 <X className="w-4 h-4 text-red-500" />
               </button>
@@ -181,7 +181,7 @@ export default function FloatingAlerts() {
         onClick={() => setIsExpanded(!isExpanded)}
         variant="outline"
         size="icon"
-        className="w-12 h-12 rounded-full shadow-lg bg-red-500 hover:bg-red-600 text-white border-red-600"
+        className="w-12 h-12 rounded-full  bg-red-500 hover:bg-red-600 text-white border-red-600"
       >
         {isExpanded ? <X className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
         {!isExpanded && alerts.length > 0 && (

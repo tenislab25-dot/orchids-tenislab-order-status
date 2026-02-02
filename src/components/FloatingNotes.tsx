@@ -155,7 +155,7 @@ export default function FloatingNotes() {
       <>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-amber-500 text-white shadow-lg hover:bg-amber-600 transition-all flex items-center justify-center"
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-amber-500 text-white  hover:bg-amber-600 transition-all flex items-center justify-center"
         >
           <StickyNote className="w-6 h-6" />
           {notes.length > 0 && (
@@ -186,13 +186,13 @@ export default function FloatingNotes() {
                   >
                     <button
                       onClick={() => confirmDelete(note.id)}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
                     <button
                       onClick={() => openModal(note)}
-                      className="absolute -top-2 -right-10 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50"
+                      className="absolute -top-2 -right-10 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-blue-50"
                     >
                       <Edit2 className="w-3 h-3 text-blue-500" />
                     </button>
@@ -276,17 +276,17 @@ export default function FloatingNotes() {
               return (
                 <div
                   key={note.id}
-                  className={`w-64 p-4 rounded-xl border-2 shadow-lg ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative transition-all hover:scale-105`}
+                  className={`w-64 p-4 rounded-xl border-2  ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative transition-all hover:scale-105`}
                 >
                   <button
                     onClick={() => confirmDelete(note.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 transition-colors"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50 transition-colors"
                   >
                     <X className="w-4 h-4 text-red-500" />
                   </button>
                   <button
                     onClick={() => openModal(note)}
-                    className="absolute -top-2 -right-10 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 transition-colors"
+                    className="absolute -top-2 -right-10 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-blue-50 transition-colors"
                   >
                     <Edit2 className="w-3 h-3 text-blue-500" />
                   </button>
@@ -307,7 +307,7 @@ export default function FloatingNotes() {
               onClick={() => setIsExpanded(!isExpanded)}
               variant="outline"
               size="icon"
-              className="w-12 h-12 rounded-full shadow-lg bg-white"
+              className="w-12 h-12 rounded-full  bg-white"
             >
               {isExpanded ? <X className="w-5 h-5" /> : <StickyNote className="w-5 h-5" />}
             </Button>
@@ -316,7 +316,7 @@ export default function FloatingNotes() {
           <Button
             onClick={() => openModal()}
             size="icon"
-            className="w-12 h-12 rounded-full shadow-lg bg-amber-500 hover:bg-amber-600"
+            className="w-12 h-12 rounded-full  bg-amber-500 hover:bg-amber-600"
           >
             <Plus className="w-5 h-5" />
           </Button>
