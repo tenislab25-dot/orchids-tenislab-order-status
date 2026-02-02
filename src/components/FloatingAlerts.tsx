@@ -15,9 +15,19 @@ export default function FloatingAlerts() {
   const [isMobile, setIsMobile] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [alertToDelete, setAlertToDelete] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    // Verificar role do usuário
+    const storedRole = localStorage.getItem("tenislab_role");
+    setRole(storedRole);
+    
+    // Não mostrar alertas para entregador (OPERACIONAL)
+    if (storedRole === "OPERACIONAL") {
+      return;
+    }
+
     // Detectar mobile
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -117,6 +127,11 @@ export default function FloatingAlerts() {
       const osIdFormatted = osNumber.replace('/', '-');
       router.push(`/menu-principal/os/${osIdFormatted}`);
     }
+  }
+
+  // Não mostrar para entregador
+  if (role === "OPERACIONAL") {
+    return null;
   }
 
   // Mobile: Botão flutuante + Modal

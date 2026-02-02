@@ -34,8 +34,18 @@ export default function FloatingNotes() {
   const [isMobile, setIsMobile] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
+    // Verificar role do usuário
+    const storedRole = localStorage.getItem("tenislab_role");
+    setRole(storedRole);
+    
+    // Apenas ADMIN e ATENDENTE podem ver notas
+    if (storedRole !== "ADMIN" && storedRole !== "ATENDENTE") {
+      return;
+    }
+
     // Detectar se é mobile
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -148,6 +158,11 @@ export default function FloatingNotes() {
     const color = COLORS.find(c => c.value === colorValue) || COLORS[0];
     return color;
   };
+
+  // Apenas ADMIN e ATENDENTE podem ver notas
+  if (role !== "ADMIN" && role !== "ATENDENTE") {
+    return null;
+  }
 
   // Mobile: Botão flutuante
   if (isMobile) {
