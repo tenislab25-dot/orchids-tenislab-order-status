@@ -956,18 +956,18 @@ interface OSItem {
             )}
           </section>
 
-          {/* Seção de Produtos Vendidos */}
+          {/* Seção de Produtos */}
           <section>
             <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
               <CardHeader className="bg-white border-b border-slate-100 py-4">
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Produtos Vendidos</CardTitle>
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Produtos</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 {soldProducts.map((product) => (
                   <div key={product.id} className="flex gap-3 items-start">
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="sm:col-span-1">
-                        <Label className="text-xs font-bold text-slate-500 mb-1.5">Produto</Label>
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Produto</Label>
                         <Select
                           value={product.productId}
                           onValueChange={(value) => selectProduct(product.id, value)}
@@ -994,7 +994,7 @@ interface OSItem {
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-xs font-bold text-slate-500 mb-1.5">Quantidade</Label>
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Quantidade</Label>
                         <Input
                           type="number"
                           min="1"
@@ -1005,7 +1005,7 @@ interface OSItem {
                         />
                       </div>
                       <div>
-                        <Label className="text-xs font-bold text-slate-500 mb-1.5">Preço Unitário</Label>
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço Unitário</Label>
                         <Input
                           type="number"
                           min="0"
@@ -1131,7 +1131,7 @@ interface OSItem {
                 </div>
                 {soldProductsTotal > 0 && (
                   <div className="flex justify-between items-center text-sm text-emerald-400 font-bold">
-                    <span>Produtos Vendidos</span>
+                    <span>Produtos</span>
                     <span>+ R$ {Number(soldProductsTotal).toFixed(2)}</span>
                   </div>
                 )}

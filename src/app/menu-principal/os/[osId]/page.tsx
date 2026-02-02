@@ -1146,12 +1146,12 @@ export default function OSViewPage() {
                 </Card>
               ))}
 
-          {/* Produtos Vendidos */}
+          {/* Produtos */}
           {order.sold_products && order.sold_products.length > 0 && (
             <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
               <CardHeader className="py-3 px-6 border-b border-slate-100 bg-emerald-50/50">
                 <CardTitle className="text-xs font-black text-emerald-600 uppercase tracking-widest">
-                  Produtos Vendidos
+                  Produtos
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -1187,7 +1187,7 @@ export default function OSViewPage() {
               </div>
               {order.sold_products && order.sold_products.length > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Produtos Vendidos</span>
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Produtos</span>
                   <span className="text-sm font-bold text-emerald-400">+ R$ {order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0).toFixed(2)}</span>
                 </div>
               )}

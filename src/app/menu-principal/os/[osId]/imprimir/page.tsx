@@ -188,10 +188,10 @@ export default function PrintOSPage() {
             ))}
           </div>
 
-          {/* Produtos Vendidos */}
+          {/* Produtos */}
           {order.sold_products && order.sold_products.length > 0 && (
             <div className="border-b border-dashed border-slate-300 pb-3 mb-3">
-              <h3 className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2">Produtos Vendidos</h3>
+              <h3 className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-2">Produtos</h3>
               {order.sold_products.map((product: any, idx: number) => (
                 <div key={idx} className="flex justify-between text-[9px] mb-1">
                   <span className="text-slate-700">{product.name} (x{product.quantity})</span>
@@ -208,7 +208,7 @@ export default function PrintOSPage() {
             </div>
             {order.sold_products && order.sold_products.length > 0 && (
               <div className="flex justify-between text-xs mb-1 text-emerald-600">
-                <span>Produtos Vendidos</span>
+                <span>Produtos</span>
                 <span className="font-bold">+ R$ {order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0).toFixed(2)}</span>
               </div>
             )}

@@ -338,7 +338,7 @@ if (error) {
     // Adicionar produtos vendidos se existirem
     if (order.sold_products && order.sold_products.length > 0) {
       doc.setFont("helvetica", "bold");
-      doc.text("PRODUTOS VENDIDOS", 20, y);
+      doc.text("PRODUTOS", 20, y);
       y += 8;
       doc.setFont("helvetica", "normal");
       
@@ -367,7 +367,7 @@ if (error) {
 
     if (order.sold_products && order.sold_products.length > 0) {
       const soldProductsTotal = order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0);
-      doc.text(`Produtos Vendidos: R$ ${soldProductsTotal.toFixed(2)}`, 20, y);
+      doc.text(`Produtos: R$ ${soldProductsTotal.toFixed(2)}`, 20, y);
       y += 6;
     }
 
@@ -679,10 +679,10 @@ if (error) {
           ))}
         </div>
 
-        {/* Produtos Vendidos */}
+        {/* Produtos */}
         {order.sold_products && order.sold_products.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-black text-emerald-600 uppercase tracking-widest">Produtos Vendidos</h2>
+            <h2 className="text-sm font-black text-emerald-600 uppercase tracking-widest">Produtos</h2>
             {order.sold_products.map((product: any, idx: number) => (
               <Card key={idx} className="rounded-3xl border-emerald-200 shadow-sm overflow-hidden bg-emerald-50/30">
                 <CardContent className="p-6">
@@ -715,7 +715,7 @@ if (error) {
                 </div>
                 {order.sold_products && order.sold_products.length > 0 && (
                   <div className="flex justify-between text-xs font-bold text-emerald-400">
-                    <span>Produtos Vendidos</span>
+                    <span>Produtos</span>
                     <span>+ R$ {order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0).toFixed(2)}</span>
                   </div>
                 )}
