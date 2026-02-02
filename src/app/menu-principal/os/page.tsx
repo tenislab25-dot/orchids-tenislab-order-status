@@ -965,8 +965,8 @@ interface OSItem {
               <CardContent className="p-6 space-y-4">
                 {soldProducts.map((product) => (
                   <div key={product.id} className="flex gap-3 items-start">
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-1">
+                    <div className="flex-1 flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Produto</Label>
                         <Select
                           value={product.productId}
@@ -993,7 +993,7 @@ interface OSItem {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
+                      <div className="w-full sm:w-32">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Quantidade</Label>
                         <Input
                           type="number"
@@ -1004,7 +1004,7 @@ interface OSItem {
                           className="h-10 rounded-xl"
                         />
                       </div>
-                      <div>
+                      <div className="w-full sm:w-40">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço Unitário</Label>
                         <Input
                           type="number"
