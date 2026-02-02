@@ -27,6 +27,7 @@ export default function FloatingNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -143,11 +144,11 @@ export default function FloatingNotes() {
       setDescription("");
       setSelectedColor("yellow");
     }
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   }
 
   function closeModal() {
-    setIsModalOpen(false);
+    setIsFormModalOpen(false);
     setEditingNote(null);
     setTitle("");
     setDescription("");
@@ -221,7 +222,7 @@ export default function FloatingNotes() {
         </Dialog>
 
         {/* Modal de criar/editar */}
-        <Dialog open={isModalOpen && (editingNote !== null || title || description)} onOpenChange={(open) => !open && closeModal()}>
+        <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingNote ? "Editar Nota" : "Nova Nota"}</DialogTitle>
@@ -339,7 +340,7 @@ export default function FloatingNotes() {
       </div>
 
       {/* Modal de criar/editar */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingNote ? "Editar Nota" : "Nova Nota"}</DialogTitle>
