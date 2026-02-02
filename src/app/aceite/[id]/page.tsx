@@ -652,6 +652,29 @@ if (error) {
           ))}
         </div>
 
+        {/* Produtos Vendidos */}
+        {order.sold_products && order.sold_products.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-emerald-600 uppercase tracking-widest">Produtos Vendidos</h2>
+            {order.sold_products.map((product: any, idx: number) => (
+              <Card key={idx} className="rounded-3xl border-emerald-200 shadow-sm overflow-hidden bg-emerald-50/30">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1">
+                      <p className="font-bold text-slate-900 text-lg">{product.name}</p>
+                      <p className="text-sm text-slate-600 mt-1">Quantidade: {product.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-emerald-600">R$ {(Number(product.price) * Number(product.quantity)).toFixed(2)}</p>
+                      <p className="text-xs text-slate-500 mt-1">R$ {Number(product.price).toFixed(2)} cada</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
         <section className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl text-white flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-black uppercase tracking-widest text-white/50">Resumo de Valores</h2>
@@ -663,6 +686,12 @@ if (error) {
                   <span>Subtotal</span>
                   <span>R$ {order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0).toFixed(2)}</span>
                 </div>
+                {order.sold_products && order.sold_products.length > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-emerald-400">
+                    <span>Produtos Vendidos</span>
+                    <span>+ R$ {order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0).toFixed(2)}</span>
+                  </div>
+                )}
                 {order.discount_percent > 0 && (
                   <div className="flex justify-between text-xs font-bold text-red-400">
                     <span>Desconto ({order.discount_percent}%)</span>

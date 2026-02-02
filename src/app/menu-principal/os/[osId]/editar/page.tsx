@@ -91,6 +91,7 @@ export default function EditOSPage() {
   const [paymentMethod, setPaymentMethod] = useState("Pix");
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [items, setItems] = useState<OSItem[]>([]);
+  const [soldProducts, setSoldProducts] = useState<Array<{id: string; name: string; quantity: number; price: number}>>([]);
   const [photoToDelete, setPhotoToDelete] = useState<{ itemId: string; type: 'photos' | 'photosBefore' | 'photosAfter'; index: number } | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
@@ -156,6 +157,7 @@ export default function EditOSPage() {
         setPaymentMethod(data.payment_method || "Pix");
         setPaymentConfirmed(data.payment_confirmed || false);
         setItems(data.items || []);
+        setSoldProducts(data.sold_products || []);
         setTipoEntrega(data.tipo_entrega || 'entrega');
       }
     } catch (err: any) {
@@ -270,8 +272,30 @@ export default function EditOSPage() {
     return servicesTotal + customTotal;
   };
 
+  // Funções para gerenciar produtos vendidos
+  const addSoldProduct = () => {
+    const newProduct = {
+      id: Date.now().toString(),
+      name: "",
+      quantity: 1,
+      price: 0
+    };
+    setSoldProducts([...soldProducts, newProduct]);
+  };
+
+  const removeSoldProduct = (id: string) => {
+    setSoldProducts(soldProducts.filter(p => p.id !== id));
+  };
+
+  const updateSoldProduct = (id: string, field: 'name' | 'quantity' | 'price', value: string | number) => {
+    setSoldProducts(soldProducts.map(p => 
+      p.id === id ? { ...p, [field]: value } : p
+    ));
+  };
+
   const globalSubtotal = items.reduce((acc, curr) => acc + Number(curr.subtotal), 0);
-  const finalTotal = globalSubtotal + Number(deliveryFee);
+  const soldProductsTotal = soldProducts.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.quantity)), 0);
+  const finalTotal = globalSubtotal + soldProductsTotal + Number(deliveryFee);
 
   const confirmDeletePhoto = async () => {
     if (!photoToDelete || !order) return;
@@ -372,6 +396,7 @@ export default function EditOSPage() {
           payment_confirmed: paymentConfirmed,
           total: finalTotal,
           items: items,
+          sold_products: soldProducts,
           tipo_entrega: tipoEntrega
         })
         .eq("os_number", osNumber);
@@ -651,6 +676,79 @@ export default function EditOSPage() {
           </Button>
         </section>
 
+        {/* Seção de Produtos Vendidos */}
+        <section>
+          <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white border-b border-slate-100 py-4">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Produtos Vendidos</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {soldProducts.map((product) => (
+                <div key={product.id} className="flex gap-3 items-start">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-1">
+                      <Label className="text-xs font-bold text-slate-500 mb-1.5">Produto</Label>
+                      <Input
+                        placeholder="Nome do produto"
+                        value={product.name}
+                        onChange={(e) => updateSoldProduct(product.id, 'name', e.target.value)}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold text-slate-500 mb-1.5">Quantidade</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Qtd"
+                        value={product.quantity}
+                        onChange={(e) => updateSoldProduct(product.id, 'quantity', Number(e.target.value))}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-bold text-slate-500 mb-1.5">Preço Unitário</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="R$ 0,00"
+                        value={product.price}
+                        onChange={(e) => updateSoldProduct(product.id, 'price', Number(e.target.value))}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeSoldProduct(product.id)}
+                    className="mt-6 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                variant="outline"
+                onClick={addSoldProduct}
+                className="w-full h-12 rounded-xl border-2 border-dashed border-emerald-200 text-emerald-600 font-bold bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-300 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar Produto
+              </Button>
+
+              {soldProducts.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-500">Total de Produtos</span>
+                  <span className="text-lg font-black text-emerald-600">R$ {soldProductsTotal.toFixed(2)}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
         <section>
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
             <CardHeader className="bg-white border-b border-slate-100 py-4">
@@ -737,6 +835,12 @@ export default function EditOSPage() {
                   <span className="text-white/70 font-medium">Subtotal dos itens</span>
                   <span className="font-bold">R$ {Number(globalSubtotal).toFixed(2)}</span>
                 </div>
+                {soldProductsTotal > 0 && (
+                  <div className="flex justify-between items-center text-sm text-emerald-400 font-bold">
+                    <span>Produtos Vendidos</span>
+                    <span>+ R$ {Number(soldProductsTotal).toFixed(2)}</span>
+                  </div>
+                )}
                 {/* Desconto manual removido - use cupons */}
                 {deliveryFee > 0 && (
                   <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">

@@ -1146,12 +1146,51 @@ export default function OSViewPage() {
                 </Card>
               ))}
 
+          {/* Produtos Vendidos */}
+          {order.sold_products && order.sold_products.length > 0 && (
+            <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
+              <CardHeader className="py-3 px-6 border-b border-slate-100 bg-emerald-50/50">
+                <CardTitle className="text-xs font-black text-emerald-600 uppercase tracking-widest">
+                  Produtos Vendidos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  {order.sold_products.map((product: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-900">{product.name}</p>
+                        <p className="text-xs text-slate-500">Quantidade: {product.quantity}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-emerald-600">R$ {(Number(product.price) * Number(product.quantity)).toFixed(2)}</p>
+                        <p className="text-xs text-slate-500">R$ {Number(product.price).toFixed(2)} cada</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t-2 border-emerald-100 flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-500">Total de Produtos</span>
+                  <span className="text-xl font-black text-emerald-600">
+                    R$ {order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0).toFixed(2)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="rounded-3xl border-none shadow-md bg-slate-900 text-white overflow-hidden">
             <CardContent className="p-6 space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Subtotal</span>
                 <span className="text-sm font-bold text-white/70">R$ {order.items.reduce((acc: number, i: any) => acc + Number(i.subtotal || 0), 0).toFixed(2)}</span>
               </div>
+              {order.sold_products && order.sold_products.length > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Produtos Vendidos</span>
+                  <span className="text-sm font-bold text-emerald-400">+ R$ {order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0).toFixed(2)}</span>
+                </div>
+              )}
               {order.discount_percent > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Desconto Manual ({order.discount_percent}%)</span>
