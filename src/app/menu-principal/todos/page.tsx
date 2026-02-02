@@ -359,21 +359,14 @@ export default function TodosPedidosPage() {
                         </Button>
                       </TableCell>
                       <TableCell className="pr-8">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/menu-principal/os/${order.os_number?.replace("/", "-")}`} prefetch={false}>
-                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-blue-50 hover:text-blue-600">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="rounded-full hover:bg-green-50 hover:text-green-600"
-                            onClick={() => sendWhatsAppMessage(order)}
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-full hover:bg-green-50 hover:text-green-600"
+                          onClick={() => sendWhatsAppMessage(order)}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
                     </TableCell>
                   </TableRow>
                 ))
