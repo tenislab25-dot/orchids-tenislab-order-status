@@ -13,6 +13,8 @@ export default function FloatingAlerts() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [alertToDelete, setAlertToDelete] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -86,7 +88,14 @@ export default function FloatingAlerts() {
     }
   }
 
-  function dismissAlert(alertId: string) {
+  function confirmDismiss(alertId: string) {
+    setAlertToDelete(alertId);
+    setDeleteConfirmOpen(true);
+  }
+
+  function dismissAlert() {
+    if (!alertToDelete) return;
+    
     const stored = localStorage.getItem("dismissed_alerts");
     let dismissedSet = new Set<string>();
     if (stored) {
@@ -96,9 +105,11 @@ export default function FloatingAlerts() {
         console.error("Erro ao carregar dismissed alerts", e);
       }
     }
-    dismissedSet.add(alertId);
+    dismissedSet.add(alertToDelete);
     localStorage.setItem("dismissed_alerts", JSON.stringify(Array.from(dismissedSet)));
-    setAlerts(prev => prev.filter(a => a.id !== alertId));
+    setAlerts(prev => prev.filter(a => a.id !== alertToDelete));
+    setDeleteConfirmOpen(false);
+    setAlertToDelete(null);
   }
 
   function handleAlertClick(osNumber?: string) {
@@ -145,7 +156,7 @@ export default function FloatingAlerts() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        dismissAlert(alert.id);
+                        confirmDismiss(alert.id);
                       }}
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-red-50"
                     >
@@ -185,7 +196,7 @@ export default function FloatingAlerts() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  dismissAlert(alert.id);
+                  confirmDismiss(alert.id);
                 }}
                 className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-red-50 transition-colors"
               >
@@ -220,6 +231,24 @@ export default function FloatingAlerts() {
           </span>
         )}
       </Button>
+
+      {/* Modal de confirmação de exclusão */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">Tem certeza que deseja dispensar este alerta?</p>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={dismissAlert}>
+              Confirmar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

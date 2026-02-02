@@ -73,7 +73,7 @@ export default function FloatingNotes() {
         const response = await fetch(`/api/notes/${editingNote.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, description, color: selectedColor }),
+          body: JSON.stringify({ title: title.toUpperCase(), description, color: selectedColor }),
         });
 
         if (!response.ok) throw new Error("Erro ao atualizar nota");
@@ -83,7 +83,7 @@ export default function FloatingNotes() {
         const response = await fetch("/api/notes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, description, color: selectedColor, created_by: userId }),
+          body: JSON.stringify({ title: title.toUpperCase(), description, color: selectedColor, created_by: userId }),
         });
 
         if (!response.ok) throw new Error("Erro ao criar nota");
