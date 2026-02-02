@@ -201,15 +201,15 @@ export default function FloatingNotes() {
                   >
                     <button
                       onClick={() => confirmDelete(note.id)}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50"
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
                     <button
                       onClick={() => openModal(note)}
-                      className="absolute -top-2 -right-10 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-blue-50"
+                      className="absolute top-2 right-11 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 z-10"
                     >
-                      <Edit2 className="w-3 h-3 text-blue-500" />
+                      <Edit2 className="w-4 h-4 text-blue-500" />
                     </button>
                     <h3 className="font-bold text-sm mb-1">{note.title}</h3>
                     <p className="text-xs opacity-80">{note.description}</p>
@@ -295,15 +295,15 @@ export default function FloatingNotes() {
                 >
                   <button
                     onClick={() => confirmDelete(note.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-red-50 transition-colors"
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
                   >
                     <X className="w-4 h-4 text-red-500" />
                   </button>
                   <button
                     onClick={() => openModal(note)}
-                    className="absolute -top-2 -right-10 w-6 h-6 rounded-full bg-white  flex items-center justify-center hover:bg-blue-50 transition-colors"
+                    className="absolute top-2 right-11 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 z-10"
                   >
-                    <Edit2 className="w-3 h-3 text-blue-500" />
+                    <Edit2 className="w-4 h-4 text-blue-500" />
                   </button>
                   <h3 className="font-bold text-sm mb-2">{note.title}</h3>
                   <p className="text-xs opacity-80 leading-relaxed">{note.description}</p>

@@ -212,7 +212,7 @@ export default function FloatingAlerts() {
                         e.stopPropagation();
                         confirmDismiss(alert.id);
                       }}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-red-50"
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
@@ -255,7 +255,7 @@ export default function FloatingAlerts() {
                   e.stopPropagation();
                   confirmDismiss(alert.id);
                 }}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:opacity-80 transition-colors"
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
               >
                 <X className={`w-4 h-4 ${colors.text}`} />
               </button>
