@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { logger } from "@/lib/logger";
 import { 
   Search, 
   MessageCircle, 
   Instagram, 
-  ChevronRight,
+  ArrowRight,
   MapPin
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -21,14 +22,14 @@ interface ActionButtonProps {
 
 function ActionButton({ href, title, icon: Icon, external }: ActionButtonProps) {
   const content = (
-    <div className="flex items-center gap-4 p-6 rounded-2xl transition-all active:scale-[0.98] w-full text-left bg-slate-900 text-white shadow-lg shadow-slate-200">
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/10">
-        <Icon className="w-6 h-6" />
+    <div className="group relative overflow-hidden flex items-center justify-between p-5 transition-all active:scale-[0.98] w-full text-left bg-white border-2 border-slate-900 hover:bg-slate-900 hover:text-white">
+      <div className="flex items-center gap-4">
+        <div className="w-11 h-11 flex items-center justify-center shrink-0 bg-slate-900 group-hover:bg-white transition-colors">
+          <Icon className="w-5 h-5 text-white group-hover:text-slate-900 transition-colors" />
+        </div>
+        <h3 className="font-black text-base uppercase tracking-wide leading-tight">{title}</h3>
       </div>
-      <div className="flex-1">
-        <h3 className="font-bold text-lg leading-tight">{title}</h3>
-      </div>
-      <ChevronRight className="w-5 h-5 opacity-30 text-white" />
+      <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
     </div>
   );
 
@@ -50,101 +51,177 @@ function ActionButton({ href, title, icon: Icon, external }: ActionButtonProps) 
 export default function Home() {
   const [processedCount, setProcessedCount] = useState<number | null>(null);
 
-    useEffect(() => {
-      async function fetchCount() {
-        try {
-          // Fetch only necessary data
-          const { data, error } = await supabase
-            .from("service_orders")
-            .select("items")
-            .eq("status", "Entregue");
-    
-          if (error) throw error;
-          
-            const totalSneakers = data?.reduce((acc, order: any) => {
-              const itemCount = Array.isArray(order.items) ? order.items.length : 0;
-              return acc + itemCount;
-            }, 0) || 0;
-            
-            setProcessedCount(totalSneakers + 480);
-        } catch (err) {
-          logger.error("Error fetching count:", err);
-          setProcessedCount(480);
-        }
+  useEffect(() => {
+    async function fetchCount() {
+      try {
+        const { data, error } = await supabase
+          .from("service_orders")
+          .select("items")
+          .eq("status", "Entregue");
+  
+        if (error) throw error;
+        
+        const totalSneakers = data?.reduce((acc, order: any) => {
+          const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+          return acc + itemCount;
+        }, 0) || 0;
+        
+        setProcessedCount(totalSneakers + 480);
+      } catch (err) {
+        logger.error("Error fetching count:", err);
+        setProcessedCount(480);
       }
-      fetchCount();
-    }, []);
+    }
+    fetchCount();
+  }, []);
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      {/* SECTION 1 — BRAND / HEADER */}
-          <header className="flex flex-col items-center gap-1 mb-8">
-            <div className="relative w-64 h-48">
-              <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-                alt="TENISLAB Logo"className="w-full h-full object-contain" loading="eager" />
-            </div>
+    <div className="w-full min-h-screen bg-white">
+      {/* HERO EDITORIAL */}
+      <div className="relative w-full aspect-[9/16] md:aspect-[16/9] overflow-hidden">
+        <Image 
+          src="/assets/hero-editorial.png"
+          alt="TENISLAB - Premium Sneaker Care"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
 
-          {processedCount !== null && (
-            <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-black text-white tracking-tighter">
-                  {processedCount}
-                </span>
-              </div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
-                  PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
+      {/* MAIN CONTENT */}
+      <div className="max-w-md mx-auto px-6 py-12">
+        {/* STATS BADGE */}
+        {processedCount !== null && (
+          <div className="mb-12 animate-in fade-in duration-700">
+            <div className="bg-blue-600 text-white p-6 relative overflow-hidden">
+              {/* Geometric accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-black transform rotate-45 translate-x-12 -translate-y-12" />
+              
+              <div className="relative z-10">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-5xl font-black tracking-tighter">
+                    {processedCount}+
+                  </span>
+                  <span className="text-sm font-bold uppercase tracking-wider">
+                    Pares
+                  </span>
+                </div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-90">
+                  Higienizados & Restaurados
                 </p>
+              </div>
             </div>
-          )}
-      </header>
+          </div>
+        )}
 
-      <main className="flex-1 flex flex-col gap-12">
-        {/* SECTION 2 — MAIN CUSTOMER ACTIONS */}
-        <section className="flex flex-col gap-4">
+        {/* COLLAGE SECTION */}
+        <div className="mb-12 grid grid-cols-2 gap-4">
+          <div className="relative aspect-square bg-slate-100 overflow-hidden">
+            <Image 
+              src="/assets/sneaker-detail-1.png"
+              alt="Detalhe de qualidade"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-black text-white p-3">
+              <p className="text-[10px] font-black uppercase tracking-wider">
+                Precisão
+              </p>
+            </div>
+          </div>
+          
+          <div className="relative aspect-square bg-slate-100 overflow-hidden">
+            <Image 
+              src="/assets/sneaker-detail-2.png"
+              alt="Resultado profissional"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white p-3">
+              <p className="text-[10px] font-black uppercase tracking-wider">
+                Qualidade
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* MANIFESTO */}
+        <div className="mb-12 bg-slate-900 text-white p-8">
+          <h2 className="text-3xl font-black uppercase leading-none mb-4">
+            O LABORATÓRIO<br />DO SEU TÊNIS
+          </h2>
+          <p className="text-sm font-medium leading-relaxed opacity-90">
+            Higienização técnica. Restauração profissional. 
+            Cuidado especializado para seus sneakers.
+          </p>
+        </div>
+
+        {/* ACTION BUTTONS */}
+        <div className="flex flex-col gap-3 mb-12">
           <ActionButton 
             href="/consulta"
-            title="Consultar pedido"
+            title="Consultar Pedido"
             icon={Search}
           />
-            <ActionButton 
-              href="https://wa.me/message/FNQNTD6CIDFMI1"
-              title="Falar no WhatsApp"
-              icon={MessageCircle}
-              external
-            />
+          
+          <ActionButton 
+            href="https://wa.me/message/FNQNTD6CIDFMI1"
+            title="Falar no WhatsApp"
+            icon={MessageCircle}
+            external
+          />
+          
           <ActionButton 
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             title="Instagram"
             icon={Instagram}
             external
           />
+          
           <ActionButton 
             href="https://maps.google.com/?q=TENISLAB+Maceio"
-            title="Como chegar"
+            title="Como Chegar"
             icon={MapPin}
             external
           />
-        </section>
+        </div>
 
-        {/* SECTION 3 — SUPPORT TEXT */}
-        <section className="px-4 text-center flex flex-col gap-4">
-          <p className="text-slate-500 text-sm leading-relaxed">
-            Acompanhe seu pedido ou fale conosco para mais informações.
-          </p>
-        </section>
-      </main>
+        {/* TRUST BLOCK */}
+        <div className="mb-12 border-2 border-slate-900 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-blue-600 shrink-0" />
+            <div>
+              <h3 className="text-lg font-black uppercase mb-2">
+                Técnica Profissional
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Produtos especializados e processos certificados 
+                para devolver a vida ao seu tênis.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* SECTION 7 — FOOTER */}
-      <footer className="mt-auto pt-16 pb-8 text-center flex flex-col gap-4">
-        <Link 
-          href="/menu-principal/login"
-          className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors mb-2"
-        >
-          Acesso Restrito
-        </Link>
-        <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-bold">
-          tenislab. o laboratório do seu tênis
-        </p>
+      {/* FOOTER */}
+      <footer className="bg-slate-900 text-white py-12">
+        <div className="max-w-md mx-auto px-6 text-center">
+          <Link 
+            href="/menu-principal/login"
+            className="inline-block text-slate-400 text-xs uppercase tracking-[0.2em] font-bold hover:text-white transition-colors mb-8"
+          >
+            Acesso Restrito
+          </Link>
+          
+          <div className="border-t border-white/10 pt-8">
+            <p className="text-xs uppercase tracking-[0.3em] font-black mb-2">
+              TENISLAB
+            </p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+              O Laboratório do Seu Tênis © 2026
+            </p>
+          </div>
+        </div>
       </footer>
     </div>
   );
