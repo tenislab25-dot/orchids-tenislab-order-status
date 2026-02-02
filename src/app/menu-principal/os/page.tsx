@@ -993,7 +993,7 @@ interface OSItem {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="w-full sm:w-32">
+                      <div className="w-full sm:w-24">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Quantidade</Label>
                         <Input
                           type="number"
@@ -1004,7 +1004,7 @@ interface OSItem {
                           className="h-10 rounded-xl"
                         />
                       </div>
-                      <div className="w-full sm:w-40">
+                      <div className="w-full sm:w-32">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço Unitário</Label>
                         <Input
                           type="number"

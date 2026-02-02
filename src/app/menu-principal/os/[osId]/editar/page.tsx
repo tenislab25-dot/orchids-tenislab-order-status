@@ -666,7 +666,7 @@ export default function EditOSPage() {
                         className="h-10 text-sm bg-white rounded-xl"
                       />
                     </div>
-                    <div className="w-full sm:w-32">
+                    <div className="w-full sm:w-24">
                       <Input 
                         type="number" 
                         placeholder="R$" 
@@ -744,7 +744,7 @@ export default function EditOSPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="w-full sm:w-32">
+                    <div className="w-full sm:w-24">
                       <Label className="text-xs font-bold text-slate-500 mb-2 block">Quantidade</Label>
                       <Input
                         type="number"
@@ -755,7 +755,7 @@ export default function EditOSPage() {
                         className="h-10 rounded-xl"
                       />
                     </div>
-                    <div className="w-full sm:w-40">
+                    <div className="w-full sm:w-32">
                       <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço Unitário</Label>
                       <Input
                         type="number"
@@ -942,7 +942,7 @@ export default function EditOSPage() {
                   <div className={`p-2 rounded-full ${paymentConfirmed ? "bg-green-100 text-green-600" : "bg-slate-200 text-slate-400"}`}>
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <div className="w-full sm:w-32">
+                  <div className="w-full sm:w-24">
                     <h4 className="text-sm font-bold text-slate-900">Pagamento Confirmado</h4>
                     <p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Marcar como pago</p>
                   </div>
