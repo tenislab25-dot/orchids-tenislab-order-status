@@ -9,6 +9,7 @@ import { getRoleLabel } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { useEffect, useRef } from "react";
 import FloatingNotes from "@/components/FloatingNotes";
+import FloatingAlerts from "@/components/FloatingAlerts";
 
 export default function InternoLayout({
   children,
@@ -110,6 +111,9 @@ export default function InternoLayout({
       
       {/* Notas flutuantes - aparecem em todas as páginas exceto login */}
       {!isLoginPage && <FloatingNotes />}
+      
+      {/* Alertas flutuantes - aparecem em todas as páginas exceto login */}
+      {!isLoginPage && <FloatingAlerts />}
     </div>
   );
 }

@@ -32,6 +32,8 @@ export default function FloatingNotes() {
   const [description, setDescription] = useState("");
   const [selectedColor, setSelectedColor] = useState("yellow");
   const [isMobile, setIsMobile] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     // Detectar se é mobile
@@ -95,9 +97,16 @@ export default function FloatingNotes() {
     }
   }
 
-  async function handleDeleteNote(noteId: string) {
+  function confirmDelete(noteId: string) {
+    setNoteToDelete(noteId);
+    setDeleteConfirmOpen(true);
+  }
+
+  async function handleDeleteNote() {
+    if (!noteToDelete) return;
+    
     try {
-      const response = await fetch(`/api/notes/${noteId}`, {
+      const response = await fetch(`/api/notes/${noteToDelete}`, {
         method: "DELETE",
       });
 
@@ -105,6 +114,8 @@ export default function FloatingNotes() {
       
       toast.success("Nota deletada!");
       fetchNotes();
+      setDeleteConfirmOpen(false);
+      setNoteToDelete(null);
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -174,7 +185,7 @@ export default function FloatingNotes() {
                     className={`p-4 rounded-xl border-2 ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative`}
                   >
                     <button
-                      onClick={() => handleDeleteNote(note.id)}
+                      onClick={() => confirmDelete(note.id)}
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50"
                     >
                       <X className="w-4 h-4 text-red-500" />
@@ -259,7 +270,7 @@ export default function FloatingNotes() {
     <>
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
         {isExpanded && notes.length > 0 && (
-          <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2">
+          <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
             {notes.slice(0, 4).map((note, index) => {
               const colorClasses = getColorClasses(note.color);
               return (
@@ -271,7 +282,7 @@ export default function FloatingNotes() {
                   }}
                 >
                   <button
-                    onClick={() => handleDeleteNote(note.id)}
+                    onClick={() => confirmDelete(note.id)}
                     className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 transition-colors"
                   >
                     <X className="w-4 h-4 text-red-500" />
@@ -367,6 +378,24 @@ export default function FloatingNotes() {
             </Button>
             <Button onClick={handleSaveNote}>
               {editingNote ? "Atualizar" : "Criar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmação de deleção */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>⚠️ Confirmar Deleção</DialogTitle>
+          </DialogHeader>
+          <p className="text-slate-600">Tem certeza que deseja deletar esta nota? Esta ação não pode ser desfeita.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteNote}>
+              Deletar
             </Button>
           </DialogFooter>
         </DialogContent>
