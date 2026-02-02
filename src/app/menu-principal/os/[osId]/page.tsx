@@ -149,6 +149,7 @@ export default function OSViewPage() {
         .select(`
           *,
           clients (
+            id,
             name,
             phone
           )
