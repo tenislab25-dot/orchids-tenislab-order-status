@@ -823,7 +823,9 @@ export default function OSViewPage() {
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cliente</span>
-                <h2 className="text-xl font-black text-slate-900 leading-tight">{order.clients?.name}</h2>
+                <Link href={`/menu-principal/clientes/${order.clients?.id}`} prefetch={false}>
+                  <h2 className="text-xl font-black text-slate-900 leading-tight hover:text-blue-600 transition-colors cursor-pointer">{order.clients?.name}</h2>
+                </Link>
                   <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
                     <Phone className="w-3 h-3" />
                     {order.clients?.phone}
