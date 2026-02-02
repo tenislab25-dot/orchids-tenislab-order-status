@@ -276,10 +276,7 @@ export default function FloatingNotes() {
               return (
                 <div
                   key={note.id}
-                  className={`w-64 p-4 rounded-xl border-2 shadow-lg ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative transform transition-all hover:scale-105`}
-                  style={{
-                    transform: `rotate(${(index % 2 === 0 ? 1 : -1) * 2}deg)`,
-                  }}
+                  className={`w-64 p-4 rounded-xl border-2 shadow-lg ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative transition-all hover:scale-105`}
                 >
                   <button
                     onClick={() => confirmDelete(note.id)}

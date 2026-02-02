@@ -43,13 +43,22 @@ export default function FloatingAlerts() {
 
   async function fetchAlerts() {
     try {
+      console.log("[FloatingAlerts] Buscando alertas...");
       const response = await fetch("/api/alerts");
-      if (!response.ok) return;
+      console.log("[FloatingAlerts] Response status:", response.status);
+      
+      if (!response.ok) {
+        console.error("[FloatingAlerts] Erro na resposta:", response.statusText);
+        return;
+      }
+      
       const data = await response.json();
+      console.log("[FloatingAlerts] Dados recebidos:", data);
       
       // Filtrar alertas dismissed
       const dismissed = JSON.parse(localStorage.getItem("dismissed_alerts") || "[]");
       const filteredAlerts = (data.alerts || []).filter((alert: any) => !dismissed.includes(alert.id));
+      console.log("[FloatingAlerts] Alertas filtrados:", filteredAlerts.length);
       
       // Mapear para formato do componente
       const mappedAlerts = filteredAlerts.map((alert: any) => ({
@@ -61,9 +70,10 @@ export default function FloatingAlerts() {
         clientName: alert.client_name,
       }));
       
+      console.log("[FloatingAlerts] Alertas mapeados:", mappedAlerts);
       setAlerts(mappedAlerts);
     } catch (error) {
-      console.error("Erro ao carregar alertas:", error);
+      console.error("[FloatingAlerts] Erro ao carregar alertas:", error);
     }
   }
 
@@ -144,10 +154,7 @@ export default function FloatingAlerts() {
             <div
               key={alert.id}
               onClick={() => handleAlertClick(alert.osNumber)}
-              className="w-64 p-4 rounded-xl border-2 shadow-lg bg-red-50 border-red-200 text-red-900 relative transform transition-all hover:scale-105 cursor-pointer"
-              style={{
-                transform: `rotate(${(index % 2 === 0 ? -1 : 1) * 2}deg)`,
-              }}
+              className="w-64 p-4 rounded-xl border-2 shadow-lg bg-red-50 border-red-200 text-red-900 relative transition-all hover:scale-105 cursor-pointer"
             >
               <button
                 onClick={(e) => {
