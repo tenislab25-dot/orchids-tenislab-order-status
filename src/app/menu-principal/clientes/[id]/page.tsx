@@ -79,9 +79,16 @@ export default function ClientDetailsPage() {
   async function fetchClientDetails() {
     try {
       setLoading(true);
+      console.log('Fetching client details for ID:', clientId);
       const response = await fetch(`/api/clients/${clientId}`);
-      if (!response.ok) throw new Error("Erro ao carregar detalhes do cliente");
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || "Erro ao carregar detalhes do cliente");
+      }
       const data = await response.json();
+      console.log('Client data:', data);
       setClient(data);
     } catch (error: any) {
       toast.error("Erro ao carregar cliente: " + error.message);
