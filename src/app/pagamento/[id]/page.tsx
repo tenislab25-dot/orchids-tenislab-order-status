@@ -30,6 +30,8 @@ interface OrderData {
   delivery_fee: number;
   payment_confirmed: boolean;
   client_id: string;
+  items: any[];
+  sold_products?: any[];
   clients: {
     name: string;
   } | null;
@@ -102,6 +104,8 @@ export default function PaymentPage() {
           delivery_fee,
           payment_confirmed,
           client_id,
+          items,
+          sold_products,
           clients (
             name
           )
@@ -182,12 +186,25 @@ export default function PaymentPage() {
   };
 
   // Calcular valores com desconto
-  const serviceValue = order ? order.total - (order.delivery_fee || 0) : 0;
+  // Calcular valor dos serviços (sem produtos e sem entrega)
+  const servicesValue = order?.items?.reduce((acc: number, item: any) => {
+    const itemServices = item.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0;
+    const customService = Number(item.customService?.price || 0);
+    return acc + itemServices + customService;
+  }, 0) || 0;
+  
+  // Calcular valor dos produtos
+  const productsValue = order?.sold_products?.reduce((acc: number, product: any) => {
+    return acc + (Number(product.quantity) * Number(product.price));
+  }, 0) || 0;
+  
+  // Desconto só incide sobre serviços
   const discountAmount = appliedCoupon 
-    ? (serviceValue * appliedCoupon.discount_percent) / 100 
+    ? (servicesValue * appliedCoupon.discount_percent) / 100 
     : 0;
-  const finalServiceValue = serviceValue - discountAmount;
-  const finalTotal = finalServiceValue + (order?.delivery_fee || 0);
+  
+  const finalServiceValue = servicesValue - discountAmount;
+  const finalTotal = finalServiceValue + productsValue + (order?.delivery_fee || 0);
 
   const handleGeneratePix = async () => {
     if (!order) return;
@@ -393,13 +410,25 @@ export default function PaymentPage() {
           <div className="bg-slate-50 rounded-2xl p-4 space-y-2">
             <div className="flex justify-between text-sm text-slate-600">
               <span>Serviço</span>
-              <span>R$ {serviceValue.toFixed(2)}</span>
+              <span>R$ {servicesValue.toFixed(2)}</span>
             </div>
 
             {appliedCoupon && (
               <div className="flex justify-between text-sm text-amber-600 font-bold">
                 <span>Desconto ({appliedCoupon.discount_percent}%)</span>
                 <span>- R$ {discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+
+            {order.sold_products && order.sold_products.length > 0 && (
+              <div className="space-y-1 py-2 border-y border-slate-200">
+                <span className="text-xs font-bold text-slate-400 uppercase">Produtos</span>
+                {order.sold_products.map((product: any, idx: number) => (
+                  <div key={idx} className="flex justify-between text-sm text-slate-600">
+                    <span>{product.quantity}x {product.name}</span>
+                    <span>R$ {(Number(product.quantity) * Number(product.price)).toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
             )}
 
