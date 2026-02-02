@@ -8,12 +8,6 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
-    // Verificar autenticação
-    const auth = await verifyAuth(request);
-    if (!auth || !canManageOrders(auth.role)) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const sevenDaysAgo = new Date();

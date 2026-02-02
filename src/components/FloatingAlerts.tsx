@@ -154,7 +154,7 @@ export default function FloatingAlerts() {
             <div
               key={alert.id}
               onClick={() => handleAlertClick(alert.osNumber)}
-              className="w-64 p-4 rounded-xl border-2  bg-red-50 border-red-200 text-red-900 relative transition-all hover:scale-105 cursor-pointer"
+              className="w-64 p-4 rounded-xl border-2  bg-red-50 border-red-200 text-red-900 relative transition-all  cursor-pointer"
             >
               <button
                 onClick={(e) => {
