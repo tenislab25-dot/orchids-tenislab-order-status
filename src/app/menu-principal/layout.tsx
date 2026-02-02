@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getRoleLabel } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { useEffect, useRef } from "react";
+import FloatingNotes from "@/components/FloatingNotes";
 
 export default function InternoLayout({
   children,
@@ -106,6 +107,9 @@ export default function InternoLayout({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 animate-in fade-in">
         {children}
       </div>
+      
+      {/* Notas flutuantes - aparecem em todas as páginas exceto login */}
+      {!isLoginPage && <FloatingNotes />}
     </div>
   );
 }
