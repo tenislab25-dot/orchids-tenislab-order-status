@@ -390,7 +390,7 @@ function OrderContent() {
                           ))}
                         </div>
                       )}
-                        {order.discount_percent && order.discount_percent > 0 && (
+                        {order.discount_percent > 0 && (
                           <div className="flex justify-between items-center text-xs">
                             <span className="text-red-500 font-medium">Desconto ({order.discount_percent}%)</span>
                             <span className="font-bold text-red-500">- R$ {((order.items.reduce((acc: number, i: any) => acc + (i.services?.reduce((sAcc: number, s: any) => sAcc + Number(s.price || 0), 0) || 0) + Number(i.customService?.price || 0), 0) * order.discount_percent) / 100).toFixed(2)}</span>
