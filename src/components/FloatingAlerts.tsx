@@ -5,7 +5,7 @@ import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { checkOrderAlerts } from "@/lib/notifications";
 
 interface Alert {
@@ -44,7 +44,6 @@ export default function FloatingAlerts() {
 
   async function fetchAlerts() {
     try {
-      const supabase = createClient();
       
       // Buscar OSs dos últimos 30 dias (mesma lógica do painel)
       const thirtyDaysAgo = new Date();
