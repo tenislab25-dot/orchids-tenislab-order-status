@@ -335,6 +335,27 @@ if (error) {
     doc.line(20, y, pageWidth - 20, y);
     y += 10;
 
+    // Adicionar produtos vendidos se existirem
+    if (order.sold_products && order.sold_products.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.text("PRODUTOS VENDIDOS", 20, y);
+      y += 8;
+      doc.setFont("helvetica", "normal");
+      
+      order.sold_products.forEach((product: any) => {
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(`  - ${product.name} (${product.quantity}x): R$ ${(Number(product.price) * Number(product.quantity)).toFixed(2)}`, 25, y);
+        y += 5;
+      });
+      
+      y += 5;
+      doc.line(20, y, pageWidth - 20, y);
+      y += 10;
+    }
+
     doc.setFont("helvetica", "bold");
     doc.text("RESUMO FINANCEIRO", 20, y);
     y += 8;
@@ -343,6 +364,12 @@ if (error) {
     const subtotal = order.items.reduce((acc: number, i: any) => acc + (i.subtotal || 0), 0);
     doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 20, y);
     y += 6;
+
+    if (order.sold_products && order.sold_products.length > 0) {
+      const soldProductsTotal = order.sold_products.reduce((acc: number, p: any) => acc + (Number(p.price) * Number(p.quantity)), 0);
+      doc.text(`Produtos Vendidos: R$ ${soldProductsTotal.toFixed(2)}`, 20, y);
+      y += 6;
+    }
 
     if (order.discount_percent > 0) {
       const discountValue = (subtotal * order.discount_percent) / 100;
