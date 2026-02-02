@@ -1,40 +1,41 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, AlertTriangle, Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { checkOrderAlerts } from "@/lib/notifications";
 
 interface Alert {
   id: string;
   type: string;
   title: string;
   description: string;
-  osNumber: string;
-  clientName: string;
+  osNumber?: string;
+  clientName?: string;
 }
 
 export default function FloatingAlerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Detectar se é mobile
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    // Detectar mobile
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    
+
+    // Buscar alertas
     fetchAlerts();
-    
-    // Atualizar alertas a cada 30 segundos
+
+    // Atualizar a cada 30 segundos
     const interval = setInterval(fetchAlerts, 30000);
-    
+
     return () => {
       window.removeEventListener("resize", checkMobile);
       clearInterval(interval);
@@ -43,35 +44,37 @@ export default function FloatingAlerts() {
 
   async function fetchAlerts() {
     try {
-      console.log("[FloatingAlerts] Buscando alertas...");
-      const response = await fetch("/api/alerts");
-      console.log("[FloatingAlerts] Response status:", response.status);
+      const supabase = createClient();
       
-      if (!response.ok) {
-        console.error("[FloatingAlerts] Erro na resposta:", response.statusText);
-        return;
-      }
-      
-      const data = await response.json();
-      console.log("[FloatingAlerts] Dados recebidos:", data);
-      
+      // Buscar OSs dos últimos 30 dias (mesma lógica do painel)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const { data: orders } = await supabase
+        .from("service_orders")
+        .select(`
+          *,
+          clients (
+            id,
+            name,
+            phone,
+            email,
+            vip
+          )
+        `)
+        .gte("created_at", thirtyDaysAgo.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (!orders) return;
+
+      // Usar checkOrderAlerts (mesma função do painel)
+      const orderAlerts = await checkOrderAlerts(orders);
+
       // Filtrar alertas dismissed
       const dismissed = JSON.parse(localStorage.getItem("dismissed_alerts") || "[]");
-      const filteredAlerts = (data.alerts || []).filter((alert: any) => !dismissed.includes(alert.id));
-      console.log("[FloatingAlerts] Alertas filtrados:", filteredAlerts.length);
-      
-      // Mapear para formato do componente
-      const mappedAlerts = filteredAlerts.map((alert: any) => ({
-        id: alert.id,
-        type: "overdue_payment",
-        title: "Pagamento Pendente",
-        description: `${alert.days_overdue} dias sem confirmação de pagamento`,
-        osNumber: alert.os_number,
-        clientName: alert.client_name,
-      }));
-      
-      console.log("[FloatingAlerts] Alertas mapeados:", mappedAlerts);
-      setAlerts(mappedAlerts);
+      const filteredAlerts = orderAlerts.filter((alert: Alert) => !dismissed.includes(alert.id));
+
+      setAlerts(filteredAlerts);
     } catch (error) {
       console.error("[FloatingAlerts] Erro ao carregar alertas:", error);
     }
@@ -81,14 +84,16 @@ export default function FloatingAlerts() {
     const dismissed = JSON.parse(localStorage.getItem("dismissed_alerts") || "[]");
     dismissed.push(alertId);
     localStorage.setItem("dismissed_alerts", JSON.stringify(dismissed));
-    setAlerts(alerts.filter(a => a.id !== alertId));
+    setAlerts(prev => prev.filter(a => a.id !== alertId));
   }
 
-  function handleAlertClick(osNumber: string) {
-    router.push(`/menu-principal/os/${osNumber}`);
+  function handleAlertClick(osNumber?: string) {
+    if (osNumber) {
+      router.push(`/menu-principal/os/${osNumber}`);
+    }
   }
 
-  // Mobile: Botão flutuante
+  // Mobile: Botão flutuante + Modal
   if (isMobile) {
     return (
       <>
@@ -107,18 +112,20 @@ export default function FloatingAlerts() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>🔔 Alertas do Sistema</DialogTitle>
+              <DialogTitle>Alertas do Sistema ({alerts.length})</DialogTitle>
             </DialogHeader>
-            
             <div className="space-y-3">
               {alerts.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">Nenhum alerta no momento</p>
+                <p className="text-sm text-gray-500 text-center py-4">Nenhum alerta no momento</p>
               ) : (
                 alerts.map((alert) => (
                   <div
                     key={alert.id}
-                    onClick={() => handleAlertClick(alert.osNumber)}
-                    className="p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative cursor-pointer hover:bg-red-100 transition-colors"
+                    onClick={() => {
+                      handleAlertClick(alert.osNumber);
+                      setIsModalOpen(false);
+                    }}
+                    className={`p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative cursor-pointer`}
                   >
                     <button
                       onClick={(e) => {
@@ -130,9 +137,13 @@ export default function FloatingAlerts() {
                       <X className="w-4 h-4 text-red-500" />
                     </button>
                     <h3 className="font-bold text-sm mb-1">{alert.title}</h3>
-                    <p className="text-xs opacity-80 mb-2">{alert.description}</p>
-                    <p className="text-xs font-medium">Cliente: {alert.clientName}</p>
-                    <p className="text-xs text-red-600 font-bold">#{alert.osNumber}</p>
+                    <p className="text-xs mb-2">{alert.description}</p>
+                    {alert.clientName && (
+                      <p className="text-xs font-medium">Cliente: {alert.clientName}</p>
+                    )}
+                    {alert.osNumber && (
+                      <p className="text-xs font-medium">OS: #{alert.osNumber}</p>
+                    )}
                   </div>
                 ))
               )}
@@ -166,17 +177,21 @@ export default function FloatingAlerts() {
                 <X className="w-4 h-4 text-red-500" />
               </button>
               <div className="flex items-start gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <Bell className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <h3 className="font-bold text-sm">{alert.title}</h3>
               </div>
-              <p className="text-xs opacity-80 leading-relaxed mb-2">{alert.description}</p>
-              <p className="text-xs font-medium">Cliente: {alert.clientName}</p>
-              <p className="text-xs text-red-600 font-bold mt-1">#{alert.osNumber}</p>
+              <p className="text-xs mb-2">{alert.description}</p>
+              {alert.clientName && (
+                <p className="text-xs font-medium">Cliente: {alert.clientName}</p>
+              )}
+              {alert.osNumber && (
+                <p className="text-xs font-medium">OS: #{alert.osNumber}</p>
+              )}
             </div>
           ))}
         </div>
       )}
-
+      
       <Button
         onClick={() => setIsExpanded(!isExpanded)}
         variant="outline"
