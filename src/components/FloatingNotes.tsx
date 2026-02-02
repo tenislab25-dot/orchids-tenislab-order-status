@@ -201,14 +201,22 @@ export default function FloatingNotes() {
                     className={`p-4 rounded-xl border-2 ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative`}
                   >
                     <button
-                      onClick={() => confirmDelete(note.id)}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmDelete(note.id);
+                      }}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-20 pointer-events-auto"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
                     <button
-                      onClick={() => openModal(note)}
-                      className="absolute top-2 right-11 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 z-10"
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openModal(note);
+                      }}
+                      className="absolute top-2 right-11 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 z-20 pointer-events-auto"
                     >
                       <Edit2 className="w-4 h-4 text-blue-500" />
                     </button>
@@ -295,14 +303,22 @@ export default function FloatingNotes() {
                   className={`w-64 p-4 rounded-xl border-2  ${colorClasses.bg} ${colorClasses.border} ${colorClasses.text} relative transition-all `}
                 >
                   <button
-                    onClick={() => confirmDelete(note.id)}
-                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmDelete(note.id);
+                    }}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-20 pointer-events-auto"
                   >
                     <X className="w-4 h-4 text-red-500" />
                   </button>
                   <button
-                    onClick={() => openModal(note)}
-                    className="absolute top-2 right-11 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 z-10"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openModal(note);
+                    }}
+                    className="absolute top-2 right-11 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-blue-50 z-20 pointer-events-auto"
                   >
                     <Edit2 className="w-4 h-4 text-blue-500" />
                   </button>

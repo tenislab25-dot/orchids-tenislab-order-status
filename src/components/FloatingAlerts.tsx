@@ -208,11 +208,12 @@ export default function FloatingAlerts() {
                     className={`p-4 rounded-xl border-2 ${colors.bg} ${colors.border} ${colors.text} relative cursor-pointer hover:opacity-90 transition-colors`}
                   >
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         confirmDismiss(alert.id);
                       }}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-20 pointer-events-auto"
                     >
                       <X className="w-4 h-4 text-red-500" />
                     </button>
@@ -251,11 +252,12 @@ export default function FloatingAlerts() {
               className={`w-64 p-4 rounded-xl border-2 ${colors.bg} ${colors.border} ${colors.text} relative transition-all cursor-pointer hover:opacity-90`}
             >
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   confirmDismiss(alert.id);
                 }}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-10"
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 z-20 pointer-events-auto"
               >
                 <X className={`w-4 h-4 ${colors.text}`} />
               </button>
