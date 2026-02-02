@@ -285,6 +285,24 @@ export default function FloatingNotes() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Modal de confirmação de deleção */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>⚠️ Confirmar Deleção</DialogTitle>
+            </DialogHeader>
+            <p className="text-slate-600">Tem certeza que deseja deletar esta nota? Esta ação não pode ser desfeita.</p>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteNote}>
+                Deletar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </>
     );
   }

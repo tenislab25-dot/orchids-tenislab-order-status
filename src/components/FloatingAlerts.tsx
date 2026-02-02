@@ -232,6 +232,24 @@ export default function FloatingAlerts() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Modal de confirmação de exclusão */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Confirmar Exclusão</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-600">Tem certeza que deseja dispensar este alerta?</p>
+            <div className="flex gap-2 justify-end mt-4">
+              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={dismissAlert}>
+                Confirmar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </>
     );
   }
