@@ -129,6 +129,43 @@ export default function FloatingAlerts() {
     }
   }
 
+  function getAlertColors(type: string) {
+    switch (type) {
+      case 'danger':
+        return {
+          bg: 'bg-red-50',
+          border: 'border-red-200',
+          text: 'text-red-900',
+          button: 'bg-red-500 hover:bg-red-600',
+          badge: 'bg-red-500'
+        };
+      case 'warning':
+        return {
+          bg: 'bg-amber-50',
+          border: 'border-amber-200',
+          text: 'text-amber-900',
+          button: 'bg-amber-500 hover:bg-amber-600',
+          badge: 'bg-amber-500'
+        };
+      case 'info':
+        return {
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-900',
+          button: 'bg-blue-500 hover:bg-blue-600',
+          badge: 'bg-blue-500'
+        };
+      default:
+        return {
+          bg: 'bg-red-50',
+          border: 'border-red-200',
+          text: 'text-red-900',
+          button: 'bg-red-500 hover:bg-red-600',
+          badge: 'bg-red-500'
+        };
+    }
+  }
+
   // Não mostrar para entregador
   if (role === "OPERACIONAL") {
     return null;
@@ -159,14 +196,16 @@ export default function FloatingAlerts() {
               {alerts.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">Nenhum alerta no momento</p>
               ) : (
-                alerts.map((alert) => (
+                alerts.map((alert) => {
+                  const colors = getAlertColors(alert.type);
+                  return (
                   <div
                     key={alert.id}
                     onClick={() => {
                       handleAlertClick(alert.osNumber);
                       setIsModalOpen(false);
                     }}
-                    className="p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative cursor-pointer hover:bg-red-100 transition-colors"
+                    className={`p-4 rounded-xl border-2 ${colors.bg} ${colors.border} ${colors.text} relative cursor-pointer hover:opacity-90 transition-colors`}
                   >
                     <button
                       onClick={(e) => {
@@ -186,7 +225,8 @@ export default function FloatingAlerts() {
                       <p className="text-xs font-medium">OS: #{alert.osNumber}</p>
                     )}
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </DialogContent>
@@ -202,20 +242,22 @@ export default function FloatingAlerts() {
     <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
       {isExpanded && (
         <div className="flex flex-col gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
-          {alerts.slice(0, 4).map((alert) => (
+          {alerts.slice(0, 4).map((alert) => {
+            const colors = getAlertColors(alert.type);
+            return (
             <div
               key={alert.id}
               onClick={() => handleAlertClick(alert.osNumber)}
-              className="w-64 p-4 rounded-xl border-2 bg-red-50 border-red-200 text-red-900 relative transition-all cursor-pointer hover:bg-red-100"
+              className={`w-64 p-4 rounded-xl border-2 ${colors.bg} ${colors.border} ${colors.text} relative transition-all cursor-pointer hover:opacity-90`}
             >
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   confirmDismiss(alert.id);
                 }}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-red-50 transition-colors"
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white flex items-center justify-center hover:opacity-80 transition-colors"
               >
-                <X className="w-4 h-4 text-red-500" />
+                <X className={`w-4 h-4 ${colors.text}`} />
               </button>
               <div className="flex items-start gap-2 mb-2">
                 <Bell className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -229,7 +271,8 @@ export default function FloatingAlerts() {
                 <p className="text-xs font-medium">OS: #{alert.osNumber}</p>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       
