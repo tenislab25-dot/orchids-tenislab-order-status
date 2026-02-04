@@ -79,9 +79,9 @@ export default function Home() {
     <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* SECTION 1 — BRAND / HEADER */}
           <header className="flex flex-col items-center gap-1 mb-8">
-            <div className="relative w-64 h-48">
-              <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-                alt="TENISLAB Logo"className="w-full h-full object-contain" loading="eager" />
+            <div className="relative w-96">
+              <img src="/LOGOTENISLAB.png" 
+                alt="TENISLAB Logo" className="w-full h-auto object-contain" loading="eager" />
             </div>
 
           {processedCount !== null && (
