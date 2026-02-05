@@ -62,7 +62,7 @@ export default function Home() {
         </Link>
 
         {/* Espaço até a diagonal azul */}
-        <div className="h-[140px]"></div>
+        <div className="h-[40px]"></div>
 
         {/* Ícones circulares na diagonal azul */}
         <div className="relative flex items-center justify-center gap-8 mb-8" style={{transform: 'rotate(-12deg)'}}>
