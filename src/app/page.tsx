@@ -47,7 +47,7 @@ export default function Home() {
       {/* Content */}
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12">
         {/* Espaço para o topo do template (logo + texto) */}
-        <div className="h-[520px]"></div>
+        <div className="h-[680px]"></div>
 
         {/* Ícones circulares na diagonal azul */}
         <div className="relative flex items-center justify-center gap-8 mb-8" style={{transform: 'rotate(-12deg)'}}>
