@@ -74,7 +74,7 @@ export default function Home() {
             className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
           >
             <img 
-              src="/icon-whatsapp.png" 
+              src="/icon-whatsapp.webp" 
               alt="WhatsApp" 
               className="w-20 h-20 object-contain"
             />
@@ -88,7 +88,7 @@ export default function Home() {
             className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
           >
             <img 
-              src="/icon-instagram.png" 
+              src="/icon-instagram.webp" 
               alt="Instagram" 
               className="w-20 h-20 object-contain"
             />
@@ -102,7 +102,7 @@ export default function Home() {
             className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
           >
             <img 
-              src="/icon-location.png" 
+              src="/icon-location.webp" 
               alt="Localização" 
               className="w-20 h-20 object-contain"
             />
