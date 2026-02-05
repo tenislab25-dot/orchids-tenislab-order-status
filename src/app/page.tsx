@@ -76,42 +76,49 @@ export default function Home() {
     }, []);
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      {/* SECTION 1 — BRAND / HEADER */}
-          <header className="flex flex-col items-center gap-1 mb-8">
-            <div className="relative w-96">
-              <img src="/LOGOTENISLAB.png" 
-                alt="TENISLAB Logo" className="w-full h-auto object-contain" loading="eager" />
-            </div>
+    <div className="relative w-full min-h-screen">
+      {/* Background Image */}
+      <div className="fixed inset-0 w-full h-full">
+        <img 
+          src="/tenislab-bg.webp" 
+          alt="TENISLAB Background" 
+          className="w-full h-full object-cover object-top"
+          loading="eager"
+        />
+      </div>
 
-          {processedCount !== null && (
-            <div className="flex flex-col items-center gap-1 bg-slate-900 px-6 py-4 rounded-[2rem] shadow-xl shadow-slate-200 border border-white/10 animate-in zoom-in duration-700">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-black text-white tracking-tighter">
-                  {processedCount}
-                </span>
-              </div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
-                  PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
-                </p>
-            </div>
-          )}
-      </header>
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12">
+        {/* Espaço para o topo do template (logo + texto) */}
+        <div className="h-[420px]"></div>
 
-      <main className="flex-1 flex flex-col gap-12">
-        {/* SECTION 2 — MAIN CUSTOMER ACTIONS */}
-        <section className="flex flex-col gap-4">
+        {/* Contador de tênis */}
+        {processedCount !== null && (
+          <div className="flex flex-col items-center gap-1 bg-slate-900/90 backdrop-blur-sm px-6 py-4 rounded-[2rem] shadow-xl mb-6 animate-in zoom-in duration-700">
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-black text-white tracking-tighter">
+                {processedCount}
+              </span>
+            </div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
+              PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
+            </p>
+          </div>
+        )}
+
+        {/* Botões de ação */}
+        <section className="flex flex-col gap-4 mb-8">
           <ActionButton 
             href="/consulta"
             title="Consultar pedido"
             icon={Search}
           />
-            <ActionButton 
-              href="https://wa.me/message/FNQNTD6CIDFMI1"
-              title="Falar no WhatsApp"
-              icon={MessageCircle}
-              external
-            />
+          <ActionButton 
+            href="https://wa.me/message/FNQNTD6CIDFMI1"
+            title="Falar no WhatsApp"
+            icon={MessageCircle}
+            external
+          />
           <ActionButton 
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             title="Instagram"
@@ -126,26 +133,19 @@ export default function Home() {
           />
         </section>
 
-        {/* SECTION 3 — SUPPORT TEXT */}
-        <section className="px-4 text-center flex flex-col gap-4">
-          <p className="text-slate-500 text-sm leading-relaxed">
-            Acompanhe seu pedido ou fale conosco para mais informações.
-          </p>
-        </section>
-      </main>
+        {/* Espaço para o resto do template (diagonal azul + fotos + TENISLAB vertical) */}
+        <div className="flex-1 min-h-[1200px]"></div>
 
-      {/* SECTION 7 — FOOTER */}
-      <footer className="mt-auto pt-16 pb-8 text-center flex flex-col gap-4">
-        <Link 
-          href="/menu-principal/login"
-          className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors mb-2"
-        >
-          Acesso Restrito
-        </Link>
-        <p className="text-slate-300 text-[10px] uppercase tracking-[0.3em] font-bold">
-          tenislab. o laboratório do seu tênis
-        </p>
-      </footer>
+        {/* Footer */}
+        <footer className="mt-auto pt-8 pb-8 text-center flex flex-col gap-4">
+          <Link 
+            href="/menu-principal/login"
+            className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors mb-2"
+          >
+            Acesso Restrito
+          </Link>
+        </footer>
+      </div>
     </div>
   );
 }
