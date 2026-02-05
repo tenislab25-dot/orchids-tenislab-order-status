@@ -44,27 +44,27 @@ export default function Home() {
           loading="eager"
         />
 
-        {/* Contador de tênis - MOVIDO para parte branca (após primeiro texto) */}
+        {/* Contador de tênis - MUITO MENOR e MAIS BAIXO */}
         {processedCount !== null && (
           <div 
-            className="flex flex-col items-center gap-1 bg-blue-600/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg animate-in zoom-in duration-700"
+            className="flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md animate-in zoom-in duration-700"
             style={{
               position: 'absolute',
               left: '50%',
-              top: '14%',
+              top: '16.5%',
               transform: 'translateX(-50%)',
               width: 'auto',
-              minWidth: '280px',
-              maxWidth: '90%'
+              minWidth: '180px',
+              maxWidth: '85%'
             }}
           >
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-black text-white tracking-tighter">
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-bold text-white tracking-tight">
                 {processedCount}
               </span>
             </div>
-            <p className="text-[9px] font-bold text-white uppercase tracking-[0.15em] text-center leading-tight">
-              PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
+            <p className="text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
+              TÊNIS HIGIENIZADOS/RESTAURADOS
             </p>
           </div>
         )}
@@ -75,7 +75,7 @@ export default function Home() {
           className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
           style={{
             left: '50%',
-            top: '18%',
+            top: '19.5%',
             transform: 'translateX(-50%)'
           }}
         >
