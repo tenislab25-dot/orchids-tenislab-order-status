@@ -417,99 +417,150 @@ export default function RotaAtivaPage() {
       return;
     }
 
-    // Algoritmo do vizinho mais próximo considerando GPS inicial e ponto final
-    toast.info('🧠 Otimizando rota...');
+    // Algoritmo Genético para otimização de rota
+    toast.info('🧬 Otimizando rota com Algoritmo Genético...');
     
-    const rotaOtimizada: any[] = [];
-    const naoVisitados = [...pedidosComCoordenadas];
-    
-    // Ponto inicial: localização GPS atual
-    let pontoAtual = { lat: userLocation.lat, lng: userLocation.lng };
-    
-    logger.log(`📍 Ponto inicial (GPS): ${pontoAtual.lat.toFixed(6)}, ${pontoAtual.lng.toFixed(6)}`);
+    logger.log(`📍 Ponto inicial (GPS): ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}`);
     logger.log(`🎯 Tipo de ponto final: ${endPointType}`);
     
     // Determinar ponto final
     let pontoFinal: { lat: number, lng: number } | null = null;
     
     if (endPointType === 'current') {
-      // Voltar para onde está agora
       pontoFinal = { lat: userLocation.lat, lng: userLocation.lng };
       logger.log(`🔙 Ponto final: Localização atual (GPS)`);
     } else if (endPointType === 'tenislab') {
-      // Voltar para Tenislab
       const LOJA_LAT = parseFloat(process.env.NEXT_PUBLIC_STORE_LATITUDE || '-9.619938');
       const LOJA_LNG = parseFloat(process.env.NEXT_PUBLIC_STORE_LONGITUDE || '-35.709313');
       pontoFinal = { lat: LOJA_LAT, lng: LOJA_LNG };
       logger.log(`🏢 Ponto final: Tenislab (${LOJA_LAT}, ${LOJA_LNG})`);
     } else if (endPointType === 'custom' && customEndPoint.trim()) {
-      // Endereço personalizado - não temos coordenadas, usar como waypoint
       logger.log(`📍 Ponto final: Endereço personalizado (${customEndPoint})`);
     } else {
-      // Terminar no último ponto
       logger.log(`🎯 Ponto final: Último ponto da rota`);
     }
     
-    // Algoritmo do vizinho mais próximo
-    while (naoVisitados.length > 0) {
-      let maisProximo = naoVisitados[0];
-      let menorDistancia = calcularDistancia(
-        pontoAtual.lat,
-        pontoAtual.lng,
-        maisProximo.coords!.lat,
-        maisProximo.coords!.lon
-      );
+    // Função para calcular distância total de uma rota
+    const calcularDistanciaRota = (rota: any[], inicio: {lat: number, lng: number}, fim: {lat: number, lng: number} | null) => {
+      let distanciaTotal = 0;
+      let pontoAtual = inicio;
       
-      // Se houver ponto final e for o último pedido, considerar distância até o ponto final
-      if (pontoFinal && naoVisitados.length === 1) {
-        // Último pedido - escolher o mais próximo do ponto final
-        for (let i = 0; i < naoVisitados.length; i++) {
-          const distanciaAteFinal = calcularDistancia(
-            naoVisitados[i].coords!.lat,
-            naoVisitados[i].coords!.lon,
-            pontoFinal.lat,
-            pontoFinal.lng
-          );
-          
-          const distanciaAtual = calcularDistancia(
-            pontoAtual.lat,
-            pontoAtual.lng,
-            naoVisitados[i].coords!.lat,
-            naoVisitados[i].coords!.lon
-          );
-          
-          // Considerar tanto a distância do ponto atual quanto do ponto final
-          const distanciaTotal = distanciaAtual + distanciaAteFinal;
-          
-          if (i === 0 || distanciaTotal < menorDistancia) {
-            menorDistancia = distanciaTotal;
-            maisProximo = naoVisitados[i];
-          }
-        }
-      } else {
-        // Encontrar o mais próximo do ponto atual
-        for (let i = 1; i < naoVisitados.length; i++) {
-          const distancia = calcularDistancia(
-            pontoAtual.lat,
-            pontoAtual.lng,
-            naoVisitados[i].coords!.lat,
-            naoVisitados[i].coords!.lon
-          );
-          
-          if (distancia < menorDistancia) {
-            menorDistancia = distancia;
-            maisProximo = naoVisitados[i];
-          }
-        }
+      for (const pedido of rota) {
+        const coords = pedido.coords!;
+        distanciaTotal += calcularDistancia(pontoAtual.lat, pontoAtual.lng, coords.lat, coords.lon);
+        pontoAtual = { lat: coords.lat, lng: coords.lon };
       }
       
-      // Adicionar o mais próximo à rota
-      rotaOtimizada.push(maisProximo.pedido);
-      pontoAtual = { lat: maisProximo.coords!.lat, lng: maisProximo.coords!.lon };
-      naoVisitados.splice(naoVisitados.indexOf(maisProximo), 1);
+      // Adicionar distância até o ponto final (se houver)
+      if (fim) {
+        distanciaTotal += calcularDistancia(pontoAtual.lat, pontoAtual.lng, fim.lat, fim.lng);
+      }
+      
+      return distanciaTotal;
+    };
+    
+    // Parâmetros do Algoritmo Genético
+    const TAMANHO_POPULACAO = 100;
+    const GERACOES = 50;
+    const TAXA_MUTACAO = 0.15;
+    const TAXA_ELITISMO = 0.2;
+    
+    // Gerar população inicial (rotas aleatórias)
+    let populacao: any[][] = [];
+    for (let i = 0; i < TAMANHO_POPULACAO; i++) {
+      const rota = [...pedidosComCoordenadas].sort(() => Math.random() - 0.5);
+      populacao.push(rota);
     }
     
+    // Evolução
+    for (let geracao = 0; geracao < GERACOES; geracao++) {
+      // Avaliar fitness (distância) de cada rota
+      const fitness = populacao.map(rota => ({
+        rota,
+        distancia: calcularDistanciaRota(rota, userLocation, pontoFinal)
+      }));
+      
+      // Ordenar por distância (menor = melhor)
+      fitness.sort((a, b) => a.distancia - b.distancia);
+      
+      // Elitismo: manter as melhores rotas
+      const elite = fitness.slice(0, Math.floor(TAMANHO_POPULACAO * TAXA_ELITISMO)).map(f => f.rota);
+      
+      // Nova geração
+      const novaPopulacao: any[][] = [...elite];
+      
+      // Cruzamento e mutação
+      while (novaPopulacao.length < TAMANHO_POPULACAO) {
+        // Selecionar 2 pais (torneio)
+        const pai1 = fitness[Math.floor(Math.random() * Math.min(20, fitness.length))].rota;
+        const pai2 = fitness[Math.floor(Math.random() * Math.min(20, fitness.length))].rota;
+        
+        // Cruzamento (Order Crossover - OX)
+        const pontoCorte1 = Math.floor(Math.random() * pai1.length);
+        const pontoCorte2 = Math.floor(pontoCorte1 + Math.random() * (pai1.length - pontoCorte1));
+        
+        const filho: any[] = new Array(pai1.length);
+        
+        // Copiar segmento do pai1
+        for (let i = pontoCorte1; i <= pontoCorte2; i++) {
+          filho[i] = pai1[i];
+        }
+        
+        // Preencher com genes do pai2
+        let indexFilho = 0;
+        for (let i = 0; i < pai2.length; i++) {
+          if (indexFilho === pontoCorte1) {
+            indexFilho = pontoCorte2 + 1;
+          }
+          if (indexFilho >= pai1.length) break;
+          
+          if (!filho.includes(pai2[i])) {
+            filho[indexFilho] = pai2[i];
+            indexFilho++;
+          }
+        }
+        
+        // Preencher posições vazias (se houver)
+        for (let i = 0; i < filho.length; i++) {
+          if (!filho[i]) {
+            for (const gene of pai2) {
+              if (!filho.includes(gene)) {
+                filho[i] = gene;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Mutação (swap)
+        if (Math.random() < TAXA_MUTACAO) {
+          const idx1 = Math.floor(Math.random() * filho.length);
+          const idx2 = Math.floor(Math.random() * filho.length);
+          [filho[idx1], filho[idx2]] = [filho[idx2], filho[idx1]];
+        }
+        
+        novaPopulacao.push(filho);
+      }
+      
+      populacao = novaPopulacao;
+    }
+    
+    // Selecionar melhor rota da última geração
+    const fitness = populacao.map(rota => ({
+      rota,
+      distancia: calcularDistanciaRota(rota, userLocation, pontoFinal)
+    }));
+    fitness.sort((a, b) => a.distancia - b.distancia);
+    
+    const melhorRota = fitness[0].rota;
+    const distanciaTotal = fitness[0].distancia;
+    
+    const rotaOtimizada = melhorRota.map(p => p.pedido);
+    
     logger.log(`✅ Rota otimizada com ${rotaOtimizada.length} paradas`);
+    logger.log(`📍 Distância total: ${distanciaTotal.toFixed(2)} km`);
+    toast.success(`🧬 Rota otimizada! Distância: ${distanciaTotal.toFixed(1)} km`);
+
 
 
     // Construir URL do Google Maps com waypoints
