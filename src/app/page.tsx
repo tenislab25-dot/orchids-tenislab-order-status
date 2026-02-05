@@ -44,8 +44,8 @@ export default function Home() {
           loading="eager"
         />
 
-        {/* Ícones com posição em porcentagem - BAIXADOS 3% */}
-        {/* WhatsApp - Left: 46.11%, Top: 32.47% (era 29.47% + 3%) */}
+        {/* Ícones com posição em porcentagem - AJUSTADOS +1.5% */}
+        {/* WhatsApp - Left: 46.11%, Top: 30.97% (29.47% + 1.5%) */}
         <a 
           href="https://wa.me/message/FNQNTD6CIDFMI1"
           target="_blank"
@@ -54,7 +54,7 @@ export default function Home() {
           style={{
             position: 'absolute',
             left: '46.11%',
-            top: '32.47%',
+            top: '30.97%',
             width: '11.67%',
             height: 'auto',
             aspectRatio: '1 / 1'
@@ -67,7 +67,7 @@ export default function Home() {
           />
         </a>
 
-        {/* Instagram - Left: 61.28%, Top: 30.64% (era 27.64% + 3%) */}
+        {/* Instagram - Left: 61.28%, Top: 29.14% (27.64% + 1.5%) */}
         <a 
           href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
           target="_blank"
@@ -76,7 +76,7 @@ export default function Home() {
           style={{
             position: 'absolute',
             left: '61.28%',
-            top: '30.64%',
+            top: '29.14%',
             width: '11.67%',
             height: 'auto',
             aspectRatio: '1 / 1'
@@ -89,7 +89,7 @@ export default function Home() {
           />
         </a>
 
-        {/* Localização - Left: 76.46%, Top: 28.81% (era 25.81% + 3%) */}
+        {/* Localização - Left: 76.46%, Top: 27.31% (25.81% + 1.5%) */}
         <a 
           href="https://maps.google.com/?q=TENISLAB+Maceio"
           target="_blank"
@@ -98,7 +98,7 @@ export default function Home() {
           style={{
             position: 'absolute',
             left: '76.46%',
-            top: '28.81%',
+            top: '27.31%',
             width: '11.67%',
             height: 'auto',
             aspectRatio: '1 / 1'
