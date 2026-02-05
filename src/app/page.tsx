@@ -33,70 +33,95 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative w-full min-h-screen">
-      {/* Background Image - Template do Framer */}
-      <div className="absolute inset-0 w-full h-full">
+    <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
+      {/* Container centralizado com tamanho fixo 1200x3333 (igual Framer) */}
+      <div className="relative mx-auto" style={{ width: '1200px', height: '3333px' }}>
+        {/* Background Image - Template fixo */}
         <img 
           src="/tenislab-template.webp" 
           alt="TENISLAB Background" 
-          className="w-full h-full object-cover object-top"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ width: '1200px', height: '3333px' }}
           loading="eager"
         />
-      </div>
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12">
-        {/* Espaço para o topo do template (logo + texto) */}
-        <div className="h-[680px]"></div>
+        {/* Ícones com posição absoluta (extraídos do Framer) */}
+        {/* WhatsApp - Left: 553px, Top: 982px */}
+        <a 
+          href="https://wa.me/message/FNQNTD6CIDFMI1"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="icon-button"
+          style={{
+            position: 'absolute',
+            left: '553px',
+            top: '982px',
+            width: '140px',
+            height: '140px'
+          }}
+        >
+          <img 
+            src="/icon-whatsapp-optimized.webp" 
+            alt="WhatsApp" 
+            className="w-full h-full object-contain"
+          />
+        </a>
 
-        {/* Ícones circulares na diagonal azul */}
-        <div className="relative flex items-center justify-center gap-8 mb-8" style={{transform: 'rotate(-12deg)'}}>
-          {/* WhatsApp */}
-          <a 
-            href="https://wa.me/message/FNQNTD6CIDFMI1"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="icon-button"
-          >
-            <img 
-              src="/icon-whatsapp-optimized.webp" 
-              alt="WhatsApp" 
-              className="w-20 h-20 object-contain"
-            />
-          </a>
+        {/* Instagram - Left: 735px, Top: 921px */}
+        <a 
+          href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="icon-button"
+          style={{
+            position: 'absolute',
+            left: '735px',
+            top: '921px',
+            width: '140px',
+            height: '140px'
+          }}
+        >
+          <img 
+            src="/icon-instagram-optimized.webp" 
+            alt="Instagram" 
+            className="w-full h-full object-contain"
+          />
+        </a>
 
-          {/* Instagram */}
-          <a 
-            href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="icon-button"
-          >
-            <img 
-              src="/icon-instagram-optimized.webp" 
-              alt="Instagram" 
-              className="w-20 h-20 object-contain"
-            />
-          </a>
+        {/* Localização - Left: 917px, Top: 860px */}
+        <a 
+          href="https://maps.google.com/?q=TENISLAB+Maceio"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="icon-button"
+          style={{
+            position: 'absolute',
+            left: '917px',
+            top: '860px',
+            width: '140px',
+            height: '140px'
+          }}
+        >
+          <img 
+            src="/icon-location-optimized.webp" 
+            alt="Localização" 
+            className="w-full h-full object-contain"
+          />
+        </a>
 
-          {/* Localização */}
-          <a 
-            href="https://maps.google.com/?q=TENISLAB+Maceio"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="icon-button"
-          >
-            <img 
-              src="/icon-location-optimized.webp" 
-              alt="Localização" 
-              className="w-20 h-20 object-contain"
-            />
-          </a>
-        </div>
-
-        {/* Contador de tênis */}
+        {/* Contador de tênis - posicionado abaixo dos ícones */}
         {processedCount !== null && (
-          <div className="flex flex-col items-center gap-1 bg-slate-900/90 backdrop-blur-sm px-6 py-4 rounded-[2rem] shadow-xl mb-8 animate-in zoom-in duration-700">
+          <div 
+            className="flex flex-col items-center gap-1 bg-slate-900/90 backdrop-blur-sm px-6 py-4 rounded-[2rem] shadow-xl animate-in zoom-in duration-700"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '1200px',
+              transform: 'translateX(-50%)',
+              width: 'auto',
+              minWidth: '300px'
+            }}
+          >
             <div className="flex items-center gap-2">
               <span className="text-3xl font-black text-white tracking-tighter">
                 {processedCount}
@@ -108,35 +133,40 @@ export default function Home() {
           </div>
         )}
 
-        {/* Espaço para o resto do template (textos + fotos + TENISLAB vertical) */}
-        <div className="flex-1 min-h-[1400px]"></div>
-
-        {/* Footer */}
-        <footer className="mt-auto pt-8 pb-8 text-center flex flex-col gap-4">
+        {/* Footer - no final do template */}
+        <footer 
+          className="text-center"
+          style={{
+            position: 'absolute',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)'
+          }}
+        >
           <Link 
             href="/menu-principal/login"
-            className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors mb-2"
+            className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors"
           >
             Acesso Restrito
           </Link>
         </footer>
       </div>
 
-      {/* Estilos para efeito de botão pressionado */}
+      {/* Estilos para efeito de botão (Hover e Press do Framer) */}
       <style jsx global>{`
         .icon-button {
           display: inline-block;
-          transition: transform 0.15s ease-in-out, filter 0.15s ease-in-out;
+          transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
           cursor: pointer;
         }
 
         .icon-button:hover {
-          transform: scale(1.15);
+          transform: scale(1.1);
           filter: drop-shadow(0 10px 20px rgba(0, 102, 255, 0.4));
         }
 
         .icon-button:active {
-          transform: scale(0.85);
+          transform: scale(0.9);
           filter: drop-shadow(0 5px 10px rgba(0, 102, 255, 0.6));
         }
       `}</style>
