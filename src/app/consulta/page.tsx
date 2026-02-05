@@ -596,9 +596,9 @@ export default function StatusPage() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
     <header className="flex flex-col items-center gap-6 mb-8">
-          <div className="relative h-48 w-64">
-            <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" 
-              alt="TENISLAB Logo"className="w-full h-full object-contain" loading="eager" />
+          <div className="relative w-80">
+            <img src="/LOGOTENISLAB.png" 
+              alt="TENISLAB Logo" className="w-full h-auto object-contain" loading="eager" />
           </div>
     </header>
 
