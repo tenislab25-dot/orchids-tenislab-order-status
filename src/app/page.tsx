@@ -51,7 +51,7 @@ export default function Home() {
             style={{
               position: 'absolute',
               left: '50%',
-              top: '17.5%',
+              top: '23.5%',
               transform: 'translateX(-50%)',
               width: 'auto',
               minWidth: '180px',
@@ -75,7 +75,7 @@ export default function Home() {
           className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
           style={{
             left: '50%',
-            top: '20.5%',
+            top: '26.5%',
             transform: 'translateX(-50%)'
           }}
         >
@@ -154,14 +154,14 @@ export default function Home() {
           className="text-center"
           style={{
             position: 'absolute',
-            bottom: '1.5%',
+            bottom: '4.5%',
             left: '50%',
             transform: 'translateX(-50%)'
           }}
         >
           <Link 
             href="/menu-principal/login"
-            className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-colors"
+            className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-all duration-300 shadow-pulse"
           >
             Acesso Restrito
           </Link>
@@ -213,6 +213,20 @@ export default function Home() {
         /* Pausa a animação no hover para melhor UX */
         .icon-button:hover {
           animation-play-state: paused;
+        }
+
+        /* Animação de sombra para Acesso Restrito */
+        @keyframes shadowPulse {
+          0%, 100% {
+            text-shadow: 0 0 0px rgba(100, 116, 139, 0);
+          }
+          50% {
+            text-shadow: 0 0 8px rgba(100, 116, 139, 0.6);
+          }
+        }
+
+        .shadow-pulse {
+          animation: shadowPulse 2s ease-in-out infinite;
         }
       `}</style>
     </div>
