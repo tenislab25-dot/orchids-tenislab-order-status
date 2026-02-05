@@ -34,19 +34,18 @@ export default function Home() {
 
   return (
     <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
-      {/* Container centralizado com tamanho fixo 1200x3333 (igual Framer) */}
-      <div className="relative mx-auto" style={{ width: '1200px', height: '3333px' }}>
-        {/* Background Image - Template fixo */}
+      {/* Container responsivo que mantém proporção 1200:3333 */}
+      <div className="relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
+        {/* Background Image - Template responsivo */}
         <img 
           src="/tenislab-template.webp" 
           alt="TENISLAB Background" 
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ width: '1200px', height: '3333px' }}
           loading="eager"
         />
 
-        {/* Ícones com posição absoluta (extraídos do Framer) */}
-        {/* WhatsApp - Left: 553px, Top: 982px */}
+        {/* Ícones com posição em porcentagem - BAIXADOS 3% */}
+        {/* WhatsApp - Left: 46.11%, Top: 32.47% (era 29.47% + 3%) */}
         <a 
           href="https://wa.me/message/FNQNTD6CIDFMI1"
           target="_blank"
@@ -54,10 +53,11 @@ export default function Home() {
           className="icon-button"
           style={{
             position: 'absolute',
-            left: '553px',
-            top: '982px',
-            width: '140px',
-            height: '140px'
+            left: '46.11%',
+            top: '32.47%',
+            width: '11.67%',
+            height: 'auto',
+            aspectRatio: '1 / 1'
           }}
         >
           <img 
@@ -67,7 +67,7 @@ export default function Home() {
           />
         </a>
 
-        {/* Instagram - Left: 735px, Top: 921px */}
+        {/* Instagram - Left: 61.28%, Top: 30.64% (era 27.64% + 3%) */}
         <a 
           href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
           target="_blank"
@@ -75,10 +75,11 @@ export default function Home() {
           className="icon-button"
           style={{
             position: 'absolute',
-            left: '735px',
-            top: '921px',
-            width: '140px',
-            height: '140px'
+            left: '61.28%',
+            top: '30.64%',
+            width: '11.67%',
+            height: 'auto',
+            aspectRatio: '1 / 1'
           }}
         >
           <img 
@@ -88,7 +89,7 @@ export default function Home() {
           />
         </a>
 
-        {/* Localização - Left: 917px, Top: 860px */}
+        {/* Localização - Left: 76.46%, Top: 28.81% (era 25.81% + 3%) */}
         <a 
           href="https://maps.google.com/?q=TENISLAB+Maceio"
           target="_blank"
@@ -96,10 +97,11 @@ export default function Home() {
           className="icon-button"
           style={{
             position: 'absolute',
-            left: '917px',
-            top: '860px',
-            width: '140px',
-            height: '140px'
+            left: '76.46%',
+            top: '28.81%',
+            width: '11.67%',
+            height: 'auto',
+            aspectRatio: '1 / 1'
           }}
         >
           <img 
@@ -116,10 +118,11 @@ export default function Home() {
             style={{
               position: 'absolute',
               left: '50%',
-              top: '1200px',
+              top: '38%',
               transform: 'translateX(-50%)',
               width: 'auto',
-              minWidth: '300px'
+              minWidth: '300px',
+              maxWidth: '90%'
             }}
           >
             <div className="flex items-center gap-2">
@@ -138,7 +141,7 @@ export default function Home() {
           className="text-center"
           style={{
             position: 'absolute',
-            bottom: '40px',
+            bottom: '2%',
             left: '50%',
             transform: 'translateX(-50%)'
           }}
