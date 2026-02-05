@@ -51,7 +51,7 @@ export default function Home() {
             style={{
               position: 'absolute',
               left: '50%',
-              top: '16.5%',
+              top: '17.5%',
               transform: 'translateX(-50%)',
               width: 'auto',
               minWidth: '180px',
@@ -75,7 +75,7 @@ export default function Home() {
           className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
           style={{
             left: '50%',
-            top: '19.5%',
+            top: '20.5%',
             transform: 'translateX(-50%)'
           }}
         >
@@ -154,7 +154,7 @@ export default function Home() {
           className="text-center"
           style={{
             position: 'absolute',
-            bottom: '1%',
+            bottom: '1.5%',
             left: '50%',
             transform: 'translateX(-50%)'
           }}
@@ -163,7 +163,7 @@ export default function Home() {
             href="/menu-principal/login"
             className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-colors"
           >
-            🔒 Acesso Restrito
+            Acesso Restrito
           </Link>
         </footer>
       </div>
@@ -186,28 +186,28 @@ export default function Home() {
           filter: drop-shadow(0 5px 15px rgba(0, 102, 255, 0.7));
         }
 
-        /* Animação flutuante - cada botão com timing diferente */
-        @keyframes float {
+        /* Animação de pulso - cada botão com timing diferente */
+        @keyframes pulse {
           0%, 100% {
-            transform: translateY(0px);
+            transform: scale(1);
           }
           50% {
-            transform: translateY(-15px);
+            transform: scale(1.08);
           }
         }
 
         .float-1 {
-          animation: float 3s ease-in-out infinite;
+          animation: pulse 2s ease-in-out infinite;
         }
 
         .float-2 {
-          animation: float 3.5s ease-in-out infinite;
-          animation-delay: 0.5s;
+          animation: pulse 2.3s ease-in-out infinite;
+          animation-delay: 0.3s;
         }
 
         .float-3 {
-          animation: float 4s ease-in-out infinite;
-          animation-delay: 1s;
+          animation: pulse 2.6s ease-in-out infinite;
+          animation-delay: 0.6s;
         }
 
         /* Pausa a animação no hover para melhor UX */
