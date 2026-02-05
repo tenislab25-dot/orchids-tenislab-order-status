@@ -82,11 +82,11 @@ export default function Home() {
             }}
           >
             <div className="flex items-center gap-1">
-              <span className="text-sm font-bold text-white tracking-tight">
+              <span className="font-bold text-white tracking-tight" style={{ fontSize: '1.2vw', minFontSize: '14px' }}>
                 {displayCount}
               </span>
             </div>
-            <p className="text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
+            <p className="font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight" style={{ fontSize: '0.6vw', minFontSize: '7px' }}>
               TÊNIS HIGIENIZADOS/RESTAURADOS
             </p>
           </div>
@@ -95,15 +95,18 @@ export default function Home() {
         {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
           href="/consultar-pedido"
-          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
+          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
           style={{
             left: '50%',
             top: '25%',
             transform: 'translateX(-50%)',
             width: '20%',
             minWidth: '180px',
-            padding: '0.8% 1.5%'
+            padding: '0.8% 1.5%',
+            fontSize: '0.75vw',
+            minFontSize: '9px'
           }}
+
         >
           CONSULTE SEU PEDIDO
         </Link>
