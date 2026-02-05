@@ -256,9 +256,18 @@ export default function Home() {
           animation: shadowPulse 2s ease-in-out infinite;
         }
 
-        /* Animação de pulso para botão Consulte Pedido */
+        /* Animação de pulso para botão Consulte Pedido - preserva centralização */
+        @keyframes pulseButton {
+          0%, 100% {
+            transform: translateX(-50%) scale(1);
+          }
+          50% {
+            transform: translateX(-50%) scale(1.08);
+          }
+        }
+
         .pulse-button {
-          animation: pulse 2.2s ease-in-out infinite;
+          animation: pulseButton 2.2s ease-in-out infinite;
           animation-delay: 0.4s;
         }
 
