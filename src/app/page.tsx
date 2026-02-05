@@ -65,13 +65,13 @@ export default function Home() {
         <div className="h-[80px]"></div>
 
         {/* Ícones circulares na diagonal azul */}
-        <div className="flex items-center justify-center gap-6 mb-8">
+        <div className="relative flex flex-col items-start mb-8 ml-8">
           {/* WhatsApp */}
           <a 
             href="https://wa.me/message/FNQNTD6CIDFMI1"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
+            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95 mb-4"
           >
             <img 
               src="/icon-whatsapp.webp" 
@@ -85,7 +85,7 @@ export default function Home() {
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
+            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95 mb-4 ml-16"
           >
             <img 
               src="/icon-instagram.webp" 
@@ -99,7 +99,7 @@ export default function Home() {
             href="https://maps.google.com/?q=TENISLAB+Maceio"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
+            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95 ml-32"
           >
             <img 
               src="/icon-location.webp" 
