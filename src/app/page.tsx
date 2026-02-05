@@ -67,18 +67,18 @@ export default function Home() {
           loading="eager"
         />
 
-        {/* Contador de tênis - SUBIDO 2% (21.5%) */}
+        {/* Contador de tênis - RESPONSIVO */}
         {processedCount !== null && (
           <div 
-            className="flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md animate-in zoom-in duration-700"
+            className="flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm rounded-lg shadow-md animate-in zoom-in duration-700"
             style={{
               position: 'absolute',
               left: '50%',
-              top: '21.5%',
+              top: '22%',
               transform: 'translateX(-50%)',
-              width: 'auto',
-              minWidth: '180px',
-              maxWidth: '85%'
+              width: '15%',
+              minWidth: '150px',
+              padding: '0.8% 1.5%'
             }}
           >
             <div className="flex items-center gap-1">
@@ -92,17 +92,17 @@ export default function Home() {
           </div>
         )}
 
-        {/* Botão "Consulte seu Pedido" - REDUZIDO e SUBIDO 2% (24.5%) + PULSO */}
+        {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
           href="/menu-principal/consultar-pedido"
-          className="absolute bg-blue-600/90 hover:bg-blue-700/90 text-white font-semibold text-[7px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg pulse-button"
+          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-semibold text-[7px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg pulse-button flex items-center justify-center"
           style={{
             left: '50%',
-            top: '24.5%',
+            top: '25%',
             transform: 'translateX(-50%)',
-            minWidth: '180px',
-            maxWidth: '85%',
-            textAlign: 'center'
+            width: '15%',
+            minWidth: '150px',
+            padding: '0.8% 1.5%'
           }}
         >
           📦 CONSULTE SEU PEDIDO
