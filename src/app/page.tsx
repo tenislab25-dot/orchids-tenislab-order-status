@@ -62,10 +62,10 @@ export default function Home() {
         </Link>
 
         {/* Espaço até a diagonal azul */}
-        <div className="h-[80px]"></div>
+        <div className="h-[140px]"></div>
 
         {/* Ícones circulares na diagonal azul */}
-        <div className="relative flex items-center justify-center gap-8 mb-8" style={{transform: 'rotate(-8deg)'}}>
+        <div className="relative flex items-center justify-center gap-8 mb-8" style={{transform: 'rotate(-12deg)'}}>
           {/* WhatsApp */}
           <a 
             href="https://wa.me/message/FNQNTD6CIDFMI1"
