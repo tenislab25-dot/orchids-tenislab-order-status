@@ -35,7 +35,7 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen">
       {/* Background Image */}
-      <div className="fixed inset-0 w-full h-full">
+      <div className="absolute inset-0 w-full h-full">
         <img 
           src="/tenislab-bg.webp" 
           alt="TENISLAB Background" 
