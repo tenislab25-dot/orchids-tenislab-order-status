@@ -94,7 +94,7 @@ export default function Home() {
 
         {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
-          href="/consultar-pedido"
+          href="/consulta"
           className="responsive-button button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
           style={{
             left: '50%',
