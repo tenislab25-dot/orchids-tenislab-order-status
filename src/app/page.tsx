@@ -44,13 +44,51 @@ export default function Home() {
           loading="eager"
         />
 
-        {/* Ícones com posição em porcentagem - AJUSTADOS +1.5% */}
-        {/* WhatsApp - Left: 46.11%, Top: 30.97% (29.47% + 1.5%) */}
+        {/* Contador de tênis - MOVIDO para parte branca (após primeiro texto) */}
+        {processedCount !== null && (
+          <div 
+            className="flex flex-col items-center gap-1 bg-blue-600/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg animate-in zoom-in duration-700"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '14%',
+              transform: 'translateX(-50%)',
+              width: 'auto',
+              minWidth: '280px',
+              maxWidth: '90%'
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-white tracking-tighter">
+                {processedCount}
+              </span>
+            </div>
+            <p className="text-[9px] font-bold text-white uppercase tracking-[0.15em] text-center leading-tight">
+              PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
+            </p>
+          </div>
+        )}
+
+        {/* Botão "Consulte seu Pedido" - Logo abaixo do contador */}
+        <Link
+          href="/menu-principal/consultar-pedido"
+          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          style={{
+            left: '50%',
+            top: '18%',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          📦 CONSULTE SEU PEDIDO
+        </Link>
+
+        {/* Ícones com posição em porcentagem + ANIMAÇÃO FLUTUANTE */}
+        {/* WhatsApp - Left: 46.11%, Top: 30.97% */}
         <a 
           href="https://wa.me/message/FNQNTD6CIDFMI1"
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-button"
+          className="icon-button float-1"
           style={{
             position: 'absolute',
             left: '46.11%',
@@ -67,12 +105,12 @@ export default function Home() {
           />
         </a>
 
-        {/* Instagram - Left: 61.28%, Top: 29.14% (27.64% + 1.5%) */}
+        {/* Instagram - Left: 61.28%, Top: 29.14% */}
         <a 
           href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-button"
+          className="icon-button float-2"
           style={{
             position: 'absolute',
             left: '61.28%',
@@ -89,12 +127,12 @@ export default function Home() {
           />
         </a>
 
-        {/* Localização - Left: 76.46%, Top: 27.31% (25.81% + 1.5%) */}
+        {/* Localização - Left: 76.46%, Top: 27.31% */}
         <a 
           href="https://maps.google.com/?q=TENISLAB+Maceio"
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-button"
+          className="icon-button float-3"
           style={{
             position: 'absolute',
             left: '76.46%',
@@ -111,51 +149,26 @@ export default function Home() {
           />
         </a>
 
-        {/* Contador de tênis - posicionado abaixo dos ícones */}
-        {processedCount !== null && (
-          <div 
-            className="flex flex-col items-center gap-1 bg-slate-900/90 backdrop-blur-sm px-6 py-4 rounded-[2rem] shadow-xl animate-in zoom-in duration-700"
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '38%',
-              transform: 'translateX(-50%)',
-              width: 'auto',
-              minWidth: '300px',
-              maxWidth: '90%'
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-black text-white tracking-tighter">
-                {processedCount}
-              </span>
-            </div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center leading-tight">
-              PARES DE TÊNIS HIGIENIZADOS/RESTAURADOS
-            </p>
-          </div>
-        )}
-
-        {/* Footer - no final do template */}
+        {/* Footer - SUBIDO */}
         <footer 
           className="text-center"
           style={{
             position: 'absolute',
-            bottom: '2%',
+            bottom: '1%',
             left: '50%',
             transform: 'translateX(-50%)'
           }}
         >
           <Link 
             href="/menu-principal/login"
-            className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold hover:text-slate-600 transition-colors"
+            className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-colors"
           >
-            Acesso Restrito
+            🔒 Acesso Restrito
           </Link>
         </footer>
       </div>
 
-      {/* Estilos para efeito de botão (Hover e Press do Framer) */}
+      {/* Estilos para efeito de botão + ANIMAÇÃO FLUTUANTE */}
       <style jsx global>{`
         .icon-button {
           display: inline-block;
@@ -164,13 +177,42 @@ export default function Home() {
         }
 
         .icon-button:hover {
-          transform: scale(1.1);
-          filter: drop-shadow(0 10px 20px rgba(0, 102, 255, 0.4));
+          transform: scale(1.15);
+          filter: drop-shadow(0 10px 25px rgba(0, 102, 255, 0.5));
         }
 
         .icon-button:active {
           transform: scale(0.9);
-          filter: drop-shadow(0 5px 10px rgba(0, 102, 255, 0.6));
+          filter: drop-shadow(0 5px 15px rgba(0, 102, 255, 0.7));
+        }
+
+        /* Animação flutuante - cada botão com timing diferente */
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-15px);
+          }
+        }
+
+        .float-1 {
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .float-2 {
+          animation: float 3.5s ease-in-out infinite;
+          animation-delay: 0.5s;
+        }
+
+        .float-3 {
+          animation: float 4s ease-in-out infinite;
+          animation-delay: 1s;
+        }
+
+        /* Pausa a animação no hover para melhor UX */
+        .icon-button:hover {
+          animation-play-state: paused;
         }
       `}</style>
     </div>
