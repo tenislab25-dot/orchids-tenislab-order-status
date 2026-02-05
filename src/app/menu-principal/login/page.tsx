@@ -216,8 +216,8 @@ export default function LoginPage() {
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-12 bg-slate-50">
       <div className="w-full max-w-sm flex flex-col gap-10">
         <header className="flex flex-col items-center gap-6">
-          <div className="relative h-40 w-64">
-            <img src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/document-uploads/logo-1766879913032.PNG" alt="Logo"className="w-full h-full object-contain" loading="eager" />
+          <div className="relative w-80">
+            <img src="/LOGOTENISLAB.png" alt="TENISLAB Logo" className="w-full h-auto object-contain" loading="eager" />
           </div>
           <p className="text-slate-500 text-sm font-medium tracking-widest uppercase text-center">Acesso interno</p>
         </header>
