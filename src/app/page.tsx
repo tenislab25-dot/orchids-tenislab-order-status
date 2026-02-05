@@ -34,10 +34,10 @@ export default function Home() {
 
   return (
     <div className="relative w-full min-h-screen">
-      {/* Background Image */}
+      {/* Background Image - Template do Framer */}
       <div className="absolute inset-0 w-full h-full">
         <img 
-          src="/tenislab-bg.webp" 
+          src="/tenislab-template.webp" 
           alt="TENISLAB Background" 
           className="w-full h-full object-cover object-top"
           loading="eager"
@@ -46,23 +46,8 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col min-h-screen px-6 py-12">
-        {/* Espaço para o topo do template (logo + texto + "CONSULTE SEU PEDIDO") */}
-        <div className="h-[280px]"></div>
-
-        {/* Botão "Consulte seu pedido" */}
-        <Link 
-          href="/consulta"
-          className="block w-full mb-6"
-        >
-          <div className="flex items-center justify-center gap-3 p-4 rounded-xl transition-all hover:scale-105 active:scale-95 bg-white/90 backdrop-blur-sm border-2 border-blue-600 shadow-lg">
-            <span className="text-slate-700 font-bold text-base uppercase tracking-wider">
-              Consulte seu pedido
-            </span>
-          </div>
-        </Link>
-
-        {/* Espaço até a diagonal azul */}
-        <div className="h-[240px]"></div>
+        {/* Espaço para o topo do template (logo + texto) */}
+        <div className="h-[520px]"></div>
 
         {/* Ícones circulares na diagonal azul */}
         <div className="relative flex items-center justify-center gap-8 mb-8" style={{transform: 'rotate(-12deg)'}}>
@@ -71,10 +56,10 @@ export default function Home() {
             href="https://wa.me/message/FNQNTD6CIDFMI1"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
+            className="icon-button"
           >
             <img 
-              src="/icon-whatsapp.webp" 
+              src="/icon-whatsapp-optimized.webp" 
               alt="WhatsApp" 
               className="w-20 h-20 object-contain"
             />
@@ -85,10 +70,10 @@ export default function Home() {
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
+            className="icon-button"
           >
             <img 
-              src="/icon-instagram.webp" 
+              src="/icon-instagram-optimized.webp" 
               alt="Instagram" 
               className="w-20 h-20 object-contain"
             />
@@ -99,10 +84,10 @@ export default function Home() {
             href="https://maps.google.com/?q=TENISLAB+Maceio"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-all hover:scale-110 hover:drop-shadow-2xl active:scale-95"
+            className="icon-button"
           >
             <img 
-              src="/icon-location.webp" 
+              src="/icon-location-optimized.webp" 
               alt="Localização" 
               className="w-20 h-20 object-contain"
             />
@@ -136,6 +121,25 @@ export default function Home() {
           </Link>
         </footer>
       </div>
+
+      {/* Estilos para efeito de botão pressionado */}
+      <style jsx global>{`
+        .icon-button {
+          display: inline-block;
+          transition: transform 0.15s ease-in-out, filter 0.15s ease-in-out;
+          cursor: pointer;
+        }
+
+        .icon-button:hover {
+          transform: scale(1.15);
+          filter: drop-shadow(0 10px 20px rgba(0, 102, 255, 0.4));
+        }
+
+        .icon-button:active {
+          transform: scale(0.85);
+          filter: drop-shadow(0 5px 10px rgba(0, 102, 255, 0.6));
+        }
+      `}</style>
     </div>
   );
 }
