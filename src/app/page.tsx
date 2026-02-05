@@ -76,8 +76,8 @@ export default function Home() {
               left: '50%',
               top: '22%',
               transform: 'translateX(-50%)',
-              width: '15%',
-              minWidth: '150px',
+              width: '20%',
+              minWidth: '180px',
               padding: '0.8% 1.5%'
             }}
           >
@@ -95,13 +95,13 @@ export default function Home() {
         {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
           href="/consultar-pedido"
-          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[7px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg pulse-button flex items-center justify-center text-center"
+          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
           style={{
             left: '50%',
             top: '25%',
             transform: 'translateX(-50%)',
-            width: '15%',
-            minWidth: '150px',
+            width: '20%',
+            minWidth: '180px',
             padding: '0.8% 1.5%'
           }}
         >
@@ -114,7 +114,7 @@ export default function Home() {
           href="https://wa.me/message/FNQNTD6CIDFMI1"
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-button float-1"
+          className="icon-button"
           style={{
             position: 'absolute',
             left: '46.11%',
@@ -136,7 +136,7 @@ export default function Home() {
           href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-button float-2"
+          className="icon-button"
           style={{
             position: 'absolute',
             left: '61.28%',
@@ -158,7 +158,7 @@ export default function Home() {
           href="https://maps.google.com/?q=TENISLAB+Maceio"
           target="_blank"
           rel="noopener noreferrer"
-          className="icon-button float-3"
+          className="icon-button"
           style={{
             position: 'absolute',
             left: '76.46%',
@@ -188,7 +188,7 @@ export default function Home() {
         >
           <Link 
             href="/menu-principal/login"
-            className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-all duration-300 shadow-pulse"
+            className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-colors"
           >
             Acesso Restrito
           </Link>
@@ -213,67 +213,7 @@ export default function Home() {
           filter: drop-shadow(0 5px 15px rgba(0, 102, 255, 0.7));
         }
 
-        /* Animação de pulso - cada botão com timing diferente */
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.08);
-          }
-        }
-
-        .float-1 {
-          animation: pulse 2s ease-in-out infinite;
-        }
-
-        .float-2 {
-          animation: pulse 2.3s ease-in-out infinite;
-          animation-delay: 0.3s;
-        }
-
-        .float-3 {
-          animation: pulse 2.6s ease-in-out infinite;
-          animation-delay: 0.6s;
-        }
-
-        /* Pausa a animação no hover para melhor UX */
-        .icon-button:hover {
-          animation-play-state: paused;
-        }
-
-        /* Animação de sombra para Acesso Restrito */
-        @keyframes shadowPulse {
-          0%, 100% {
-            text-shadow: 0 0 0px rgba(100, 116, 139, 0);
-          }
-          50% {
-            text-shadow: 0 0 8px rgba(100, 116, 139, 0.6);
-          }
-        }
-
-        .shadow-pulse {
-          animation: shadowPulse 2s ease-in-out infinite;
-        }
-
-        /* Animação de pulso para botão Consulte Pedido - preserva centralização */
-        @keyframes pulseButton {
-          0%, 100% {
-            transform: translateX(-50%) scale(1);
-          }
-          50% {
-            transform: translateX(-50%) scale(1.08);
-          }
-        }
-
-        .pulse-button {
-          animation: pulseButton 2.2s ease-in-out infinite;
-          animation-delay: 0.4s;
-        }
-
-        .pulse-button:hover {
-          animation-play-state: paused;
-        }
+        /* Todas as animações removidas - apenas efeitos de hover/press */
       `}</style>
     </div>
   );
