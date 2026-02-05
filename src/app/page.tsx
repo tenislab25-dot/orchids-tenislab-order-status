@@ -58,7 +58,7 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
       {/* Container responsivo que mantém proporção 1200:3333 */}
-      <div className="relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
+      <div className="relative mx-auto w-full" style={{ aspectRatio: '1200 / 3333' }}>
         {/* Background Image - Template responsivo */}
         <img 
           src="/tenislab-template.webp" 
