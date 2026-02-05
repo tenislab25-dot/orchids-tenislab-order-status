@@ -70,7 +70,7 @@ export default function Home() {
         {/* Contador de tênis - RESPONSIVO */}
         {processedCount !== null && (
           <div 
-            className="flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm rounded-lg shadow-md animate-in zoom-in duration-700"
+            className="responsive-counter flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm rounded-lg shadow-md animate-in zoom-in duration-700"
             style={{
               position: 'absolute',
               left: '50%',
@@ -95,7 +95,7 @@ export default function Home() {
         {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
           href="/consultar-pedido"
-          className="button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
+          className="responsive-button button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
           style={{
             left: '50%',
             top: '25%',
@@ -237,6 +237,16 @@ export default function Home() {
           }
           .button-text {
             font-size: 16px !important;
+          }
+          .responsive-counter {
+            width: 25% !important;
+            min-width: 220px !important;
+            padding: 1% 2% !important;
+          }
+          .responsive-button {
+            width: 25% !important;
+            min-width: 220px !important;
+            padding: 1% 2% !important;
           }
         }
       `}</style>
