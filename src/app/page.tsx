@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 
 export default function Home() {
   const [processedCount, setProcessedCount] = useState<number | null>(null);
+  const [displayCount, setDisplayCount] = useState<number>(0);
 
   useEffect(() => {
     async function fetchCount() {
@@ -32,6 +33,28 @@ export default function Home() {
     fetchCount();
   }, []);
 
+  // Animação do contador: de 0 até o valor final
+  useEffect(() => {
+    if (processedCount === null) return;
+    
+    const duration = 2000; // 2 segundos
+    const steps = 60;
+    const increment = processedCount / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= processedCount) {
+        setDisplayCount(processedCount);
+        clearInterval(timer);
+      } else {
+        setDisplayCount(Math.floor(current));
+      }
+    }, duration / steps);
+    
+    return () => clearInterval(timer);
+  }, [processedCount]);
+
   return (
     <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
       {/* Container responsivo que mantém proporção 1200:3333 */}
@@ -44,14 +67,14 @@ export default function Home() {
           loading="eager"
         />
 
-        {/* Contador de tênis - MUITO MENOR e MAIS BAIXO */}
+        {/* Contador de tênis - SUBIDO 2% (21.5%) */}
         {processedCount !== null && (
           <div 
             className="flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md animate-in zoom-in duration-700"
             style={{
               position: 'absolute',
               left: '50%',
-              top: '23.5%',
+              top: '21.5%',
               transform: 'translateX(-50%)',
               width: 'auto',
               minWidth: '180px',
@@ -60,7 +83,7 @@ export default function Home() {
           >
             <div className="flex items-center gap-1">
               <span className="text-sm font-bold text-white tracking-tight">
-                {processedCount}
+                {displayCount}
               </span>
             </div>
             <p className="text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
@@ -69,20 +92,23 @@ export default function Home() {
           </div>
         )}
 
-        {/* Botão "Consulte seu Pedido" - Logo abaixo do contador */}
+        {/* Botão "Consulte seu Pedido" - REDUZIDO e SUBIDO 2% (24.5%) + PULSO */}
         <Link
           href="/menu-principal/consultar-pedido"
-          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-sm px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          className="absolute bg-blue-600/90 hover:bg-blue-700/90 text-white font-semibold text-[7px] uppercase tracking-[0.1em] px-3 py-1.5 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg pulse-button"
           style={{
             left: '50%',
-            top: '26.5%',
-            transform: 'translateX(-50%)'
+            top: '24.5%',
+            transform: 'translateX(-50%)',
+            minWidth: '180px',
+            maxWidth: '85%',
+            textAlign: 'center'
           }}
         >
           📦 CONSULTE SEU PEDIDO
         </Link>
 
-        {/* Ícones com posição em porcentagem + ANIMAÇÃO FLUTUANTE */}
+        {/* Ícones com posição em porcentagem + ANIMAÇÃO DE PULSO */}
         {/* WhatsApp - Left: 46.11%, Top: 30.97% */}
         <a 
           href="https://wa.me/message/FNQNTD6CIDFMI1"
@@ -149,14 +175,15 @@ export default function Home() {
           />
         </a>
 
-        {/* Footer - SUBIDO */}
+        {/* Footer - DESCIDO 1% (3.5%) e CENTRALIZADO */}
         <footer 
           className="text-center"
           style={{
             position: 'absolute',
-            bottom: '4.5%',
+            bottom: '3.5%',
             left: '50%',
-            transform: 'translateX(-50%)'
+            transform: 'translateX(-50%)',
+            width: '100%'
           }}
         >
           <Link 
@@ -168,7 +195,7 @@ export default function Home() {
         </footer>
       </div>
 
-      {/* Estilos para efeito de botão + ANIMAÇÃO FLUTUANTE */}
+      {/* Estilos para efeito de botão + ANIMAÇÕES */}
       <style jsx global>{`
         .icon-button {
           display: inline-block;
@@ -227,6 +254,16 @@ export default function Home() {
 
         .shadow-pulse {
           animation: shadowPulse 2s ease-in-out infinite;
+        }
+
+        /* Animação de pulso para botão Consulte Pedido */
+        .pulse-button {
+          animation: pulse 2.2s ease-in-out infinite;
+          animation-delay: 0.4s;
+        }
+
+        .pulse-button:hover {
+          animation-play-state: paused;
         }
       `}</style>
     </div>
