@@ -58,7 +58,7 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
       {/* Container responsivo que mantém proporção 1200:3333 */}
-      <div className="relative mx-auto w-full" style={{ aspectRatio: '1200 / 3333' }}>
+      <div className="relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
         {/* Background Image - Template responsivo */}
         <img 
           src="/tenislab-template.webp" 
@@ -82,11 +82,11 @@ export default function Home() {
             }}
           >
             <div className="flex items-center gap-1">
-              <span className="text-sm font-bold text-white tracking-tight">
+              <span className="counter-number text-sm font-bold text-white tracking-tight">
                 {displayCount}
               </span>
             </div>
-            <p className="text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
+            <p className="counter-text text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
               TÊNIS HIGIENIZADOS/RESTAURADOS
             </p>
           </div>
@@ -95,7 +95,7 @@ export default function Home() {
         {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
           href="/consultar-pedido"
-          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
+          className="button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
           style={{
             left: '50%',
             top: '25%',
@@ -214,6 +214,31 @@ export default function Home() {
         }
 
         /* Todas as animações removidas - apenas efeitos de hover/press */
+
+        /* Media queries para fontes responsivas */
+        @media (min-width: 768px) {
+          .counter-number {
+            font-size: 18px !important;
+          }
+          .counter-text {
+            font-size: 10px !important;
+          }
+          .button-text {
+            font-size: 14px !important;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .counter-number {
+            font-size: 22px !important;
+          }
+          .counter-text {
+            font-size: 12px !important;
+          }
+          .button-text {
+            font-size: 16px !important;
+          }
+        }
       `}</style>
     </div>
   );
