@@ -95,7 +95,7 @@ export default function Home() {
         {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
         <Link
           href="/consultar-pedido"
-          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-semibold text-[7px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg pulse-button flex items-center justify-center text-center"
+          className="absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[7px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg pulse-button flex items-center justify-center text-center"
           style={{
             left: '50%',
             top: '25%',
