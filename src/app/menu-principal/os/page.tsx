@@ -1138,12 +1138,12 @@ interface OSItem {
                       </div>
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
                       onClick={() => removeSoldProduct(product.id)}
-                      className="self-center text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                      className="self-center text-red-600 hover:text-white hover:bg-red-600 border-red-300 flex-shrink-0 h-10 w-10"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                     </Button>
                   </div>
                 ))}
