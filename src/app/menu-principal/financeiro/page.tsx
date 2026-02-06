@@ -299,10 +299,11 @@ export default function FinanceiroPage() {
   // Últimos Pagamentos (ordenados por data de confirmação)
   const recentPayments = useMemo(() => {
     return orders
-      .filter(o => o.payment_confirmed && o.payment_confirmed_at)
+      .filter(o => o.payment_confirmed) // Todos os pagamentos confirmados (manuais ou automáticos)
       .sort((a, b) => {
-        const dateA = new Date(a.payment_confirmed_at!).getTime();
-        const dateB = new Date(b.payment_confirmed_at!).getTime();
+        // Usar payment_confirmed_at se existir, senão usar entry_date
+        const dateA = new Date(a.payment_confirmed_at || a.entry_date).getTime();
+        const dateB = new Date(b.payment_confirmed_at || b.entry_date).getTime();
         return dateB - dateA; // Mais recente primeiro
       })
       .slice(0, 10); // Últimos 10 pagamentos
