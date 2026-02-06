@@ -64,16 +64,19 @@ export default function Home() {
         <img 
           src="/tenislab-template.webp" 
           alt="TENISLAB Background" 
-          className="hidden md:block absolute inset-0 w-full h-full object-cover"
+          className="hidden md:block w-full h-auto"
           loading="eager"
         />
         {/* Mobile: usa template curto */}
         <img 
           src="/tenislab-template-mobile.webp" 
           alt="TENISLAB Background Mobile" 
-          className="block md:hidden absolute inset-0 w-full h-full object-cover"
+          className="block md:hidden w-full h-auto"
           loading="eager"
         />
+        
+        {/* Overlay container para elementos sobre a imagem */}
+        <div className="absolute inset-0">
 
         {/* DESKTOP: Contador e botões originais */}
         <div className="hidden md:block">
@@ -283,6 +286,7 @@ export default function Home() {
         >
           Acesso Restrito
         </Link>
+        </div>
       </div>
 
       {/* CSS customizado para responsividade */}
