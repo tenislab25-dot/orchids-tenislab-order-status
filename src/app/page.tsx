@@ -255,6 +255,25 @@ export default function Home() {
               📍 Localização
             </a>
           </div>
+
+          {/* Tênis flutuante - MOBILE */}
+          <div 
+            className="floating-sneaker"
+            style={{
+              position: 'absolute',
+              left: '8%',
+              top: '24%',
+              width: '30%',
+              maxWidth: '120px',
+              zIndex: 10
+            }}
+          >
+            <img 
+              src="/yeezy-float.webp" 
+              alt="Tênis Yeezy" 
+              className="w-full h-auto object-contain drop-shadow-2xl"
+            />
+          </div>
         </div>
 
         {/* Botão "Acesso Restrito" - COMPARTILHADO (desktop e mobile) */}
