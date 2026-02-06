@@ -84,7 +84,7 @@ export default function Home() {
               }}
             >
               <div className="flex items-center gap-1">
-                <span className="counter-number text-3xl font-bold text-white tracking-tight" style={{ fontSize: '1.875rem !important' }}>
+                <span className="counter-number font-bold text-white tracking-tight" style={{ fontSize: '3rem', lineHeight: '1' }}>
                   {displayCount}
                 </span>
               </div>
@@ -100,7 +100,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '35%',
+              top: '39%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -118,7 +118,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '38.5%',
+              top: '47%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -135,7 +135,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '42.5%',
+              top: '55%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -152,7 +152,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '46.5%',
+              top: '63%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
