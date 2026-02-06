@@ -29,14 +29,14 @@ export async function compressImage(file: File, maxWidth = 1080, quality = 0.7):
     maxSizeMB: 0.3,
     maxWidthOrHeight: maxWidth,
     useWebWorker: true,
-    fileType: 'image/jpeg' as const,
+    fileType: 'image/webp' as const,
     initialQuality: quality,
   };
   
   const compressedFile = await imageCompression(processedFile, options);
   
-  return new File([compressedFile], processedFile.name.replace(/\.[^.]+$/, '.jpg'), {
-    type: 'image/jpeg',
+  return new File([compressedFile], processedFile.name.replace(/\.[^.]+$/, '.webp'), {
+    type: 'image/webp',
     lastModified: Date.now()
   });
 }
