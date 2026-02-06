@@ -261,7 +261,7 @@ export default function Home() {
             className="floating-sneaker"
             style={{
               position: 'absolute',
-              left: '-5%',
+              left: '-7%',
               top: '26%',
               width: '70%',
               maxWidth: '280px',
@@ -289,10 +289,10 @@ export default function Home() {
       <style jsx>{`
         @keyframes float {
           0%, 100% {
-            transform: translateY(0px) rotate(-2deg);
+            transform: translateY(0px) rotate(3deg);
           }
           50% {
-            transform: translateY(-20px) rotate(-2deg);
+            transform: translateY(-20px) rotate(3deg);
           }
         }
 
