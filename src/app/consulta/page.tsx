@@ -123,11 +123,11 @@ const statusConfig = {
         exit={{ opacity: 0, y: -10 }}
         className="flex flex-col gap-6"
       >
-          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
-            <h2 className="text-lg font-bold text-slate-900">Consultar Pedido</h2>
+          <div className="bg-white p-8 rounded-3xl border-2 border-blue-100 shadow-2xl shadow-blue-100/50 flex flex-col gap-4">
+            <h2 className="text-2xl font-black text-blue-600 uppercase tracking-wide text-center">📦 Consultar Pedido</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nº do Pedido</label>
+                    <label className="text-xs font-black text-blue-600 uppercase ml-1">Nº do Pedido</label>
                       <div className="relative flex items-center">
                         <Input
                           type="text"
@@ -140,7 +140,7 @@ const statusConfig = {
                       </div>
                   </div>
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone / WhatsApp</label>
+              <label className="text-xs font-black text-blue-600 uppercase ml-1">Telefone / WhatsApp</label>
               <Input
                 type="tel"
                 placeholder="Ex: 82999999999"
@@ -166,7 +166,7 @@ const statusConfig = {
               <Button 
                 type="submit" 
                 disabled={loading || !osNumber.trim() || !phone.trim()}
-                className="h-14 mt-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg transition-all active:scale-[0.98]"
+                className="h-14 mt-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-lg uppercase tracking-wide shadow-xl shadow-blue-200 transition-all active:scale-95"
               >
                 {loading ? (
                   <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -611,12 +611,7 @@ export default function StatusPage() {
       />
       
       <div className="relative w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
-    <header className="flex flex-col items-center gap-6 mb-8">
-          <div className="relative w-80">
-            <img src="/LOGOTENISLAB.png" 
-              alt="TENISLAB Logo" className="w-full h-auto object-contain" loading="eager" />
-          </div>
-    </header>
+
 
       <Suspense fallback={
         <div className="flex justify-center p-12">
