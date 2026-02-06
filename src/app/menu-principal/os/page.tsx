@@ -1087,7 +1087,7 @@ interface OSItem {
                   <div key={product.id} className="flex gap-3 items-start">
                     <div className="flex-1 flex flex-col sm:flex-row gap-4">
                       <div className="flex-1">
-                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Produto</Label>
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Prod.</Label>
                         <Select
                           value={product.productId}
                           onValueChange={(value) => selectProduct(product.id, value)}
@@ -1114,7 +1114,7 @@ interface OSItem {
                         </Select>
                       </div>
                       <div className="w-full sm:w-24">
-                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Quantidade</Label>
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Qtd</Label>
                         <Input
                           type="number"
                           min="1"
@@ -1125,7 +1125,7 @@ interface OSItem {
                         />
                       </div>
                       <div className="w-full sm:w-32">
-                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço Unitário</Label>
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço</Label>
                         <Input
                           type="number"
                           min="0"
