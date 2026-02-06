@@ -289,10 +289,10 @@ export default function Home() {
       <style jsx>{`
         @keyframes float {
           0%, 100% {
-            transform: translateY(0px) rotate(-5deg);
+            transform: translateY(0px) rotate(-2deg);
           }
           50% {
-            transform: translateY(-20px) rotate(-5deg);
+            transform: translateY(-20px) rotate(-2deg);
           }
         }
 
