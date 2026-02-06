@@ -189,7 +189,7 @@ export default function Home() {
             <img 
               src="/yeezy-float.webp" 
               alt="Tênis Yeezy" 
-              className="w-full h-auto object-contain drop-shadow-2xl"
+              className="w-full h-auto object-contain"
             />
           </div>
         </div>
@@ -280,7 +280,7 @@ export default function Home() {
             <img 
               src="/yeezy-float.webp" 
               alt="Tênis Yeezy" 
-              className="w-full h-auto object-contain drop-shadow-2xl"
+              className="w-full h-auto object-contain"
             />
           </div>
 
