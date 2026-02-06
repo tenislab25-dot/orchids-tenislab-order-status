@@ -19,7 +19,9 @@ import {
   ChevronRight,
   Download,
   Ticket,
-  Receipt
+  Receipt,
+  Wrench,
+  Truck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
@@ -240,6 +242,24 @@ export default function FinanceiroPage() {
       ? activeOrders.reduce((acc, o) => acc + Number(o.total || 0), 0) / activeOrders.length 
       : 0;
 
+    // Receitas por categoria (apenas pedidos confirmados)
+    let serviceRevenue = 0;
+    let productRevenue = 0;
+    let deliveryRevenue = 0;
+
+    confirmedOrders.forEach(order => {
+      // Soma itens de serviço
+      order.order_items?.forEach(item => {
+        if (item.item_type === 'service') {
+          serviceRevenue += Number(item.subtotal || 0);
+        } else if (item.item_type === 'product') {
+          productRevenue += Number(item.subtotal || 0);
+        }
+      });
+      // Soma taxa de entrega
+      deliveryRevenue += Number(order.delivery_fee || 0);
+    });
+
     // Payment method breakdown (líquido)
     const paymentBreakdown: Record<string, number> = {};
     confirmedOrders.forEach(o => {
@@ -261,7 +281,10 @@ export default function FinanceiroPage() {
       totalDiscounts,
       totalCouponDiscounts,
       totalPixDiscounts,
-      totalCardFees
+      totalCardFees,
+      serviceRevenue,
+      productRevenue,
+      deliveryRevenue
     };
   }, [orders]);
 
@@ -754,6 +777,48 @@ export default function FinanceiroPage() {
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Médio</span>
                     <span className="text-2xl font-black text-purple-600">R$ {stats.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Média por OS</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* RECEITAS POR CATEGORIA */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                <div className="flex flex-col gap-2 h-full justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <Wrench className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita de Serviços</span>
+                    <span className="text-2xl font-black text-indigo-600">R$ {stats.serviceRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Limpeza, Restauração, etc</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                <div className="flex flex-col gap-2 h-full justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita de Produtos</span>
+                    <span className="text-2xl font-black text-amber-600">R$ {stats.productRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Produtos vendidos</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
+                <div className="flex flex-col gap-2 h-full justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center">
+                    <Truck className="w-5 h-5 text-cyan-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita de Entregas</span>
+                    <span className="text-2xl font-black text-cyan-600">R$ {stats.deliveryRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Taxas de entrega</p>
                   </div>
                 </div>
               </Card>
