@@ -78,8 +78,8 @@ export default function Home() {
                 left: '50%',
                 top: '32%',
                 transform: 'translateX(-50%)',
-                width: '31.2%',
-                minWidth: '281px',
+                width: '46.8%',
+                minWidth: '421px',
                 padding: '1% 1.8%'
               }}
             >
@@ -102,8 +102,8 @@ export default function Home() {
               left: '50%',
               top: '35%',
               transform: 'translateX(-50%)',
-              width: '31.2%',
-              minWidth: '281px',
+              width: '46.8%',
+              minWidth: '421px',
               padding: '1% 2%'
             }}
           >
@@ -120,8 +120,8 @@ export default function Home() {
               left: '50%',
               top: '38.5%',
               transform: 'translateX(-50%)',
-              width: '31.2%',
-              minWidth: '281px',
+              width: '46.8%',
+              minWidth: '421px',
               padding: '1% 2%'
             }}
           >
@@ -137,8 +137,8 @@ export default function Home() {
               left: '50%',
               top: '42.5%',
               transform: 'translateX(-50%)',
-              width: '31.2%',
-              minWidth: '281px',
+              width: '46.8%',
+              minWidth: '421px',
               padding: '1% 2%'
             }}
           >
@@ -154,8 +154,8 @@ export default function Home() {
               left: '50%',
               top: '46.5%',
               transform: 'translateX(-50%)',
-              width: '31.2%',
-              minWidth: '281px',
+              width: '46.8%',
+              minWidth: '421px',
               padding: '1% 2%'
             }}
           >
