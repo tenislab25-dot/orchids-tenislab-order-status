@@ -1083,23 +1083,70 @@ interface OSItem {
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-500">Produtos</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                {soldProducts.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {soldProducts.map((product, i) => (
-                      <Badge key={`${product.id}-${i}`} className="bg-emerald-50 text-emerald-700 border-emerald-100 py-1 pl-3 pr-1 gap-1 flex items-center rounded-lg">
-                        <span className="text-[10px] font-bold">{product.name} x{product.quantity} - R$ {(Number(product.price) * Number(product.quantity)).toFixed(2)}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-4 w-4 rounded-full p-0 hover:bg-emerald-100"
-                          onClick={() => removeSoldProduct(product.id)}
+                {soldProducts.map((product) => (
+                  <div key={product.id} className="flex gap-3 items-start">
+                    <div className="flex-1 flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1">
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Produto</Label>
+                        <Select
+                          value={product.productId}
+                          onValueChange={(value) => selectProduct(product.id, value)}
                         >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </Badge>
-                    ))}
+                          <SelectTrigger className="h-10 rounded-xl">
+                            <SelectValue placeholder="Selecione um produto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Produtos Disponíveis</SelectLabel>
+                              {loadingProducts ? (
+                                <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                              ) : products.length === 0 ? (
+                                <SelectItem value="empty" disabled>Nenhum produto cadastrado</SelectItem>
+                              ) : (
+                                products.map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.name} - R$ {Number(p.price).toFixed(2)}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-full sm:w-24">
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Quantidade</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          placeholder="Qtd"
+                          value={product.quantity}
+                          onChange={(e) => updateSoldProduct(product.id, 'quantity', Number(e.target.value))}
+                          className="h-10 rounded-xl"
+                        />
+                      </div>
+                      <div className="w-full sm:w-32">
+                        <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço Unitário</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="R$ 0,00"
+                          value={product.price}
+                          readOnly
+                          className="h-10 rounded-xl bg-slate-50 cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSoldProduct(product.id)}
+                      className="self-center text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                )}
+                ))}
 
                 <Button
                   variant="outline"
