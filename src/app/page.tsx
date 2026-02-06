@@ -57,8 +57,8 @@ export default function Home() {
 
   return (
     <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
-      {/* Container responsivo que mantém proporção 1200:3333 */}
-      <div className="relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
+      {/* Container responsivo - Desktop com max-width, Mobile sem limite */}
+      <div className="relative mx-auto w-full md:max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
         {/* Background Image - Template responsivo */}
         {/* Desktop: usa template longo */}
         <img 
