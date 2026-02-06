@@ -594,7 +594,7 @@ function OrderContent() {
 
 export default function StatusPage() {
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
+    <div className="w-full max-w-md mx-auto flex flex-col gap-8 pt-2 pb-12 animate-in fade-in min-h-screen px-6">
     <header className="flex flex-col items-center gap-4 mb-4">
           <div className="relative w-64">
             <img src="/LOGOTENISLAB-compact.webp" 
