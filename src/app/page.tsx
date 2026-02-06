@@ -76,11 +76,11 @@ export default function Home() {
               style={{
                 position: 'absolute',
                 left: '50%',
-                top: '32%',
+                top: '27%',
                 transform: 'translateX(-50%)',
                 width: '46.8%',
                 minWidth: '421px',
-                padding: '2.5% 4.5%'
+                padding: '2.5% 5%'
               }}
             >
               <div className="flex items-center gap-1">
@@ -100,7 +100,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '39%',
+              top: '34%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -118,7 +118,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '47%',
+              top: '42%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -135,7 +135,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '55%',
+              top: '50%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -152,7 +152,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '63%',
+              top: '58%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
