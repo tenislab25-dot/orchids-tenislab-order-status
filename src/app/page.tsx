@@ -75,176 +75,215 @@ export default function Home() {
           loading="eager"
         />
 
-        {/* Contador de tênis - RESPONSIVO */}
-        {processedCount !== null && (
-          <div 
-            className="responsive-counter flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm rounded-lg shadow-md animate-in zoom-in duration-700"
+        {/* DESKTOP: Contador e botões originais */}
+        <div className="hidden md:block">
+          {/* Contador de tênis - DESKTOP */}
+          {processedCount !== null && (
+            <div 
+              className="responsive-counter flex flex-col items-center gap-0.5 bg-blue-600/90 backdrop-blur-sm rounded-lg shadow-md animate-in zoom-in duration-700"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '22%',
+                transform: 'translateX(-50%)',
+                width: '20%',
+                minWidth: '180px',
+                padding: '0.8% 1.5%'
+              }}
+            >
+              <div className="flex items-center gap-1">
+                <span className="counter-number text-sm font-bold text-white tracking-tight">
+                  {displayCount}
+                </span>
+              </div>
+              <p className="counter-text text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
+                TÊNIS HIGIENIZADOS/RESTAURADOS
+              </p>
+            </div>
+          )}
+
+          {/* Botão "Consulte seu Pedido" - DESKTOP */}
+          <Link
+            href="/consulta"
+            className="responsive-button button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
             style={{
-              position: 'absolute',
               left: '50%',
-              top: '22%',
+              top: '25%',
               transform: 'translateX(-50%)',
               width: '20%',
               minWidth: '180px',
               padding: '0.8% 1.5%'
             }}
           >
-            <div className="flex items-center gap-1">
-              <span className="counter-number text-sm font-bold text-white tracking-tight">
+            CONSULTE SEU PEDIDO
+          </Link>
+
+          {/* Ícones - DESKTOP */}
+          <a 
+            href="https://wa.me/message/FNQNTD6CIDFMI1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="icon-button"
+            style={{
+              position: 'absolute',
+              left: '46.11%',
+              top: '30.97%',
+              width: '11.67%',
+              height: 'auto',
+              aspectRatio: '1 / 1'
+            }}
+          >
+            <img 
+              src="/icon-whatsapp-optimized.webp" 
+              alt="WhatsApp" 
+              className="w-full h-full object-contain transition-transform hover:scale-110"
+            />
+          </a>
+
+          <a 
+            href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="icon-button"
+            style={{
+              position: 'absolute',
+              left: '61.28%',
+              top: '29.14%',
+              width: '11.67%',
+              height: 'auto',
+              aspectRatio: '1 / 1'
+            }}
+          >
+            <img 
+              src="/icon-instagram-optimized.webp" 
+              alt="Instagram" 
+              className="w-full h-full object-contain transition-transform hover:scale-110"
+            />
+          </a>
+
+          <a 
+            href="https://maps.google.com/?q=TENISLAB+Maceio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="icon-button"
+            style={{
+              position: 'absolute',
+              left: '76.46%',
+              top: '27.31%',
+              width: '11.67%',
+              height: 'auto',
+              aspectRatio: '1 / 1'
+            }}
+          >
+            <img 
+              src="/icon-location-optimized.webp" 
+              alt="Localização" 
+              className="w-full h-full object-contain transition-transform hover:scale-110"
+            />
+          </a>
+        </div>
+
+        {/* MOBILE: Design moderno customizado */}
+        <div className="block md:hidden">
+          {/* Contador - MOBILE (mais compacto, no topo) */}
+          {processedCount !== null && (
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 bg-gradient-to-br from-blue-600 to-blue-700 px-6 py-3 rounded-2xl shadow-xl animate-in zoom-in duration-700"
+              style={{ top: '18%' }}
+            >
+              <span className="text-3xl font-black text-white tracking-tight">
                 {displayCount}
               </span>
+              <p className="text-[10px] font-bold text-white/95 uppercase tracking-wider text-center">
+                Tênis Restaurados
+              </p>
             </div>
-            <p className="counter-text text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
-              TÊNIS HIGIENIZADOS/RESTAURADOS
-            </p>
-          </div>
-        )}
+          )}
 
-        {/* Botão "Consulte seu Pedido" - BRANCO COM TEXTO AZUL + RESPONSIVO */}
-        <Link
-          href="/consulta"
-          className="responsive-button button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
-          style={{
-            left: '50%',
-            top: '25%',
-            transform: 'translateX(-50%)',
-            width: '20%',
-            minWidth: '180px',
-            padding: '0.8% 1.5%'
-          }}
-        >
-          CONSULTE SEU PEDIDO
-        </Link>
-
-        {/* Ícones com posição em porcentagem + ANIMAÇÃO DE PULSO */}
-        {/* WhatsApp - Left: 46.11%, Top: 30.97% */}
-        <a 
-          href="https://wa.me/message/FNQNTD6CIDFMI1"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="icon-button"
-          style={{
-            position: 'absolute',
-            left: '46.11%',
-            top: '30.97%',
-            width: '11.67%',
-            height: 'auto',
-            aspectRatio: '1 / 1'
-          }}
-        >
-          <img 
-            src="/icon-whatsapp-optimized.webp" 
-            alt="WhatsApp" 
-            className="w-full h-full object-contain"
-          />
-        </a>
-
-        {/* Instagram - Left: 61.28%, Top: 29.14% */}
-        <a 
-          href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="icon-button"
-          style={{
-            position: 'absolute',
-            left: '61.28%',
-            top: '29.14%',
-            width: '11.67%',
-            height: 'auto',
-            aspectRatio: '1 / 1'
-          }}
-        >
-          <img 
-            src="/icon-instagram-optimized.webp" 
-            alt="Instagram" 
-            className="w-full h-full object-contain"
-          />
-        </a>
-
-        {/* Localização - Left: 76.46%, Top: 27.31% */}
-        <a 
-          href="https://maps.google.com/?q=TENISLAB+Maceio"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="icon-button"
-          style={{
-            position: 'absolute',
-            left: '76.46%',
-            top: '27.31%',
-            width: '11.67%',
-            height: 'auto',
-            aspectRatio: '1 / 1'
-          }}
-        >
-          <img 
-            src="/icon-location-optimized.webp" 
-            alt="Localização" 
-            className="w-full h-full object-contain"
-          />
-        </a>
-
-        {/* Footer - DESCIDO 1% (3.5%) e CENTRALIZADO */}
-        <footer 
-          className="text-center"
-          style={{
-            position: 'absolute',
-            bottom: '3.5%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '100%'
-          }}
-        >
-          <Link 
-            href="/menu-principal/login"
-            className="text-slate-500 text-[11px] uppercase tracking-[0.2em] font-bold hover:text-slate-700 transition-colors"
+          {/* Botão "Consulte Pedido" - MOBILE (grande e destacado) */}
+          <Link
+            href="/consulta"
+            className="absolute left-1/2 -translate-x-1/2 bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95"
+            style={{ top: '28%' }}
           >
-            Acesso Restrito
+            📦 Consulte seu Pedido
           </Link>
-        </footer>
+
+          {/* Ícones sociais - MOBILE (na área azul, horizontais) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex gap-6" style={{ top: '40%' }}>
+            <a 
+              href="https://wa.me/message/FNQNTD6CIDFMI1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+            >
+              <img 
+                src="/icon-whatsapp-optimized.webp" 
+                alt="WhatsApp" 
+                className="w-10 h-10 object-contain"
+              />
+            </a>
+
+            <a 
+              href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+            >
+              <img 
+                src="/icon-instagram-optimized.webp" 
+                alt="Instagram" 
+                className="w-10 h-10 object-contain"
+              />
+            </a>
+
+            <a 
+              href="https://maps.google.com/?q=TENISLAB+Maceio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+            >
+              <img 
+                src="/icon-location-optimized.webp" 
+                alt="Localização" 
+                className="w-10 h-10 object-contain"
+              />
+            </a>
+          </div>
+        </div>
+
+        {/* Botão "Acesso Restrito" - COMPARTILHADO (desktop e mobile) */}
+        <Link
+          href="/menu-principal"
+          className="absolute bottom-[3.5%] left-0 right-0 text-center text-gray-600 hover:text-blue-600 text-xs font-medium transition-colors duration-300 w-full"
+        >
+          Acesso Restrito
+        </Link>
       </div>
 
-      {/* Estilos para efeito de botão + ANIMAÇÕES */}
-      <style jsx global>{`
-        .icon-button {
-          display: inline-block;
-          transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
-          cursor: pointer;
-        }
-
-        .icon-button:hover {
-          transform: scale(1.15);
-          filter: drop-shadow(0 10px 25px rgba(0, 102, 255, 0.5));
-        }
-
-        .icon-button:active {
-          transform: scale(0.9);
-          filter: drop-shadow(0 5px 15px rgba(0, 102, 255, 0.7));
-        }
-
-        /* Todas as animações removidas - apenas efeitos de hover/press */
-
-        /* Media queries para fontes responsivas */
+      {/* CSS customizado para responsividade */}
+      <style jsx>{`
         @media (min-width: 768px) {
           .counter-number {
-            font-size: 18px !important;
+            font-size: 1.2vw;
           }
           .counter-text {
-            font-size: 10px !important;
+            font-size: 0.6vw;
           }
           .button-text {
-            font-size: 14px !important;
+            font-size: 0.75vw;
           }
         }
-
+        
         @media (min-width: 1024px) {
           .counter-number {
-            font-size: 22px !important;
+            font-size: 22px;
           }
           .counter-text {
-            font-size: 12px !important;
+            font-size: 12px;
           }
           .button-text {
-            font-size: 16px !important;
+            font-size: 16px;
           }
           .responsive-counter {
             width: 25% !important;
