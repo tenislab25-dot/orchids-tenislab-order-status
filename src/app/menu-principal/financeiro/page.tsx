@@ -248,14 +248,20 @@ export default function FinanceiroPage() {
     let deliveryRevenue = 0;
 
     confirmedOrders.forEach(order => {
-      // Soma itens de serviço
-      order.order_items?.forEach(item => {
-        if (item.item_type === 'service') {
+      // Soma itens de serviço (campo 'items')
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item: any) => {
           serviceRevenue += Number(item.subtotal || 0);
-        } else if (item.item_type === 'product') {
-          productRevenue += Number(item.subtotal || 0);
-        }
-      });
+        });
+      }
+      
+      // Soma produtos vendidos (campo 'sold_products')
+      if (order.sold_products && Array.isArray(order.sold_products)) {
+        order.sold_products.forEach((product: any) => {
+          productRevenue += Number(product.subtotal || 0);
+        });
+      }
+      
       // Soma taxa de entrega
       deliveryRevenue += Number(order.delivery_fee || 0);
     });
