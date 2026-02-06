@@ -926,6 +926,44 @@ interface OSItem {
                         </div>
                       </div>
 
+                      {/* Seção Fotos DEPOIS */}
+                      {(item.photosAfter && item.photosAfter.length > 0) && (
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase tracking-widest text-green-600">Fotos DEPOIS (Finalizado)</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {item.photosAfter.map((photo, pIdx) => (
+                              <div 
+                                key={pIdx} 
+                                className="relative aspect-video rounded-2xl overflow-hidden border-2 border-green-200 group cursor-pointer active:scale-[0.98] transition-all"
+                              >
+                                <img src={photo} alt="Foto depois" className="w-full h-full object-cover" loading="lazy" />
+                                <div className="absolute top-1 left-1">
+                                  <Badge className="bg-green-500 text-white text-[8px] font-bold">DEPOIS</Badge>
+                                </div>
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button 
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm('Deseja realmente deletar esta foto DEPOIS?')) {
+                                        setItems(items.map(it => {
+                                          if (it.id === item.id) {
+                                            return { ...it, photosAfter: it.photosAfter?.filter((_, i) => i !== pIdx) };
+                                          }
+                                          return it;
+                                        }));
+                                      }
+                                    }}
+                                    className="bg-red-500 text-white p-4 rounded-full shadow-2xl transform scale-75 group-hover:scale-100 group-active:scale-100 transition-transform flex items-center justify-center"
+                                  >
+                                    <Trash2 className="w-6 h-6" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                     <div className="space-y-2">
                     <Label>Serviços</Label>
