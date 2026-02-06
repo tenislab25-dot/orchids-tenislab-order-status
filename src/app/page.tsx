@@ -189,7 +189,7 @@ export default function Home() {
           {processedCount !== null && (
             <div 
               className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 bg-gradient-to-br from-blue-600 to-blue-700 px-6 py-3 rounded-2xl shadow-xl animate-in zoom-in duration-700"
-              style={{ top: '18%' }}
+              style={{ top: '28%' }}
             >
               <span className="text-3xl font-black text-white tracking-tight">
                 {displayCount}
@@ -204,50 +204,38 @@ export default function Home() {
           <Link
             href="/consulta"
             className="absolute left-1/2 -translate-x-1/2 bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95"
-            style={{ top: '28%' }}
+            style={{ top: '38%' }}
           >
             📦 Consulte seu Pedido
           </Link>
 
-          {/* Ícones sociais - MOBILE (na área azul, horizontais) */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex gap-6" style={{ top: '40%' }}>
+          {/* Botões sociais - MOBILE (estilo igual ao Consulte Pedido) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-4 w-[80%] max-w-[300px]" style={{ top: '48%' }}>
             <a 
               href="https://wa.me/message/FNQNTD6CIDFMI1"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
-              <img 
-                src="/icon-whatsapp-optimized.webp" 
-                alt="WhatsApp" 
-                className="w-10 h-10 object-contain"
-              />
+              💬 WhatsApp
             </a>
 
             <a 
               href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
-              <img 
-                src="/icon-instagram-optimized.webp" 
-                alt="Instagram" 
-                className="w-10 h-10 object-contain"
-              />
+              📸 Instagram
             </a>
 
             <a 
               href="https://maps.google.com/?q=TENISLAB+Maceio"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
-              <img 
-                src="/icon-location-optimized.webp" 
-                alt="Localização" 
-                className="w-10 h-10 object-contain"
-              />
+              📍 Localização
             </a>
           </div>
         </div>
