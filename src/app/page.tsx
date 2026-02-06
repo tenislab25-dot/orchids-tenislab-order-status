@@ -118,7 +118,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '40%',
+              top: '38.5%',
               transform: 'translateX(-50%)',
               width: '31.2%',
               minWidth: '281px',
@@ -135,7 +135,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '45%',
+              top: '42.5%',
               transform: 'translateX(-50%)',
               width: '31.2%',
               minWidth: '281px',
@@ -152,7 +152,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '50%',
+              top: '46.5%',
               transform: 'translateX(-50%)',
               width: '31.2%',
               minWidth: '281px',
@@ -167,7 +167,7 @@ export default function Home() {
             className="floating-sneaker"
             style={{
               position: 'absolute',
-              left: '-5%',
+              left: '-8%',
               top: '30%',
               width: '52%',
               maxWidth: '650px',
