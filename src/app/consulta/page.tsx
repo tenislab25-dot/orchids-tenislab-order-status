@@ -594,7 +594,7 @@ function OrderContent() {
 
 export default function StatusPage() {
   return (
-    <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
+    <div className="relative w-full min-h-screen overflow-x-hidden">
       {/* Background Template - Desktop */}
       <img 
         src="/tenislab-template.webp" 
