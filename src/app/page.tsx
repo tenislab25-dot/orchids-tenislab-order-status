@@ -206,7 +206,7 @@ export default function Home() {
 
       {/* Container MOBILE sem aspectRatio - escala naturalmente */}
       <div 
-        className="block md:hidden relative mx-auto w-full bg-cover bg-top bg-no-repeat"
+        className="block md:hidden relative mx-auto w-full bg-contain bg-top bg-no-repeat"
         style={{ 
           backgroundImage: 'url(/tenislab-template-mobile.webp)',
           paddingBottom: '277.78%' // 3375:9375 = 1:2.7778
@@ -270,10 +270,10 @@ export default function Home() {
             className="floating-sneaker"
             style={{
               position: 'absolute',
-              left: '-9%',
+              left: '-12%',
               top: '26%',
-              width: '70%',
-              maxWidth: '280px',
+              width: '60%',
+              maxWidth: '250px',
               zIndex: 10
             }}
           >
