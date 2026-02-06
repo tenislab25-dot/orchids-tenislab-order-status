@@ -21,8 +21,7 @@ import {
   Ticket,
   Receipt,
   Wrench,
-  Truck,
-  AlertCircle
+  Truck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
@@ -288,11 +287,6 @@ export default function FinanceiroPage() {
       deliveryRevenueNet += deliveryGross * (1 - feeRatio);
     });
 
-    // Diferença entre soma de categorias líquidas e recebido líquido
-    // (descontos manuais antigos que não são mais aplicados)
-    const totalCategoriesNet = serviceRevenueNet + productRevenueNet + deliveryRevenueNet;
-    const legacyDiscountsDifference = totalCategoriesNet - totalReceived;
-
     // Payment method breakdown (líquido)
     const paymentBreakdown: Record<string, number> = {};
     confirmedOrders.forEach(o => {
@@ -320,8 +314,7 @@ export default function FinanceiroPage() {
       deliveryRevenueGross,
       serviceRevenueNet,
       productRevenueNet,
-      deliveryRevenueNet,
-      legacyDiscountsDifference
+      deliveryRevenueNet
     };
   }, [orders]);
 
@@ -887,29 +880,6 @@ export default function FinanceiroPage() {
                 </div>
               </Card>
             </div>
-
-            {/* DIFERENÇA DE DESCONTOS LEGADOS */}
-            {stats.legacyDiscountsDifference > 1 && (
-              <Card className="rounded-[2rem] border-none shadow-lg shadow-amber-200/30 bg-gradient-to-br from-amber-50 to-orange-50 border-l-4 border-amber-400">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                      <AlertCircle className="w-6 h-6 text-amber-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-black text-amber-900 uppercase tracking-wide mb-2">Descontos Manuais Antigos</h3>
-                      <p className="text-xs text-amber-800 leading-relaxed mb-3">
-                        Diferença de <span className="font-bold">R$ {stats.legacyDiscountsDifference.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span> entre a soma das categorias e o recebido líquido.
-                      </p>
-                      <p className="text-[10px] text-amber-700 leading-relaxed">
-                        📌 Isso ocorre porque pedidos antigos tinham <strong>descontos manuais</strong> que não eram registrados como cupons. 
-                        A partir de agora, <strong>todos os descontos são apenas cupons e taxas de maquininha</strong>, então novos pedidos vão bater certinho!
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* SEÇÃO DE DESCONTOS DETALHADOS */}
             <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
