@@ -1184,27 +1184,29 @@ interface OSItem {
               ))}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                Taxa da Maquininha (opcional)
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={machineFee}
-                  onChange={(e) => setMachineFee(e.target.value)}
-                  placeholder="0,00"
-                  className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
-                />
+            {paymentMethod === "Cartão" && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Taxa da Maquininha (opcional)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={machineFee}
+                    onChange={(e) => setMachineFee(e.target.value)}
+                    placeholder="0,00"
+                    className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 leading-relaxed">
+                  Digite o valor da taxa cobrada pela maquininha quando o pagamento for feito com cartão.
+                </p>
               </div>
-              <p className="text-[10px] text-slate-500 leading-relaxed">
-                Digite o valor da taxa cobrada pela maquininha quando o pagamento for feito presencialmente.
-              </p>
-            </div>
+            )}
 
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-3">
