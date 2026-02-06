@@ -221,9 +221,9 @@ export default function FinanceiroPage() {
         return acc + (Number(o.total || 0) - cardFee);
       }, 0);
 
-    // A Receber: apenas ordens entregues e não pagas
+    // A Receber: todas as ordens não pagas (independente do status)
     const projectedRevenue = orders
-      .filter(o => o.status === "Entregue" && !(o.payment_confirmed))
+      .filter(o => !o.payment_confirmed)
       .reduce((acc, o) => acc + Number(o.total || 0), 0);
 
     // Projeção Total: Tudo que não foi cancelado
