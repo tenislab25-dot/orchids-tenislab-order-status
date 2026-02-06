@@ -261,8 +261,8 @@ export default function Home() {
             className="floating-sneaker"
             style={{
               position: 'absolute',
-              left: '-2%',
-              top: '29%',
+              left: '-5%',
+              top: '26%',
               width: '70%',
               maxWidth: '280px',
               zIndex: 10
