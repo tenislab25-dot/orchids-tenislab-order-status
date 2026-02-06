@@ -60,10 +60,18 @@ export default function Home() {
       {/* Container responsivo que mantém proporção 1200:3333 */}
       <div className="relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
         {/* Background Image - Template responsivo */}
+        {/* Desktop: usa template longo */}
         <img 
           src="/tenislab-template.webp" 
           alt="TENISLAB Background" 
-          className="absolute inset-0 w-full h-full object-cover"
+          className="hidden md:block absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+        />
+        {/* Mobile: usa template curto */}
+        <img 
+          src="/tenislab-template-mobile.webp" 
+          alt="TENISLAB Background Mobile" 
+          className="block md:hidden absolute inset-0 w-full h-full object-cover"
           loading="eager"
         />
 
