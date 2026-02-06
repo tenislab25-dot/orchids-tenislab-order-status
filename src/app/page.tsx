@@ -100,7 +100,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '35%',
+              top: '34%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -118,7 +118,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '41%',
+              top: '39%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -135,7 +135,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '47%',
+              top: '44%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -152,7 +152,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '53%',
+              top: '49%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
