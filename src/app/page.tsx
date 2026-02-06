@@ -205,13 +205,13 @@ export default function Home() {
       </div>
 
       {/* Container MOBILE sem aspectRatio - escala naturalmente */}
-      <div className="block md:hidden relative mx-auto w-full">
-        <img 
-          src="/tenislab-template-mobile.webp" 
-          alt="TENISLAB Background Mobile" 
-          className="w-full h-auto"
-          loading="eager"
-        />
+      <div 
+        className="block md:hidden relative mx-auto w-full bg-cover bg-top bg-no-repeat"
+        style={{ 
+          backgroundImage: 'url(/tenislab-template-mobile.webp)',
+          paddingBottom: '277.78%' // 3375:9375 = 1:2.7778
+        }}
+      >
         {/* MOBILE: Design moderno customizado */}
           {/* Contador - MOBILE (mais compacto, no topo) */}
           {processedCount !== null && (
