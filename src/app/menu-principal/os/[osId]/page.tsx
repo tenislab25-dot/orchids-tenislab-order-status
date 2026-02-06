@@ -950,7 +950,7 @@ export default function OSViewPage() {
 )}
                 {(role === "ADMIN" || role === "ATENDENTE") && (
                   <div className="grid grid-cols-2 gap-2 w-full">
-                    <Link href={`/menu-principal/os/${osIdRaw}/editar`} className="w-full">
+                    <Link href={`/menu-principal/os?osId=${osIdRaw.replace("-", "/")}`} className="w-full">
                       <Button 
                         variant="outline"
                         className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"

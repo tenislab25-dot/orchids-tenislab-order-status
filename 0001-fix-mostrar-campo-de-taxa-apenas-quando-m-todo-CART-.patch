@@ -1,0 +1,70 @@
+From 5d5e2db4a8b33c31d69c835304ea58a780e6e56e Mon Sep 17 00:00:00 2001
+From: tenislab25-dot <251649874+tenislab25-dot@users.noreply.github.com>
+Date: Fri, 6 Feb 2026 16:50:09 -0500
+Subject: [PATCH] =?UTF-8?q?fix:=20mostrar=20campo=20de=20taxa=20apenas=20q?=
+ =?UTF-8?q?uando=20m=C3=A9todo=20CART=C3=83O=20=C3=A9=20selecionado?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/app/menu-principal/os/page.tsx | 42 ++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
+
+diff --git a/src/app/menu-principal/os/page.tsx b/src/app/menu-principal/os/page.tsx
+index 3e2ac4e..a66c178 100644
+--- a/src/app/menu-principal/os/page.tsx
++++ b/src/app/menu-principal/os/page.tsx
+@@ -1184,27 +1184,29 @@ interface OSItem {
+               ))}
+             </div>
+ 
+-            <div className="space-y-2">
+-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+-                <CreditCard className="w-4 h-4" />
+-                Taxa da Maquininha (opcional)
+-              </label>
+-              <div className="relative">
+-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
+-                <input
+-                  type="number"
+-                  step="0.01"
+-                  min="0"
+-                  value={machineFee}
+-                  onChange={(e) => setMachineFee(e.target.value)}
+-                  placeholder="0,00"
+-                  className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+-                />
++            {paymentMethod === "Cartão" && (
++              <div className="space-y-2">
++                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
++                  <CreditCard className="w-4 h-4" />
++                  Taxa da Maquininha (opcional)
++                </label>
++                <div className="relative">
++                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
++                  <input
++                    type="number"
++                    step="0.01"
++                    min="0"
++                    value={machineFee}
++                    onChange={(e) => setMachineFee(e.target.value)}
++                    placeholder="0,00"
++                    className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
++                  />
++                </div>
++                <p className="text-[10px] text-slate-500 leading-relaxed">
++                  Digite o valor da taxa cobrada pela maquininha quando o pagamento for feito com cartão.
++                </p>
+               </div>
+-              <p className="text-[10px] text-slate-500 leading-relaxed">
+-                Digite o valor da taxa cobrada pela maquininha quando o pagamento for feito presencialmente.
+-              </p>
+-            </div>
++            )}
+ 
+             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+               <div className="flex items-center gap-3">
+-- 
+2.34.1
+

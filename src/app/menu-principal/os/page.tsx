@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";import Link from "next/link";
 import { logger } from "@/lib/logger";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
   ArrowLeft, 
   Plus, 
@@ -85,6 +85,8 @@ interface OSItem {
 
   export default function OSPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const osIdParam = searchParams.get('osId');
     const [mounted, setMounted] = useState(false);
     const [role, setRole] = useState<string | null>(null);
     const [services, setServices] = useState<any[]>([]);
@@ -225,6 +227,47 @@ interface OSItem {
     }
   }, []);
 
+  const fetchOrder = useCallback(async (osId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select(`*, clients (name, phone, email, plus_code, coordinates, complement)`)
+        .eq("os_number", osId)
+        .single();
+
+      if (error) {
+        toast.error("Erro ao carregar OS. Tente novamente.");
+        router.push("/menu-principal/painel");
+        return;
+      }
+
+      // Preencher todos os campos com dados da OS
+      setOsNumber(data.os_number);
+      setEntryDate(data.entry_date || "");
+      setDeliveryDate(data.delivery_date || "");
+      setDeliveryFee(data.delivery_fee || 0);
+      setPaymentMethod(data.payment_method || "Pix");
+      setPaymentConfirmed(data.payment_confirmed || false);
+      setMachineFee(String(data.machine_fee || 0));
+      setItems(data.items || []);
+      setSoldProducts(data.sold_products || []);
+      setTipoEntrega(data.tipo_entrega || 'entrega');
+      
+      // Preencher dados do cliente
+      if (data.clients) {
+        setSelectedClientId(data.client_id);
+        setClientName(data.clients.name);
+        setClientPhone(data.clients.phone || "");
+        setClientEmail(data.clients.email || "");
+        setClientPlusCode(data.clients.plus_code || "");
+        setClientCoordinates(data.clients.coordinates || "");
+        setClientComplement(data.clients.complement || "");
+      }
+    } catch (err) {
+      toast.error("Erro de conexão. Tente novamente.");
+    }
+  }, [router]);
+
   // 2. Depois usamos elas no useEffect
   useEffect(() => {
     setMounted(true);
@@ -241,15 +284,20 @@ interface OSItem {
       return;
     }
 
-    generateOSNumber();
-    
-    const today = new Date();
-    setEntryDate(today.toISOString().split('T')[0]);
+    // Se tem osId na URL, carregar OS existente
+    if (osIdParam) {
+      fetchOrder(osIdParam);
+    } else {
+      // Caso contrário, gerar novo número
+      generateOSNumber();
+      const today = new Date();
+      setEntryDate(today.toISOString().split('T')[0]);
+    }
 
     fetchClients();
     fetchServices();
     fetchProducts();
-  }, [router, generateOSNumber, fetchClients, fetchServices, fetchProducts]);
+  }, [router, osIdParam, generateOSNumber, fetchOrder, fetchClients, fetchServices, fetchProducts]);
 
   const serviceCatalog = useMemo(() => {
     if (!services || !Array.isArray(services)) return {};
@@ -563,33 +611,60 @@ interface OSItem {
           photos: undefined
         }));
 
-        const { data: newOS, error: osError } = await supabase
-          .from("service_orders")
-          .insert([{
-            os_number: osNumber,
-            client_id: clientId,
-            entry_date: entryDate,
-            delivery_date: deliveryDate || null,
-            delivery_fee: deliveryFee,
-            discount_percent: 0,
-            payment_method: paymentMethod,
-            payment_confirmed: paymentConfirmed,
-            machine_fee: Number(machineFee) || 0,
-            total: finalTotal,
-            items: itemsWithPhotosBefore,
-            sold_products: soldProducts,
-            status: "Recebido",
-            tipo_entrega: tipoEntrega
-          }])
-          .select()
-          .single();
+        // Se tem osIdParam, atualizar; senão, criar nova
+        if (osIdParam) {
+          const { error: osError } = await supabase
+            .from("service_orders")
+            .update({
+              client_id: clientId,
+              entry_date: entryDate,
+              delivery_date: deliveryDate || null,
+              delivery_fee: deliveryFee,
+              discount_percent: 0,
+              payment_method: paymentMethod,
+              payment_confirmed: paymentConfirmed,
+              machine_fee: Number(machineFee) || 0,
+              total: finalTotal,
+              items: itemsWithPhotosBefore,
+              sold_products: soldProducts,
+              tipo_entrega: tipoEntrega
+            })
+            .eq("os_number", osIdParam);
 
-        if (osError) throw osError;
+          if (osError) throw osError;
 
-        clearTimeout(timeoutId);
-        setCreatedOS(newOS);
-        setShowSuccessDialog(true);
-        toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
+          clearTimeout(timeoutId);
+          toast.success("Ordem de Serviço atualizada com sucesso!", { id: "creating-os" });
+          router.push("/menu-principal/painel");
+        } else {
+          const { data: newOS, error: osError } = await supabase
+            .from("service_orders")
+            .insert([{
+              os_number: osNumber,
+              client_id: clientId,
+              entry_date: entryDate,
+              delivery_date: deliveryDate || null,
+              delivery_fee: deliveryFee,
+              discount_percent: 0,
+              payment_method: paymentMethod,
+              payment_confirmed: paymentConfirmed,
+              machine_fee: Number(machineFee) || 0,
+              total: finalTotal,
+              items: itemsWithPhotosBefore,
+              sold_products: soldProducts,
+              status: "Recebido",
+              tipo_entrega: tipoEntrega
+            }])
+            .select()
+            .single();
+
+          if (osError) throw osError;
+
+          clearTimeout(timeoutId);
+          setCreatedOS(newOS);
+          setShowSuccessDialog(true);
+          toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
+        }
       } catch (error: any) {
         clearTimeout(timeoutId);
         toast.error("Erro ao criar OS: " + (error.message || "Tente novamente"), { id: "creating-os" });
@@ -1244,6 +1319,8 @@ interface OSItem {
           >
             {isCreating ? (
               <Loader2 className="w-6 h-6 animate-spin" />
+            ) : osIdParam ? (
+              "Salvar Alterações"
             ) : (
               "Gerar link para aceite"
             )}
