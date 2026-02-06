@@ -594,7 +594,23 @@ function OrderContent() {
 
 export default function StatusPage() {
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
+    <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
+      {/* Background Template - Desktop */}
+      <img 
+        src="/tenislab-template.webp" 
+        alt="TENISLAB Background" 
+        className="hidden md:block fixed inset-0 w-full h-full object-cover -z-10"
+        loading="eager"
+      />
+      {/* Background Template - Mobile */}
+      <div 
+        className="block md:hidden fixed inset-0 w-full h-full bg-cover bg-top bg-no-repeat -z-10"
+        style={{ 
+          backgroundImage: 'url(/tenislab-template-mobile.webp)',
+        }}
+      />
+      
+      <div className="relative w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
     <header className="flex flex-col items-center gap-6 mb-8">
           <div className="relative w-80">
             <img src="/LOGOTENISLAB.png" 
@@ -617,6 +633,7 @@ export default function StatusPage() {
           tenislab. o laboratório do seu tênis
         </p>
       </footer>
+    </div>
     </div>
   );
 }
