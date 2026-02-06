@@ -57,25 +57,14 @@ export default function Home() {
 
   return (
     <div className="relative w-full min-h-screen bg-gray-100 overflow-x-hidden">
-      {/* Container responsivo - Desktop com max-width, Mobile sem limite */}
-      <div className="relative mx-auto w-full md:max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
-        {/* Background Image - Template responsivo */}
-        {/* Desktop: usa template longo */}
+      {/* Container DESKTOP com aspectRatio fixo */}
+      <div className="hidden md:block relative mx-auto w-full max-w-[1200px]" style={{ aspectRatio: '1200 / 3333' }}>
         <img 
           src="/tenislab-template.webp" 
           alt="TENISLAB Background" 
-          className="hidden md:block w-full h-auto"
+          className="w-full h-auto"
           loading="eager"
         />
-        {/* Mobile: usa template curto */}
-        <img 
-          src="/tenislab-template-mobile.webp" 
-          alt="TENISLAB Background Mobile" 
-          className="block md:hidden w-full h-auto"
-          loading="eager"
-        />
-        
-        {/* Overlay container para elementos sobre a imagem */}
         <div className="absolute inset-0">
 
         {/* DESKTOP: Contador e botões originais */}
@@ -205,8 +194,26 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Botão "Acesso Restrito" - DESKTOP */}
+        <Link
+          href="/menu-principal"
+          className="absolute bottom-[3.5%] left-0 right-0 text-center text-gray-600 hover:text-blue-600 text-xs font-medium transition-colors duration-300 w-full"
+        >
+          Acesso Restrito
+        </Link>
+        </div>
+      </div>
+
+      {/* Container MOBILE sem aspectRatio - escala naturalmente */}
+      <div className="block md:hidden relative mx-auto w-full">
+        <img 
+          src="/tenislab-template-mobile.webp" 
+          alt="TENISLAB Background Mobile" 
+          className="w-full h-auto"
+          loading="eager"
+        />
+        <div className="absolute inset-0">
         {/* MOBILE: Design moderno customizado */}
-        <div className="block md:hidden">
           {/* Contador - MOBILE (mais compacto, no topo) */}
           {processedCount !== null && (
             <div 
@@ -277,9 +284,8 @@ export default function Home() {
               className="w-full h-auto object-contain drop-shadow-2xl"
             />
           </div>
-        </div>
 
-        {/* Botão "Acesso Restrito" - COMPARTILHADO (desktop e mobile) */}
+        {/* Botão "Acesso Restrito" - MOBILE */}
         <Link
           href="/menu-principal"
           className="absolute bottom-[3.5%] left-0 right-0 text-center text-gray-600 hover:text-blue-600 text-xs font-medium transition-colors duration-300 w-full"
