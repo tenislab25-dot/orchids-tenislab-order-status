@@ -610,7 +610,7 @@ export default function StatusPage() {
         }}
       />
       
-      <div className="relative w-full max-w-md mx-auto flex flex-col gap-8 py-12 animate-in fade-in min-h-screen px-6">
+      <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-md flex flex-col gap-8 animate-in fade-in px-6" style={{ top: '30%' }}>
 
 
       <Suspense fallback={
