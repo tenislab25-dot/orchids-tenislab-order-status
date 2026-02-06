@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
@@ -71,6 +72,7 @@ export default function TodosPedidosPage() {
     key: 'updated_at',
     direction: 'desc'
   });
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -148,6 +150,12 @@ export default function TodosPedidosPage() {
         query = query.or(`os_number.ilike.%${debouncedSearch}%,clients(name).ilike.%${debouncedSearch}%`);
       }
 
+      if (paymentFilter === 'paid') {
+        query = query.eq('payment_confirmed', true);
+      } else if (paymentFilter === 'unpaid') {
+        query = query.eq('payment_confirmed', false);
+      }
+
       if (sortConfig.key && sortConfig.direction) {
         const column = sortConfig.key === 'client' ? 'clients(name)' : sortConfig.key;
         query = query.order(sortConfig.key, { ascending: sortConfig.direction === 'asc' });
@@ -170,7 +178,7 @@ export default function TodosPedidosPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearch, sortConfig]);
+  }, [currentPage, debouncedSearch, sortConfig, paymentFilter]);
 
   useEffect(() => {
     fetchOrders();
@@ -233,16 +241,32 @@ export default function TodosPedidosPage() {
         </header>
 
       <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
-        <CardHeader className="bg-white border-b border-slate-50 p-8">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Buscar por OS ou cliente..."
-              className="pl-11 h-12 bg-slate-50 border-none rounded-2xl focus-visible:ring-2 ring-blue-500/20 font-medium"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <CardHeader className="bg-white border-b border-slate-50 p-8 space-y-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Buscar por OS ou cliente..."
+                className="pl-11 h-12 bg-slate-50 border-none rounded-2xl focus-visible:ring-2 ring-blue-500/20 font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
+          
+          <Tabs value={paymentFilter} onValueChange={(v) => { setPaymentFilter(v as any); setCurrentPage(1); }} className="w-full">
+            <TabsList className="grid w-full md:w-auto grid-cols-3 bg-slate-100 rounded-2xl p-1">
+              <TabsTrigger value="all" className="rounded-xl font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                📋 Todas ({totalCount})
+              </TabsTrigger>
+              <TabsTrigger value="paid" className="rounded-xl font-bold text-xs data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-sm">
+                ✅ Pagas
+              </TabsTrigger>
+              <TabsTrigger value="unpaid" className="rounded-xl font-bold text-xs data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-sm">
+                ⏳ Não Pagas
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
