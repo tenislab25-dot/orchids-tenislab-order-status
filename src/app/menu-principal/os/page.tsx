@@ -1141,7 +1141,7 @@ interface OSItem {
                       variant="outline"
                       size="icon"
                       onClick={() => removeSoldProduct(product.id)}
-                      className="self-center text-red-600 hover:text-white hover:bg-red-600 border-red-300 flex-shrink-0 h-10 w-10"
+                      className="self-end text-red-600 hover:text-white hover:bg-red-600 border-red-300 flex-shrink-0 h-10 w-10"
                     >
                       <Trash2 className="w-5 h-5" />
                     </Button>
@@ -1151,7 +1151,7 @@ interface OSItem {
                 <Button
                   variant="outline"
                   onClick={addSoldProduct}
-                  className="w-full h-12 rounded-xl border-2 border-dashed border-emerald-200 text-emerald-600 font-bold bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-300 transition-all flex items-center justify-center gap-2"
+                  className="w-full h-10 rounded-xl border-2 border-dashed border-emerald-200 text-emerald-600 font-bold bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-300 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Adicionar Produto
