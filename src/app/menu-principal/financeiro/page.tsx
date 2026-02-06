@@ -243,27 +243,42 @@ export default function FinanceiroPage() {
       : 0;
 
     // Receitas por categoria (apenas pedidos confirmados)
-    let serviceRevenue = 0;
-    let productRevenue = 0;
-    let deliveryRevenue = 0;
+    let serviceRevenueGross = 0;
+    let productRevenueGross = 0;
+    let deliveryRevenueGross = 0;
+    let serviceRevenueNet = 0;
+    let productRevenueNet = 0;
+    let deliveryRevenueNet = 0;
 
     confirmedOrders.forEach(order => {
+      const orderTotal = Number(order.total || 0);
+      const orderFees = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
+      
+      // Calcula proporção de desconto para este pedido
+      const feeRatio = orderTotal > 0 ? orderFees / orderTotal : 0;
+      
       // Soma itens de serviço (campo 'items')
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
-          serviceRevenue += Number(item.subtotal || 0);
+          const itemGross = Number(item.subtotal || 0);
+          serviceRevenueGross += itemGross;
+          serviceRevenueNet += itemGross * (1 - feeRatio);
         });
       }
       
       // Soma produtos vendidos (campo 'sold_products')
       if (order.sold_products && Array.isArray(order.sold_products)) {
         order.sold_products.forEach((product: any) => {
-          productRevenue += Number(product.subtotal || 0);
+          const productGross = Number(product.subtotal || 0);
+          productRevenueGross += productGross;
+          productRevenueNet += productGross * (1 - feeRatio);
         });
       }
       
       // Soma taxa de entrega
-      deliveryRevenue += Number(order.delivery_fee || 0);
+      const deliveryGross = Number(order.delivery_fee || 0);
+      deliveryRevenueGross += deliveryGross;
+      deliveryRevenueNet += deliveryGross * (1 - feeRatio);
     });
 
     // Payment method breakdown (líquido)
@@ -288,9 +303,12 @@ export default function FinanceiroPage() {
       totalCouponDiscounts,
       totalPixDiscounts,
       totalCardFees,
-      serviceRevenue,
-      productRevenue,
-      deliveryRevenue
+      serviceRevenueGross,
+      productRevenueGross,
+      deliveryRevenueGross,
+      serviceRevenueNet,
+      productRevenueNet,
+      deliveryRevenueNet
     };
   }, [orders]);
 
@@ -791,39 +809,66 @@ export default function FinanceiroPage() {
             {/* RECEITAS POR CATEGORIA */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-                <div className="flex flex-col gap-2 h-full justify-between">
+                <div className="flex flex-col gap-3 h-full justify-between">
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
                     <Wrench className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita de Serviços</span>
-                    <span className="text-2xl font-black text-indigo-600">R$ {stats.serviceRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-indigo-600">R$ {stats.serviceRevenueNet.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Líquido</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-bold text-slate-400">R$ {stats.serviceRevenueGross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Bruto</span>
+                      </div>
+                    </div>
                     <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Limpeza, Restauração, etc</p>
                   </div>
                 </div>
               </Card>
 
               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-                <div className="flex flex-col gap-2 h-full justify-between">
+                <div className="flex flex-col gap-3 h-full justify-between">
                   <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
                     <Package className="w-5 h-5 text-amber-600" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita de Produtos</span>
-                    <span className="text-2xl font-black text-amber-600">R$ {stats.productRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-amber-600">R$ {stats.productRevenueNet.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Líquido</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-bold text-slate-400">R$ {stats.productRevenueGross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Bruto</span>
+                      </div>
+                    </div>
                     <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Produtos vendidos</p>
                   </div>
                 </div>
               </Card>
 
               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 bg-white p-8">
-                <div className="flex flex-col gap-2 h-full justify-between">
+                <div className="flex flex-col gap-3 h-full justify-between">
                   <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center">
                     <Truck className="w-5 h-5 text-cyan-600" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita de Entregas</span>
-                    <span className="text-2xl font-black text-cyan-600">R$ {stats.deliveryRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-cyan-600">R$ {stats.deliveryRevenueNet.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Líquido</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-bold text-slate-400">R$ {stats.deliveryRevenueGross.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase">Bruto</span>
+                      </div>
+                    </div>
                     <p className="text-[9px] text-slate-400 mt-1 uppercase font-bold">Taxas de entrega</p>
                   </div>
                 </div>
