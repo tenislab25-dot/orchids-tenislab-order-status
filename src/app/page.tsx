@@ -212,7 +212,6 @@ export default function Home() {
           className="w-full h-auto"
           loading="eager"
         />
-        <div className="absolute inset-0">
         {/* MOBILE: Design moderno customizado */}
           {/* Contador - MOBILE (mais compacto, no topo) */}
           {processedCount !== null && (
@@ -292,7 +291,6 @@ export default function Home() {
         >
           Acesso Restrito
         </Link>
-        </div>
       </div>
 
       {/* CSS customizado para responsividade */}
