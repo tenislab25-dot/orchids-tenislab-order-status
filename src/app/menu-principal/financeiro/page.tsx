@@ -253,18 +253,24 @@ export default function FinanceiroPage() {
     confirmedOrders.forEach(order => {
       const orderTotal = Number(order.total || 0);
       const orderFees = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
+      const orderCouponDiscount = Number(order.discount_amount || 0);
       
-      // Calcula proporção de desconto para este pedido
+      // Calcula proporção de taxas de pagamento para este pedido
       const feeRatio = orderTotal > 0 ? orderFees / orderTotal : 0;
       
       // Soma itens de serviço (campo 'items')
+      let orderServiceGross = 0;
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
           const itemGross = Number(item.subtotal || 0);
-          serviceRevenueGross += itemGross;
-          serviceRevenueNet += itemGross * (1 - feeRatio);
+          orderServiceGross += itemGross;
         });
       }
+      
+      // Cupom de desconto só se aplica aos serviços
+      // Líquido = Bruto - Cupom - (Taxas proporcionais)
+      serviceRevenueGross += orderServiceGross;
+      serviceRevenueNet += orderServiceGross - orderCouponDiscount - (orderServiceGross * feeRatio);
       
       // Soma produtos vendidos (campo 'sold_products')
       if (order.sold_products && Array.isArray(order.sold_products)) {
@@ -275,7 +281,7 @@ export default function FinanceiroPage() {
         });
       }
       
-      // Soma taxa de entrega
+      // Soma taxa de entrega (sem desconto de cupom)
       const deliveryGross = Number(order.delivery_fee || 0);
       deliveryRevenueGross += deliveryGross;
       deliveryRevenueNet += deliveryGross * (1 - feeRatio);
