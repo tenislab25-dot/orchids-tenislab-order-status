@@ -196,7 +196,8 @@ export default function FinanceiroPage() {
     const currentYear = now.getFullYear();
     const thisMonthTotal = confirmedOrders
       .filter(o => {
-        const d = new Date(o.entry_date);
+        if (!o.payment_confirmed_at) return false;
+        const d = new Date(o.payment_confirmed_at);
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
       .reduce((acc, o) => {
@@ -214,7 +215,8 @@ export default function FinanceiroPage() {
     endOfWeek.setHours(23, 59, 59, 999);
     const thisWeekTotal = confirmedOrders
       .filter(o => {
-        const d = new Date(o.entry_date);
+        if (!o.payment_confirmed_at) return false;
+        const d = new Date(o.payment_confirmed_at);
         return d >= startOfWeek && d <= endOfWeek;
       })
       .reduce((acc, o) => {
@@ -246,45 +248,24 @@ export default function FinanceiroPage() {
     let serviceRevenueGross = 0;
     let productRevenueGross = 0;
     let deliveryRevenueGross = 0;
-    let serviceRevenueNet = 0;
-    let productRevenueNet = 0;
-    let deliveryRevenueNet = 0;
 
     confirmedOrders.forEach(order => {
-      const orderTotal = Number(order.total || 0);
-      const orderFees = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
-      const orderCouponDiscount = Number(order.discount_amount || 0);
-      
-      // Calcula proporção de taxas de pagamento para este pedido
-      const feeRatio = orderTotal > 0 ? orderFees / orderTotal : 0;
-      
       // Soma itens de serviço (campo 'items')
-      let orderServiceGross = 0;
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach((item: any) => {
-          const itemGross = Number(item.subtotal || 0);
-          orderServiceGross += itemGross;
+          serviceRevenueGross += Number(item.subtotal || 0);
         });
       }
-      
-      // Cupom de desconto só se aplica aos serviços
-      // Líquido = Bruto - Cupom - (Taxas proporcionais)
-      serviceRevenueGross += orderServiceGross;
-      serviceRevenueNet += orderServiceGross - orderCouponDiscount - (orderServiceGross * feeRatio);
       
       // Soma produtos vendidos (campo 'sold_products')
       if (order.sold_products && Array.isArray(order.sold_products)) {
         order.sold_products.forEach((product: any) => {
-          const productGross = Number(product.subtotal || 0);
-          productRevenueGross += productGross;
-          productRevenueNet += productGross * (1 - feeRatio);
+          productRevenueGross += Number(product.subtotal || 0);
         });
       }
       
-      // Soma taxa de entrega (sem desconto de cupom)
-      const deliveryGross = Number(order.delivery_fee || 0);
-      deliveryRevenueGross += deliveryGross;
-      deliveryRevenueNet += deliveryGross * (1 - feeRatio);
+      // Soma taxa de entrega
+      deliveryRevenueGross += Number(order.delivery_fee || 0);
     });
 
     // Payment method breakdown (líquido)
@@ -311,10 +292,7 @@ export default function FinanceiroPage() {
       totalCardFees,
       serviceRevenueGross,
       productRevenueGross,
-      deliveryRevenueGross,
-      serviceRevenueNet,
-      productRevenueNet,
-      deliveryRevenueNet
+      deliveryRevenueGross
     };
   }, [orders]);
 
@@ -417,7 +395,8 @@ export default function FinanceiroPage() {
     
     for (let i = 0; i < 12; i++) {
       const monthOrders = confirmedOrders.filter(o => {
-        const d = new Date(o.entry_date);
+        if (!o.payment_confirmed_at) return false;
+        const d = new Date(o.payment_confirmed_at);
         return d.getFullYear() === selectedYear && d.getMonth() === i;
       });
       
@@ -458,7 +437,8 @@ export default function FinanceiroPage() {
       }
       
       const weekOrders = confirmedOrders.filter(o => {
-        const d = new Date(o.entry_date);
+        if (!o.payment_confirmed_at) return false;
+        const d = new Date(o.payment_confirmed_at);
         d.setHours(0, 0, 0, 0);
         const ws = new Date(weekStart);
         ws.setHours(0, 0, 0, 0);
