@@ -84,7 +84,7 @@ export default function Home() {
               }}
             >
               <div className="flex items-center gap-1">
-                <span className="counter-number text-3xl font-bold text-white tracking-tight">
+                <span className="counter-number text-3xl font-bold text-white tracking-tight" style={{ fontSize: '1.875rem !important' }}>
                   {displayCount}
                 </span>
               </div>
