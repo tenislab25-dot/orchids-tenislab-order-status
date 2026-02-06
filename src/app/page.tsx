@@ -78,8 +78,8 @@ export default function Home() {
                 left: '50%',
                 top: '32%',
                 transform: 'translateX(-50%)',
-                width: '24%',
-                minWidth: '216px',
+                width: '31.2%',
+                minWidth: '281px',
                 padding: '1% 1.8%'
               }}
             >
@@ -102,76 +102,64 @@ export default function Home() {
               left: '50%',
               top: '35%',
               transform: 'translateX(-50%)',
-              width: '24%',
-              minWidth: '216px',
+              width: '31.2%',
+              minWidth: '281px',
               padding: '1% 2%'
             }}
           >
             CONSULTE SEU PEDIDO
           </Link>
 
-          {/* Ícones - DESKTOP */}
+          {/* Botões - DESKTOP */}
           <a 
             href="https://wa.me/message/FNQNTD6CIDFMI1"
             target="_blank"
             rel="noopener noreferrer"
-            className="icon-button"
+            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
-              position: 'absolute',
-              left: '46.11%',
-              top: '30.97%',
-              width: '11.67%',
-              height: 'auto',
-              aspectRatio: '1 / 1'
+              left: '50%',
+              top: '40%',
+              transform: 'translateX(-50%)',
+              width: '31.2%',
+              minWidth: '281px',
+              padding: '1% 2%'
             }}
           >
-            <img 
-              src="/icon-whatsapp-optimized.webp" 
-              alt="WhatsApp" 
-              className="w-full h-full object-contain transition-transform hover:scale-110"
-            />
+            💬 WhatsApp
           </a>
 
           <a 
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
-            className="icon-button"
+            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
-              position: 'absolute',
-              left: '61.28%',
-              top: '29.14%',
-              width: '11.67%',
-              height: 'auto',
-              aspectRatio: '1 / 1'
+              left: '50%',
+              top: '45%',
+              transform: 'translateX(-50%)',
+              width: '31.2%',
+              minWidth: '281px',
+              padding: '1% 2%'
             }}
           >
-            <img 
-              src="/icon-instagram-optimized.webp" 
-              alt="Instagram" 
-              className="w-full h-full object-contain transition-transform hover:scale-110"
-            />
+            📸 Instagram
           </a>
 
           <a 
             href="https://maps.google.com/?q=TENISLAB+Maceio"
             target="_blank"
             rel="noopener noreferrer"
-            className="icon-button"
+            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
-              position: 'absolute',
-              left: '76.46%',
-              top: '27.31%',
-              width: '11.67%',
-              height: 'auto',
-              aspectRatio: '1 / 1'
+              left: '50%',
+              top: '50%',
+              transform: 'translateX(-50%)',
+              width: '31.2%',
+              minWidth: '281px',
+              padding: '1% 2%'
             }}
           >
-            <img 
-              src="/icon-location-optimized.webp" 
-              alt="Localização" 
-              className="w-full h-full object-contain transition-transform hover:scale-110"
-            />
+            📍 Localização
           </a>
 
           {/* Tênis flutuante - DESKTOP */}
@@ -181,8 +169,8 @@ export default function Home() {
               position: 'absolute',
               left: '-5%',
               top: '30%',
-              width: '26%',
-              maxWidth: '325px',
+              width: '52%',
+              maxWidth: '650px',
               zIndex: 10
             }}
           >
