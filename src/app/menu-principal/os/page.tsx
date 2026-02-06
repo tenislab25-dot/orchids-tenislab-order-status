@@ -1084,8 +1084,8 @@ interface OSItem {
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 {soldProducts.map((product) => (
-                  <div key={product.id} className="flex gap-3 items-start">
-                    <div className="flex-1 flex flex-col sm:flex-row gap-4">
+                  <div key={product.id} className="flex flex-col gap-3 p-4 bg-slate-50 rounded-xl relative">
+                    <div className="flex flex-col gap-4">
                       <div className="flex-1">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Prod.</Label>
                         <Select
@@ -1113,7 +1113,7 @@ interface OSItem {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="w-full sm:w-24">
+                      <div className="w-full">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Qtd</Label>
                         <Input
                           type="number"
@@ -1124,7 +1124,7 @@ interface OSItem {
                           className="h-10 rounded-xl"
                         />
                       </div>
-                      <div className="w-full sm:w-32">
+                      <div className="w-full">
                         <Label className="text-xs font-bold text-slate-500 mb-2 block">Preço</Label>
                         <Input
                           type="number"
@@ -1139,11 +1139,12 @@ interface OSItem {
                     </div>
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={() => removeSoldProduct(product.id)}
-                      className="self-end text-red-600 hover:text-white hover:bg-red-600 border-red-300 flex-shrink-0 h-10 w-10"
+                      className="w-full text-red-600 hover:text-white hover:bg-red-600 border-red-300 flex items-center justify-center gap-2"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4" />
+                      Remover Produto
                     </Button>
                   </div>
                 ))}
