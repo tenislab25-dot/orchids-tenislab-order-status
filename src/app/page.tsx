@@ -20,12 +20,8 @@ export default function Home() {
         if (error) throw error;
         
         const totalSneakers = data?.reduce((acc, order: any) => {
-          const itemCount = Array.isArray(order.items) 
-            ? order.items.reduce((sum: number, item: any) => {
-                const qty = Number(item.quantity);
-                return sum + (qty > 0 ? qty : 0); // Soma apenas se quantity for maior que 0
-              }, 0)
-            : 0;
+          // Cada item no array representa 1 par de tênis
+          const itemCount = Array.isArray(order.items) ? order.items.length : 0;
           return acc + itemCount;
         }, 0) || 0;
         
