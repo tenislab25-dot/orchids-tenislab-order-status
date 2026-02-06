@@ -80,15 +80,15 @@ export default function Home() {
                 transform: 'translateX(-50%)',
                 width: '46.8%',
                 minWidth: '421px',
-                padding: '1% 1.8%'
+                padding: '2.5% 4.5%'
               }}
             >
               <div className="flex items-center gap-1">
-                <span className="counter-number text-sm font-bold text-white tracking-tight">
+                <span className="counter-number text-3xl font-bold text-white tracking-tight">
                   {displayCount}
                 </span>
               </div>
-              <p className="counter-text text-[7px] font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
+              <p className="counter-text text-xs font-semibold text-white/90 uppercase tracking-[0.1em] text-center leading-tight">
                 TÊNIS HIGIENIZADOS/RESTAURADOS
               </p>
             </div>
