@@ -97,14 +97,14 @@ export default function Home() {
           {/* Botão "Consulte seu Pedido" - DESKTOP */}
           <Link
             href="/consulta"
-            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '35%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
-              padding: '1% 2%'
+              padding: '2.5% 5%'
             }}
           >
             CONSULTE SEU PEDIDO
@@ -115,14 +115,14 @@ export default function Home() {
             href="https://wa.me/message/FNQNTD6CIDFMI1"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '38.5%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
-              padding: '1% 2%'
+              padding: '2.5% 5%'
             }}
           >
             💬 WhatsApp
@@ -132,14 +132,14 @@ export default function Home() {
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '42.5%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
-              padding: '1% 2%'
+              padding: '2.5% 5%'
             }}
           >
             📸 Instagram
@@ -149,14 +149,14 @@ export default function Home() {
             href="https://maps.google.com/?q=TENISLAB+Maceio"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '46.5%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
-              padding: '1% 2%'
+              padding: '2.5% 5%'
             }}
           >
             📍 Localização
