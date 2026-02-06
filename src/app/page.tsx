@@ -189,7 +189,7 @@ export default function Home() {
           {processedCount !== null && (
             <div 
               className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 bg-gradient-to-br from-blue-600 to-blue-700 px-6 py-3 rounded-2xl shadow-xl animate-in zoom-in duration-700"
-              style={{ top: '26%' }}
+              style={{ top: '27%' }}
             >
               <span className="text-3xl font-black text-white tracking-tight">
                 {displayCount}
@@ -201,7 +201,7 @@ export default function Home() {
           )}
 
           {/* Botões - MOBILE (todos com mesmo estilo e espaçamento) */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-4 w-[80%] max-w-[300px]" style={{ top: '36%' }}>
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-4 w-[80%] max-w-[300px]" style={{ top: '35%' }}>
             <Link
               href="/consulta"
               className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
