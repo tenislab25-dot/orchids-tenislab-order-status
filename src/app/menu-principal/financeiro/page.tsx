@@ -21,7 +21,8 @@ import {
   Ticket,
   Receipt,
   Wrench,
-  Truck
+  Truck,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
@@ -30,6 +31,13 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { formatDate } from "@/lib/date-utils";
 import { toast } from "sonner";
@@ -66,6 +74,7 @@ interface Order {
   mp_payment_id: string | null;
   items: any[];
   sold_products?: any[];
+  updated_at?: string;
   clients: {
     name: string;
   } | null;
@@ -139,6 +148,7 @@ export default function FinanceiroPage() {
           mp_payment_id,
           items,
           sold_products,
+          updated_at,
           clients (
             name
           )
@@ -296,18 +306,22 @@ export default function FinanceiroPage() {
     };
   }, [orders]);
 
-  // Últimos Pagamentos (ordenados por data de confirmação)
-  const recentPayments = useMemo(() => {
+  // Todos os Pagamentos (ordenados por data de confirmação ou edição)
+  const allPayments = useMemo(() => {
     return orders
       .filter(o => o.payment_confirmed) // Todos os pagamentos confirmados (manuais ou automáticos)
       .sort((a, b) => {
-        // Usar payment_confirmed_at se existir, senão usar entry_date
-        const dateA = new Date(a.payment_confirmed_at || a.entry_date).getTime();
-        const dateB = new Date(b.payment_confirmed_at || b.entry_date).getTime();
+        // Prioridade: updated_at (edição) > payment_confirmed_at (confirmação) > entry_date (entrada)
+        const dateA = new Date(a.updated_at || a.payment_confirmed_at || a.entry_date).getTime();
+        const dateB = new Date(b.updated_at || b.payment_confirmed_at || b.entry_date).getTime();
         return dateB - dateA; // Mais recente primeiro
-      })
-      .slice(0, 10); // Últimos 10 pagamentos
+      });
   }, [orders]);
+
+  // Últimos 10 Pagamentos
+  const recentPayments = useMemo(() => {
+    return allPayments.slice(0, 10);
+  }, [allPayments]);
 
   // Serviços Mais Vendidos (Top 5)
   const topServices = useMemo(() => {
@@ -881,11 +895,78 @@ export default function FinanceiroPage() {
 
             {/* ÚLTIMOS PAGAMENTOS */}
             <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
                   <Receipt className="w-5 h-5 text-green-500" />
                   Últimos Pagamentos
                 </CardTitle>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      Ver Todos ({allPayments.length})
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-black uppercase flex items-center gap-2">
+                        <Receipt className="w-6 h-6 text-green-500" />
+                        Todos os Pagamentos ({allPayments.length})
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="overflow-x-auto mt-4">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="font-black uppercase text-[10px]">OS</TableHead>
+                            <TableHead className="font-black uppercase text-[10px]">Cliente</TableHead>
+                            <TableHead className="font-black uppercase text-[10px]">Data</TableHead>
+                            <TableHead className="font-black uppercase text-[10px]">Método</TableHead>
+                            <TableHead className="text-right font-black uppercase text-[10px]">Valor Bruto</TableHead>
+                            <TableHead className="text-right font-black uppercase text-[10px]">Cupom</TableHead>
+                            <TableHead className="text-right font-black uppercase text-[10px]">Taxa</TableHead>
+                            <TableHead className="text-right font-black uppercase text-[10px] text-green-600">Valor Líquido</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {allPayments.map((order) => {
+                            const total = Number(order.total || 0);
+                            const cupomDiscount = Number(order.discount_amount || 0);
+                            const taxa = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
+                            const valorLiquido = total - cupomDiscount - taxa;
+                            
+                            return (
+                              <TableRow key={order.id}>
+                                <TableCell className="font-bold">{order.os_number}</TableCell>
+                                <TableCell>{order.clients?.name || "N/A"}</TableCell>
+                                <TableCell className="text-xs text-slate-500">
+                                  {formatDate(order.payment_confirmed_at || order.entry_date)}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={order.payment_method === 'Pix' ? 'default' : 'secondary'} className="text-[10px]">
+                                    {order.payment_method || "N/A"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right font-medium text-slate-600">
+                                  R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell className="text-right font-medium text-orange-600">
+                                  {cupomDiscount > 0 ? `- R$ ${cupomDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                                </TableCell>
+                                <TableCell className="text-right font-medium text-red-600">
+                                  {taxa > 0 ? `- R$ ${taxa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-green-600">
+                                  R$ {valorLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
