@@ -726,7 +726,7 @@ export default function FinanceiroPage() {
                       <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">A Receber</span>
                       <span className="text-4xl font-black tracking-tighter">R$ {stats.projectedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                       <span className="text-xs font-bold text-white/80 mt-1">
-                        {orders.filter(o => o.status === "Entregue" && !o.payment_confirmed).length} pedidos aguardando pagamento
+                        {orders.filter(o => !o.payment_confirmed).length} pedidos aguardando pagamento
                       </span>
                     </div>
                     <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
@@ -737,7 +737,7 @@ export default function FinanceiroPage() {
                   {/* Lista de Pedidos a Receber */}
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {orders
-                      .filter(o => o.status === "Entregue" && !o.payment_confirmed)
+                      .filter(o => !o.payment_confirmed)
                       .slice(0, 10)
                       .map((order) => (
                         <div key={order.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between hover:bg-white/20 transition-colors">
@@ -753,9 +753,9 @@ export default function FinanceiroPage() {
                       ))}
                   </div>
                   
-                  {orders.filter(o => o.status === "Entregue" && !o.payment_confirmed).length > 10 && (
+                  {orders.filter(o => !o.payment_confirmed).length > 10 && (
                     <div className="mt-4 text-center">
-                      <span className="text-xs text-white/70 font-bold">+ {orders.filter(o => o.status === "Entregue" && !o.payment_confirmed).length - 10} pedidos</span>
+                      <span className="text-xs text-white/70 font-bold">+ {orders.filter(o => !o.payment_confirmed).length - 10} pedidos</span>
                     </div>
                   )}
                 </CardContent>
