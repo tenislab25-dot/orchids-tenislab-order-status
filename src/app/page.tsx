@@ -76,11 +76,11 @@ export default function Home() {
               style={{
                 position: 'absolute',
                 left: '50%',
-                top: '22%',
+                top: '32%',
                 transform: 'translateX(-50%)',
-                width: '20%',
-                minWidth: '180px',
-                padding: '0.8% 1.5%'
+                width: '24%',
+                minWidth: '216px',
+                padding: '1% 1.8%'
               }}
             >
               <div className="flex items-center gap-1">
@@ -97,14 +97,14 @@ export default function Home() {
           {/* Botão "Consulte seu Pedido" - DESKTOP */}
           <Link
             href="/consulta"
-            className="responsive-button button-text absolute bg-white hover:bg-gray-100 text-blue-600 font-bold text-[9px] uppercase tracking-[0.1em] rounded-lg shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center text-center"
+            className="absolute bg-white text-blue-600 font-black text-xs uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '25%',
+              top: '35%',
               transform: 'translateX(-50%)',
-              width: '20%',
-              minWidth: '180px',
-              padding: '0.8% 1.5%'
+              width: '24%',
+              minWidth: '216px',
+              padding: '1% 2%'
             }}
           >
             CONSULTE SEU PEDIDO
@@ -179,10 +179,10 @@ export default function Home() {
             className="floating-sneaker"
             style={{
               position: 'absolute',
-              left: '15%',
-              top: '20%',
-              width: '20%',
-              maxWidth: '250px',
+              left: '-5%',
+              top: '30%',
+              width: '26%',
+              maxWidth: '325px',
               zIndex: 10
             }}
           >
