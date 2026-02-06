@@ -20,7 +20,9 @@ export default function Home() {
         if (error) throw error;
         
         const totalSneakers = data?.reduce((acc, order: any) => {
-          const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+          const itemCount = Array.isArray(order.items) 
+            ? order.items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0)
+            : 0;
           return acc + itemCount;
         }, 0) || 0;
         

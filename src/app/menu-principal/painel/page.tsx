@@ -723,7 +723,12 @@ export default function PainelPage() {
         const date = new Date(o.updated_at || o.entry_date);
         return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
       })
-      .reduce((acc, o) => acc + (Array.isArray(o.items) ? o.items.length : 0), 0);
+      .reduce((acc, o) => {
+        const itemCount = Array.isArray(o.items)
+          ? o.items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0)
+          : 0;
+        return acc + itemCount;
+      }, 0);
 
     const pendingAcceptance = orders.filter(o => o.status === "Recebido").length;
     const inProduction = orders.filter(o => ["Em espera", "Em serviço", "Em finalização"].includes(o.status)).length;
