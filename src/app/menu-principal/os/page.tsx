@@ -1141,7 +1141,7 @@ interface OSItem {
                       variant="ghost"
                       size="icon"
                       onClick={() => removeSoldProduct(product.id)}
-                      className="mt-6 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      className="self-center text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
