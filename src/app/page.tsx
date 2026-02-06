@@ -181,6 +181,25 @@ export default function Home() {
               className="w-full h-full object-contain transition-transform hover:scale-110"
             />
           </a>
+
+          {/* Tênis flutuante - DESKTOP */}
+          <div 
+            className="floating-sneaker"
+            style={{
+              position: 'absolute',
+              left: '15%',
+              top: '20%',
+              width: '20%',
+              maxWidth: '250px',
+              zIndex: 10
+            }}
+          >
+            <img 
+              src="/yeezy-float.webp" 
+              alt="Tênis Yeezy" 
+              className="w-full h-auto object-contain drop-shadow-2xl"
+            />
+          </div>
         </div>
 
         {/* MOBILE: Design moderno customizado */}
@@ -249,6 +268,19 @@ export default function Home() {
 
       {/* CSS customizado para responsividade */}
       <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(-5deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(-5deg);
+          }
+        }
+
+        .floating-sneaker {
+          animation: float 3s ease-in-out infinite;
+        }
+
         @media (min-width: 768px) {
           .counter-number {
             font-size: 1.2vw;
