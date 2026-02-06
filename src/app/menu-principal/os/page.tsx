@@ -249,7 +249,14 @@ interface OSItem {
       setPaymentMethod(data.payment_method || "Pix");
       setPaymentConfirmed(data.payment_confirmed || false);
       setMachineFee(String(data.machine_fee || 0));
-      setItems(data.items || []);
+      
+      // Converter photosBefore de volta para photos para edição
+      const itemsWithPhotos = (data.items || []).map((item: any) => ({
+        ...item,
+        photos: item.photosBefore || item.photos || []
+      }));
+      
+      setItems(itemsWithPhotos);
       setSoldProducts(data.sold_products || []);
       setTipoEntrega(data.tipo_entrega || 'entrega');
       

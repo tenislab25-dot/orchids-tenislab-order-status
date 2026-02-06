@@ -1,0 +1,307 @@
+From 7e487c9eed2cf1747c40e253b5488363fb0e9ec3 Mon Sep 17 00:00:00 2001
+From: tenislab25-dot <251649874+tenislab25-dot@users.noreply.github.com>
+Date: Fri, 6 Feb 2026 16:59:47 -0500
+Subject: [PATCH 1/2] =?UTF-8?q?feat:=20unificar=20p=C3=A1ginas=20de=20cria?=
+ =?UTF-8?q?r=20e=20editar=20OS=20com=20campo=20condicional=20de=20taxa=20d?=
+ =?UTF-8?q?o=20cart=C3=A3o?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Adicionar useSearchParams para detectar modo edição via ?osId=
+- Adicionar função fetchOrder para carregar OS existente
+- Modificar handleCreateOS para suportar update além de insert
+- Tornar botão dinâmico (Gerar link / Salvar Alterações)
+- Atualizar link de editar para usar query parameter
+- Campo de taxa do cartão aparece apenas quando método CARTÃO é selecionado
+---
+ ...o-de-taxa-apenas-quando-m-todo-CART-.patch |  70 +++++++++
+ src/app/menu-principal/os/[osId]/page.tsx     |   2 +-
+ src/app/menu-principal/os/page.tsx            | 141 ++++++++++++++----
+ 3 files changed, 180 insertions(+), 33 deletions(-)
+ create mode 100644 0001-fix-mostrar-campo-de-taxa-apenas-quando-m-todo-CART-.patch
+
+diff --git a/0001-fix-mostrar-campo-de-taxa-apenas-quando-m-todo-CART-.patch b/0001-fix-mostrar-campo-de-taxa-apenas-quando-m-todo-CART-.patch
+new file mode 100644
+index 0000000..860a23e
+--- /dev/null
++++ b/0001-fix-mostrar-campo-de-taxa-apenas-quando-m-todo-CART-.patch
+@@ -0,0 +1,70 @@
++From 5d5e2db4a8b33c31d69c835304ea58a780e6e56e Mon Sep 17 00:00:00 2001
++From: tenislab25-dot <251649874+tenislab25-dot@users.noreply.github.com>
++Date: Fri, 6 Feb 2026 16:50:09 -0500
++Subject: [PATCH] =?UTF-8?q?fix:=20mostrar=20campo=20de=20taxa=20apenas=20q?=
++ =?UTF-8?q?uando=20m=C3=A9todo=20CART=C3=83O=20=C3=A9=20selecionado?=
++MIME-Version: 1.0
++Content-Type: text/plain; charset=UTF-8
++Content-Transfer-Encoding: 8bit
++
++---
++ src/app/menu-principal/os/page.tsx | 42 ++++++++++++++++--------------
++ 1 file changed, 22 insertions(+), 20 deletions(-)
++
++diff --git a/src/app/menu-principal/os/page.tsx b/src/app/menu-principal/os/page.tsx
++index 3e2ac4e..a66c178 100644
++--- a/src/app/menu-principal/os/page.tsx
+++++ b/src/app/menu-principal/os/page.tsx
++@@ -1184,27 +1184,29 @@ interface OSItem {
++               ))}
++             </div>
++ 
++-            <div className="space-y-2">
++-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
++-                <CreditCard className="w-4 h-4" />
++-                Taxa da Maquininha (opcional)
++-              </label>
++-              <div className="relative">
++-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
++-                <input
++-                  type="number"
++-                  step="0.01"
++-                  min="0"
++-                  value={machineFee}
++-                  onChange={(e) => setMachineFee(e.target.value)}
++-                  placeholder="0,00"
++-                  className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
++-                />
+++            {paymentMethod === "Cartão" && (
+++              <div className="space-y-2">
+++                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+++                  <CreditCard className="w-4 h-4" />
+++                  Taxa da Maquininha (opcional)
+++                </label>
+++                <div className="relative">
+++                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">R$</span>
+++                  <input
+++                    type="number"
+++                    step="0.01"
+++                    min="0"
+++                    value={machineFee}
+++                    onChange={(e) => setMachineFee(e.target.value)}
+++                    placeholder="0,00"
+++                    className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all text-sm font-medium"
+++                  />
+++                </div>
+++                <p className="text-[10px] text-slate-500 leading-relaxed">
+++                  Digite o valor da taxa cobrada pela maquininha quando o pagamento for feito com cartão.
+++                </p>
++               </div>
++-              <p className="text-[10px] text-slate-500 leading-relaxed">
++-                Digite o valor da taxa cobrada pela maquininha quando o pagamento for feito presencialmente.
++-              </p>
++-            </div>
+++            )}
++ 
++             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
++               <div className="flex items-center gap-3">
++-- 
++2.34.1
++
+diff --git a/src/app/menu-principal/os/[osId]/page.tsx b/src/app/menu-principal/os/[osId]/page.tsx
+index a4b93ec..8dfc7e4 100644
+--- a/src/app/menu-principal/os/[osId]/page.tsx
++++ b/src/app/menu-principal/os/[osId]/page.tsx
+@@ -950,7 +950,7 @@ export default function OSViewPage() {
+ )}
+                 {(role === "ADMIN" || role === "ATENDENTE") && (
+                   <div className="grid grid-cols-2 gap-2 w-full">
+-                    <Link href={`/menu-principal/os/${osIdRaw}/editar`} className="w-full">
++                    <Link href={`/menu-principal/os?osId=${osIdRaw.replace("-", "/")}`} className="w-full">
+                       <Button 
+                         variant="outline"
+                         className="w-full h-12 rounded-2xl border-slate-200 text-slate-700 font-bold gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
+diff --git a/src/app/menu-principal/os/page.tsx b/src/app/menu-principal/os/page.tsx
+index a66c178..d22484f 100644
+--- a/src/app/menu-principal/os/page.tsx
++++ b/src/app/menu-principal/os/page.tsx
+@@ -2,7 +2,7 @@
+ 
+ import { useState, useEffect, useCallback, useMemo, useRef } from "react";import Link from "next/link";
+ import { logger } from "@/lib/logger";
+-import { useRouter } from "next/navigation";
++import { useRouter, useSearchParams } from "next/navigation";
+ import { 
+   ArrowLeft, 
+   Plus, 
+@@ -85,6 +85,8 @@ interface OSItem {
+ 
+   export default function OSPage() {
+     const router = useRouter();
++    const searchParams = useSearchParams();
++    const osIdParam = searchParams.get('osId');
+     const [mounted, setMounted] = useState(false);
+     const [role, setRole] = useState<string | null>(null);
+     const [services, setServices] = useState<any[]>([]);
+@@ -225,6 +227,47 @@ interface OSItem {
+     }
+   }, []);
+ 
++  const fetchOrder = useCallback(async (osId: string) => {
++    try {
++      const { data, error } = await supabase
++        .from("service_orders")
++        .select(`*, clients (name, phone, email, plus_code, coordinates, complement)`)
++        .eq("os_number", osId)
++        .single();
++
++      if (error) {
++        toast.error("Erro ao carregar OS. Tente novamente.");
++        router.push("/menu-principal/painel");
++        return;
++      }
++
++      // Preencher todos os campos com dados da OS
++      setOsNumber(data.os_number);
++      setEntryDate(data.entry_date || "");
++      setDeliveryDate(data.delivery_date || "");
++      setDeliveryFee(data.delivery_fee || 0);
++      setPaymentMethod(data.payment_method || "Pix");
++      setPaymentConfirmed(data.payment_confirmed || false);
++      setMachineFee(String(data.machine_fee || 0));
++      setItems(data.items || []);
++      setSoldProducts(data.sold_products || []);
++      setTipoEntrega(data.tipo_entrega || 'entrega');
++      
++      // Preencher dados do cliente
++      if (data.clients) {
++        setSelectedClientId(data.client_id);
++        setClientName(data.clients.name);
++        setClientPhone(data.clients.phone || "");
++        setClientEmail(data.clients.email || "");
++        setClientPlusCode(data.clients.plus_code || "");
++        setClientCoordinates(data.clients.coordinates || "");
++        setClientComplement(data.clients.complement || "");
++      }
++    } catch (err) {
++      toast.error("Erro de conexão. Tente novamente.");
++    }
++  }, [router]);
++
+   // 2. Depois usamos elas no useEffect
+   useEffect(() => {
+     setMounted(true);
+@@ -241,15 +284,20 @@ interface OSItem {
+       return;
+     }
+ 
+-    generateOSNumber();
+-    
+-    const today = new Date();
+-    setEntryDate(today.toISOString().split('T')[0]);
++    // Se tem osId na URL, carregar OS existente
++    if (osIdParam) {
++      fetchOrder(osIdParam);
++    } else {
++      // Caso contrário, gerar novo número
++      generateOSNumber();
++      const today = new Date();
++      setEntryDate(today.toISOString().split('T')[0]);
++    }
+ 
+     fetchClients();
+     fetchServices();
+     fetchProducts();
+-  }, [router, generateOSNumber, fetchClients, fetchServices, fetchProducts]);
++  }, [router, osIdParam, generateOSNumber, fetchOrder, fetchClients, fetchServices, fetchProducts]);
+ 
+   const serviceCatalog = useMemo(() => {
+     if (!services || !Array.isArray(services)) return {};
+@@ -563,33 +611,60 @@ interface OSItem {
+           photos: undefined
+         }));
+ 
+-        const { data: newOS, error: osError } = await supabase
+-          .from("service_orders")
+-          .insert([{
+-            os_number: osNumber,
+-            client_id: clientId,
+-            entry_date: entryDate,
+-            delivery_date: deliveryDate || null,
+-            delivery_fee: deliveryFee,
+-            discount_percent: 0,
+-            payment_method: paymentMethod,
+-            payment_confirmed: paymentConfirmed,
+-            machine_fee: Number(machineFee) || 0,
+-            total: finalTotal,
+-            items: itemsWithPhotosBefore,
+-            sold_products: soldProducts,
+-            status: "Recebido",
+-            tipo_entrega: tipoEntrega
+-          }])
+-          .select()
+-          .single();
+-
+-        if (osError) throw osError;
++        // Se tem osIdParam, atualizar; senão, criar nova
++        if (osIdParam) {
++          const { error: osError } = await supabase
++            .from("service_orders")
++            .update({
++              client_id: clientId,
++              entry_date: entryDate,
++              delivery_date: deliveryDate || null,
++              delivery_fee: deliveryFee,
++              discount_percent: 0,
++              payment_method: paymentMethod,
++              payment_confirmed: paymentConfirmed,
++              machine_fee: Number(machineFee) || 0,
++              total: finalTotal,
++              items: itemsWithPhotosBefore,
++              sold_products: soldProducts,
++              tipo_entrega: tipoEntrega
++            })
++            .eq("os_number", osIdParam);
++
++          if (osError) throw osError;
+ 
+-        clearTimeout(timeoutId);
+-        setCreatedOS(newOS);
+-        setShowSuccessDialog(true);
+-        toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
++          clearTimeout(timeoutId);
++          toast.success("Ordem de Serviço atualizada com sucesso!", { id: "creating-os" });
++          router.push("/menu-principal/painel");
++        } else {
++          const { data: newOS, error: osError } = await supabase
++            .from("service_orders")
++            .insert([{
++              os_number: osNumber,
++              client_id: clientId,
++              entry_date: entryDate,
++              delivery_date: deliveryDate || null,
++              delivery_fee: deliveryFee,
++              discount_percent: 0,
++              payment_method: paymentMethod,
++              payment_confirmed: paymentConfirmed,
++              machine_fee: Number(machineFee) || 0,
++              total: finalTotal,
++              items: itemsWithPhotosBefore,
++              sold_products: soldProducts,
++              status: "Recebido",
++              tipo_entrega: tipoEntrega
++            }])
++            .select()
++            .single();
++
++          if (osError) throw osError;
++
++          clearTimeout(timeoutId);
++          setCreatedOS(newOS);
++          setShowSuccessDialog(true);
++          toast.success("Ordem de Serviço criada com sucesso!", { id: "creating-os" });
++        }
+       } catch (error: any) {
+         clearTimeout(timeoutId);
+         toast.error("Erro ao criar OS: " + (error.message || "Tente novamente"), { id: "creating-os" });
+@@ -1244,6 +1319,8 @@ interface OSItem {
+           >
+             {isCreating ? (
+               <Loader2 className="w-6 h-6 animate-spin" />
++            ) : osIdParam ? (
++              "Salvar Alterações"
+             ) : (
+               "Gerar link para aceite"
+             )}
+-- 
+2.34.1
+
