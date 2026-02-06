@@ -76,7 +76,7 @@ export default function Home() {
               style={{
                 position: 'absolute',
                 left: '50%',
-                top: '27%',
+                top: '29%',
                 transform: 'translateX(-50%)',
                 width: '46.8%',
                 minWidth: '421px',
@@ -100,7 +100,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '34%',
+              top: '36%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -118,7 +118,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '42%',
+              top: '43%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
@@ -152,7 +152,7 @@ export default function Home() {
             className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
-              top: '58%',
+              top: '57%',
               transform: 'translateX(-50%)',
               width: '46.8%',
               minWidth: '421px',
