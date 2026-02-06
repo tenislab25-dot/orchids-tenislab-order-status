@@ -216,23 +216,23 @@ export default function Home() {
           {/* Contador - MOBILE (mais compacto, no topo) */}
           {processedCount !== null && (
             <div 
-              className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 bg-gradient-to-br from-blue-600 to-blue-700 px-6 py-3 rounded-2xl shadow-xl animate-in zoom-in duration-700"
+              className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 bg-gradient-to-br from-blue-600 to-blue-700 px-5 py-2 rounded-2xl shadow-xl animate-in zoom-in duration-700"
               style={{ top: '27%' }}
             >
-              <span className="text-3xl font-black text-white tracking-tight">
+              <span className="text-2xl font-black text-white tracking-tight">
                 {displayCount}
               </span>
-              <p className="text-[10px] font-bold text-white/95 uppercase tracking-wider text-center">
+              <p className="text-[9px] font-bold text-white/95 uppercase tracking-wider text-center">
                 Tênis Restaurados/Higienizados
               </p>
             </div>
           )}
 
           {/* Botões - MOBILE (todos com mesmo estilo e espaçamento) */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-4 w-[80%] max-w-[300px]" style={{ top: '35%' }}>
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-3 w-[76%] max-w-[285px]" style={{ top: '35%' }}>
             <Link
               href="/consulta"
-              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
               📦 Consulte seu Pedido
             </Link>
@@ -241,7 +241,7 @@ export default function Home() {
               href="https://wa.me/message/FNQNTD6CIDFMI1"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
               💬 WhatsApp
             </a>
@@ -250,7 +250,7 @@ export default function Home() {
               href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
               📸 Instagram
             </a>
@@ -259,7 +259,7 @@ export default function Home() {
               href="https://maps.google.com/?q=TENISLAB+Maceio"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-600 font-black text-sm uppercase tracking-wide px-8 py-4 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
             >
               📍 Localização
             </a>
