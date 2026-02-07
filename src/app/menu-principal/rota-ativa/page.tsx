@@ -687,7 +687,7 @@ export default function RotaAtivaPage() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-bold text-gray-800">{pedido.clients?.name}</h3>
                         {pedido.previous_status === "Coleta" && (
-                          <Badge className="bg-orange-500 text-white text-xs">📦 COLETA</Badge>
+                          <Badge className="bg-orange-500 text-white text-xs">COLETA</Badge>
                         )}
                       </div>
                       <p className="text-sm text-gray-600">OS #{pedido.os_number}</p>
@@ -721,7 +721,7 @@ export default function RotaAtivaPage() {
                       className="w-full h-12 text-base font-semibold"
                     >
                       <MapPin className="w-5 h-5 mr-2" />
-                      Maps
+                      Google Maps
                     </Button>
                     <Button
                       variant="outline"
@@ -733,7 +733,7 @@ export default function RotaAtivaPage() {
                       }}
                     >
                       <MessageCircle className="w-4 h-4 text-green-500 mr-2" />
-                      Zap
+                      WhatsApp
                     </Button>
                     <Button
                       size="default"
@@ -847,7 +847,7 @@ export default function RotaAtivaPage() {
                               : "bg-blue-500 text-white"
                           }
                         >
-                          {pedido.status === "Coleta" ? "📦 COLETA" : "🚚 ENTREGA"}
+                          {pedido.status === "Coleta" ? "COLETA" : "ENTREGA"}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">OS #{pedido.os_number}</p>
@@ -939,7 +939,7 @@ export default function RotaAtivaPage() {
                       className="w-full"
                     >
                       <MapPin className="w-4 h-4 mr-1" />
-                      Maps
+                      Google Maps
                     </Button>
                     <Button
                       variant="outline"
@@ -951,7 +951,7 @@ export default function RotaAtivaPage() {
                       }}
                     >
                       <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
-                      Zap
+                      WhatsApp
                     </Button>
                     {role?.toLowerCase() === 'entregador' && (
                       <Button
