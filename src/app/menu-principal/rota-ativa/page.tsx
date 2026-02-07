@@ -714,29 +714,27 @@ export default function RotaAtivaPage() {
                   )}
 
                   <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Button
-                        size="default"
-                        variant="outline"
-                        onClick={() => abrirMaps(pedido)}
-                        className="flex-1 h-12 text-base font-semibold"
-                      >
-                        <MapPin className="w-5 h-5 mr-2" />
-                        Maps
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
-                        onClick={() => {
-                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
-                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
-                          window.open(`https://wa.me/${whatsapp}`, "_blank" );
-                        }}
-                      >
-                        <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
-                        Zap
-                      </Button>
-                    </div>
+                    <Button
+                      size="default"
+                      variant="outline"
+                      onClick={() => abrirMaps(pedido)}
+                      className="w-full h-12 text-base font-semibold"
+                    >
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Maps
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 rounded-xl border-2 border-slate-200 text-base font-bold"
+                      onClick={() => {
+                        const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                        const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                        window.open(`https://wa.me/${whatsapp}`, "_blank" );
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 text-green-500 mr-2" />
+                      Zap
+                    </Button>
                     <Button
                       size="default"
                       onClick={() => {
@@ -759,33 +757,31 @@ export default function RotaAtivaPage() {
                       A Caminho
                     </Button>
                     {role?.toLowerCase() === 'entregador' && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="default"
-                          variant="outline"
-                          onClick={() => marcarComoFalhou(pedido)}
-                          className="flex-1 h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
-                          disabled={updating === pedido.id}
-                        >
-                          {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5 mr-2" />}
-                          FALHOU
-                        </Button>
-                        <Button
-                          size="default"
-                          onClick={() => {
-                            const isColeta = pedido.previous_status === "Coleta";
-                            const action = isColeta ? "COLETADO" : "ENTREGUE";
-                            if (confirm(`Confirmar que o pedido foi ${action}?`)) {
-                              atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
-                            }
-                          }}
-                          className="flex-1 h-12 text-base font-bold bg-green-600 hover:bg-green-700 text-white"
-                          disabled={updating === pedido.id}
-                        >
-                          {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
-                          {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
-                        </Button>
-                      </div>
+                      <Button
+                        size="default"
+                        variant="outline"
+                        onClick={() => marcarComoFalhou(pedido)}
+                        className="w-full h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5 mr-2" />}
+                        FALHOU
+                      </Button>
+                      <Button
+                        size="default"
+                        onClick={() => {
+                          const isColeta = pedido.previous_status === "Coleta";
+                          const action = isColeta ? "COLETADO" : "ENTREGUE";
+                          if (confirm(`Confirmar que o pedido foi ${action}?`)) {
+                            atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
+                          }
+                        }}
+                        className="w-full h-12 text-base font-bold bg-green-600 hover:bg-green-700 text-white"
+                        disabled={updating === pedido.id}
+                      >
+                        {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
+                        {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -934,29 +930,27 @@ export default function RotaAtivaPage() {
                   ) : null}
 
                   <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => abrirMaps(pedido)}
-                        className="flex-1"
-                      >
-                        <MapPin className="w-4 h-4 mr-1" />
-                        Maps
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="flex-1 h-10 rounded-xl border-2 border-slate-200 text-xs font-bold"
-                        onClick={() => {
-                          const phone = pedido.clients?.phone?.replace(/\D/g, "");
-                          const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
-                          window.open(`https://wa.me/${whatsapp}`, "_blank" );
-                        }}
-                      >
-                        <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
-                        Zap
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => abrirMaps(pedido)}
+                      className="w-full"
+                    >
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Maps
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full h-10 rounded-xl border-2 border-slate-200 text-sm font-bold"
+                      onClick={() => {
+                        const phone = pedido.clients?.phone?.replace(/\D/g, "");
+                        const whatsapp = phone?.startsWith("55") ? phone : `55${phone}`;
+                        window.open(`https://wa.me/${whatsapp}`, "_blank" );
+                      }}
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-green-500 mr-1" />
+                      Zap
+                    </Button>
                     {role?.toLowerCase() === 'entregador' && (
                       <Button
                         size="sm"
