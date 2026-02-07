@@ -927,6 +927,7 @@ export default function FinanceiroPage() {
                             <TableHead className="font-black uppercase text-[10px]">Método</TableHead>
                             <TableHead className="text-right font-black uppercase text-[10px]">Valor Bruto</TableHead>
                             <TableHead className="text-right font-black uppercase text-[10px]">Cupom</TableHead>
+                            <TableHead className="text-right font-black uppercase text-[10px] text-orange-600">Desc. Manual</TableHead>
                             <TableHead className="text-right font-black uppercase text-[10px]">Taxa</TableHead>
                             <TableHead className="text-right font-black uppercase text-[10px] text-green-600">Valor Líquido</TableHead>
                           </TableRow>
@@ -957,6 +958,9 @@ export default function FinanceiroPage() {
                                 <TableCell className="text-right font-medium text-orange-600">
                                   {cupomDiscount > 0 ? `- R$ ${cupomDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
                                 </TableCell>
+                                <TableCell className="text-right font-medium text-orange-500">
+                                  {manualDiscount > 0 ? `- R$ ${manualDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                                </TableCell>
                                 <TableCell className="text-right font-medium text-red-600">
                                   {taxa > 0 ? `- R$ ${taxa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
                                 </TableCell>
@@ -983,6 +987,7 @@ export default function FinanceiroPage() {
                         <TableHead className="font-black uppercase text-[10px]">Método</TableHead>
                         <TableHead className="text-right font-black uppercase text-[10px]">Valor Bruto</TableHead>
                         <TableHead className="text-right font-black uppercase text-[10px]">Cupom</TableHead>
+                        <TableHead className="text-right font-black uppercase text-[10px] text-orange-600">Desc. Manual</TableHead>
                         <TableHead className="text-right font-black uppercase text-[10px]">Taxa</TableHead>
                         <TableHead className="text-right font-black uppercase text-[10px] text-green-600">Valor Líquido</TableHead>
                       </TableRow>
@@ -991,8 +996,9 @@ export default function FinanceiroPage() {
                       {recentPayments.map((order) => {
                         const total = Number(order.total || 0);
                         const cupomDiscount = Number(order.discount_amount || 0);
+                        const manualDiscount = Number(order.manual_discount || 0);
                         const taxa = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
-                        const valorLiquido = total - cupomDiscount - taxa;
+                        const valorLiquido = total - cupomDiscount - manualDiscount - taxa;
                         
                         return (
                           <TableRow key={order.id}>
@@ -1011,6 +1017,9 @@ export default function FinanceiroPage() {
                             </TableCell>
                             <TableCell className="text-right font-medium text-orange-600">
                               {cupomDiscount > 0 ? `- R$ ${cupomDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-medium text-orange-500">
+                              {manualDiscount > 0 ? `- R$ ${manualDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
                             </TableCell>
                             <TableCell className="text-right font-medium text-red-600">
                               {taxa > 0 ? `- R$ ${taxa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
