@@ -98,7 +98,7 @@ export default function Home() {
           {/* Botão "Consulte seu Pedido" - DESKTOP */}
           <Link
             href="/consulta"
-            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-slate-900/60 backdrop-blur-sm text-white font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '34%',
@@ -116,7 +116,7 @@ export default function Home() {
             href="https://wa.me/message/FNQNTD6CIDFMI1"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-slate-900/60 backdrop-blur-sm text-white font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '39%',
@@ -126,14 +126,14 @@ export default function Home() {
               padding: '2.5% 5%'
             }}
           >
-            💬 WhatsApp
+            WhatsApp
           </a>
 
           <a 
             href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-slate-900/60 backdrop-blur-sm text-white font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '44%',
@@ -143,14 +143,14 @@ export default function Home() {
               padding: '2.5% 5%'
             }}
           >
-            📸 Instagram
+            Instagram
           </a>
 
           <a 
             href="https://maps.google.com/?q=TENISLAB+Maceio"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bg-white text-blue-600 font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
+            className="absolute bg-slate-900/60 backdrop-blur-sm text-white font-black text-lg uppercase tracking-wide rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center flex items-center justify-center"
             style={{
               left: '50%',
               top: '49%',
@@ -160,7 +160,7 @@ export default function Home() {
               padding: '2.5% 5%'
             }}
           >
-            📍 Localização
+            Localização
           </a>
 
           {/* Tênis flutuante - DESKTOP */}
