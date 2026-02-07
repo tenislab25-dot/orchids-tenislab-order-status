@@ -221,36 +221,36 @@ export default function Home() {
           <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-3 w-[76%] max-w-[285px]" style={{ top: '35%' }}>
             <Link
               href="/consulta"
-              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
             >
-              📦 Consulte seu Pedido
+              Consulte seu Pedido
             </Link>
 
             <a 
               href="https://wa.me/message/FNQNTD6CIDFMI1"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
             >
-              💬 WhatsApp
+              WhatsApp
             </a>
 
             <a 
               href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
             >
-              📸 Instagram
+              Instagram
             </a>
 
             <a 
               href="https://maps.google.com/?q=TENISLAB+Maceio"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-600 font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:shadow-blue-200 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
             >
-              📍 Localização
+              Localização
             </a>
           </div>
 
