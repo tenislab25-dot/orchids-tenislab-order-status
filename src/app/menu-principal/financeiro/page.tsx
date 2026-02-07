@@ -180,6 +180,7 @@ export default function FinanceiroPage() {
     let totalCouponDiscounts = 0;
     let totalPixDiscounts = 0;
     let totalCardFees = 0;
+    let totalManualDiscounts = 0;
     
     confirmedOrders.forEach(o => {
       // Desconto de Cupom (discount_amount)
@@ -191,9 +192,12 @@ export default function FinanceiroPage() {
       
       // Taxa de Cartão (machine_fee + card_discount)
       totalCardFees += Number(o.machine_fee || 0) + Number(o.card_discount || 0);
+      
+      // Desconto Manual (manual_discount)
+      totalManualDiscounts += Number(o.manual_discount || 0);
     });
     
-    const totalDiscounts = totalCouponDiscounts + totalPixDiscounts + totalCardFees;
+    const totalDiscounts = totalCouponDiscounts + totalPixDiscounts + totalCardFees + totalManualDiscounts;
     
     // Valor Recebido (Líquido) = Total - Taxas - Cupons
     const totalReceived = confirmedOrders.reduce((acc, o) => {
@@ -303,6 +307,7 @@ export default function FinanceiroPage() {
       totalCouponDiscounts,
       totalPixDiscounts,
       totalCardFees,
+      totalManualDiscounts,
       serviceRevenueGross,
       productRevenueGross,
       deliveryRevenueGross
@@ -876,6 +881,14 @@ export default function FinanceiroPage() {
                       <span className="text-xs font-black text-purple-600 uppercase tracking-widest">Taxas Mercado Pago</span>
                     </div>
                     <span className="text-3xl font-black text-purple-600">R$ {stats.totalCardFees.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+
+                  <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                    <div className="flex items-center gap-3 mb-2">
+                      <TrendingDown className="w-5 h-5 text-amber-600" />
+                      <span className="text-xs font-black text-amber-600 uppercase tracking-widest">Descontos Manuais</span>
+                    </div>
+                    <span className="text-3xl font-black text-amber-600">R$ {stats.totalManualDiscounts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
 
