@@ -42,6 +42,7 @@ export default function RotaAtivaPage() {
           failed_delivery,
           previous_status,
           updated_at,
+          total,
           clients (
             name,
             phone,
@@ -701,6 +702,9 @@ export default function RotaAtivaPage() {
                         )}
                       </div>
                       <p className="text-sm text-gray-600">OS #{pedido.os_number}</p>
+                      {pedido.previous_status !== "Coleta" && pedido.total > 0 && (
+                        <p className="text-sm font-bold text-green-700 mt-1">Valor a cobrar: R$ {Number(pedido.total).toFixed(2)}</p>
+                      )}
                       {pedido.clients?.complement && (
                         <div className="flex items-start gap-1.5 mt-1">
                           <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
