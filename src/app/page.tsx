@@ -221,7 +221,7 @@ export default function Home() {
           <div className="absolute left-1/2 -translate-x-1/2 flex flex-col gap-3 w-[76%] max-w-[285px]" style={{ top: '35%' }}>
             <Link
               href="/consulta"
-              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/60 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center"
             >
               Consulte seu Pedido
             </Link>
@@ -230,7 +230,7 @@ export default function Home() {
               href="https://wa.me/message/FNQNTD6CIDFMI1"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/60 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center"
             >
               WhatsApp
             </a>
@@ -239,7 +239,7 @@ export default function Home() {
               href="https://www.instagram.com/tenislabr?igsh=dWt4bHdvamx6MWt6&utm_source=qr"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/60 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center"
             >
               Instagram
             </a>
@@ -248,7 +248,7 @@ export default function Home() {
               href="https://maps.google.com/?q=TENISLAB+Maceio"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-slate-900/70 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/80 transition-all duration-300 active:scale-95 text-center"
+              className="bg-slate-900/60 backdrop-blur-sm text-white font-black text-xs uppercase tracking-wide px-7 py-3 rounded-2xl shadow-2xl hover:bg-slate-900/70 transition-all duration-300 active:scale-95 text-center"
             >
               Localização
             </a>
