@@ -1239,7 +1239,7 @@ interface OSItem {
                   </p>
                 </div>
 
-                {role === "admin" && (
+                {role === "administrador" && (
                   <div className="space-y-2 pt-2 border-t border-orange-100">
                     <Label className="text-xs flex items-center gap-2">
                       <span className="text-orange-600 font-bold">⚠️ Desconto Manual (R$)</span>
@@ -1285,7 +1285,7 @@ interface OSItem {
                   <span>+ R$ {Number(deliveryFee).toFixed(2)}</span>
                 </div>
               )}
-                {manualDiscount > 0 && role === "admin" && (
+                {manualDiscount > 0 && role === "administrador" && (
                   <div className="flex justify-between items-center text-sm text-orange-400 font-bold pt-2">
                     <span>⚠️ Desconto Manual (Admin)</span>
                     <span>- R$ {Number(manualDiscount).toFixed(2)}</span>
