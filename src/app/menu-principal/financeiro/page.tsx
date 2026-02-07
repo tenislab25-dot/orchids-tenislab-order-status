@@ -951,7 +951,9 @@ export default function FinanceiroPage() {
                             const cupomDiscount = Number(order.discount_amount || 0);
                             const manualDiscount = Number(order.manual_discount || 0);
                             const taxa = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
-                            const valorLiquido = total - cupomDiscount - manualDiscount - taxa;
+                            // Valor bruto = total + manual_discount (porque total já tem manual_discount descontado)
+                            const valorBruto = total + manualDiscount;
+                            const valorLiquido = total - cupomDiscount - taxa;
                             
                             return (
                               <TableRow key={order.id}>
@@ -966,7 +968,7 @@ export default function FinanceiroPage() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-medium text-slate-600">
-                                  R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  R$ {valorBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell className="text-right font-medium text-orange-600">
                                   {cupomDiscount > 0 ? `- R$ ${cupomDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}
@@ -1011,7 +1013,9 @@ export default function FinanceiroPage() {
                         const cupomDiscount = Number(order.discount_amount || 0);
                         const manualDiscount = Number(order.manual_discount || 0);
                         const taxa = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
-                        const valorLiquido = total - cupomDiscount - manualDiscount - taxa;
+                        // Valor bruto = total + manual_discount (porque total já tem manual_discount descontado)
+                        const valorBruto = total + manualDiscount;
+                        const valorLiquido = total - cupomDiscount - taxa;
                         
                         return (
                           <TableRow key={order.id}>
@@ -1026,7 +1030,7 @@ export default function FinanceiroPage() {
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right font-medium text-slate-600">
-                              R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              R$ {valorBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                             </TableCell>
                             <TableCell className="text-right font-medium text-orange-600">
                               {cupomDiscount > 0 ? `- R$ ${cupomDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}

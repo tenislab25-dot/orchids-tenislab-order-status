@@ -247,6 +247,7 @@ interface OSItem {
       setEntryDate(data.entry_date || "");
       setDeliveryDate(data.delivery_date || "");
       setDeliveryFee(data.delivery_fee || 0);
+      setManualDiscount(data.manual_discount || 0);
       setPaymentMethod(data.payment_method || "Pix");
       setPaymentConfirmed(data.payment_confirmed || false);
       setMachineFee(String(data.machine_fee || 0));
