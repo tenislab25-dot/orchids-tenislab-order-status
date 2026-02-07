@@ -24,6 +24,7 @@ export default function RotaAtivaPage() {
   const [showRouteConfigModal, setShowRouteConfigModal] = useState(false);
   const [endPointType, setEndPointType] = useState<'current' | 'tenislab' | 'custom' | 'none'>('none');
   const [customEndPoint, setCustomEndPoint] = useState('');
+  const [ordemOtimizada, setOrdemOtimizada] = useState<string[]>([]);
 
   const fetchPedidos = async () => {
     try {
@@ -611,6 +612,9 @@ export default function RotaAtivaPage() {
     
     logger.log(`🗺️ URL do Google Maps: ${mapsUrl}`);
     
+    // Salvar a ordem otimizada para reordenar a lista na página
+    setOrdemOtimizada(rotaOtimizada.map(p => p.id));
+
     window.open(mapsUrl, "_blank");
     toast.success(`✅ Rota otimizada com ${rotaOtimizada.length} paradas!`);
 
@@ -628,7 +632,13 @@ export default function RotaAtivaPage() {
     );
   }
 
-  const pedidosEmRota = pedidos.filter(p => p.status === "Em Rota");
+  const pedidosEmRotaBase = pedidos.filter(p => p.status === "Em Rota");
+  const pedidosEmRota = ordemOtimizada.length > 0
+    ? ordemOtimizada
+        .map(id => pedidosEmRotaBase.find(p => p.id === id))
+        .filter(Boolean)
+        .concat(pedidosEmRotaBase.filter(p => !ordemOtimizada.includes(p.id)))
+    : pedidosEmRotaBase;
   const pedidosAguardando = pedidos.filter(p => p.status === "Pronto" || p.status === "Coleta");
   const canEditNotes = role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'atendente';
 
