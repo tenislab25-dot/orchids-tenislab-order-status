@@ -757,31 +757,33 @@ export default function RotaAtivaPage() {
                       A Caminho
                     </Button>
                     {role?.toLowerCase() === 'entregador' && (
-                      <Button
-                        size="default"
-                        variant="outline"
-                        onClick={() => marcarComoFalhou(pedido)}
-                        className="w-full h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
-                        disabled={updating === pedido.id}
-                      >
-                        {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5 mr-2" />}
-                        FALHOU
-                      </Button>
-                      <Button
-                        size="default"
-                        onClick={() => {
-                          const isColeta = pedido.previous_status === "Coleta";
-                          const action = isColeta ? "COLETADO" : "ENTREGUE";
-                          if (confirm(`Confirmar que o pedido foi ${action}?`)) {
-                            atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
-                          }
-                        }}
-                        className="w-full h-12 text-base font-bold bg-green-600 hover:bg-green-700 text-white"
-                        disabled={updating === pedido.id}
-                      >
-                        {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
-                        {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
-                      </Button>
+                      <>
+                        <Button
+                          size="default"
+                          variant="outline"
+                          onClick={() => marcarComoFalhou(pedido)}
+                          className="w-full h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5 mr-2" />}
+                          FALHOU
+                        </Button>
+                        <Button
+                          size="default"
+                          onClick={() => {
+                            const isColeta = pedido.previous_status === "Coleta";
+                            const action = isColeta ? "COLETADO" : "ENTREGUE";
+                            if (confirm(`Confirmar que o pedido foi ${action}?`)) {
+                              atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
+                            }
+                          }}
+                          className="w-full h-12 text-base font-bold bg-green-600 hover:bg-green-700 text-white"
+                          disabled={updating === pedido.id}
+                        >
+                          {updating === pedido.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
+                          {pedido.previous_status === "Coleta" ? "COLETADO" : "ENTREGUE"}
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
