@@ -44,6 +44,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1, // Desabilita zoom automático em inputs no mobile
   themeColor: "#0f172a",
 };
 
