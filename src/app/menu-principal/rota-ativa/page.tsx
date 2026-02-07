@@ -560,9 +560,6 @@ export default function RotaAtivaPage() {
     logger.log(`✅ Rota otimizada com ${rotaOtimizada.length} paradas`);
     logger.log(`📍 Distância total: ${distanciaTotal.toFixed(2)} km`);
     toast.success(`🧬 Rota otimizada! Distância: ${distanciaTotal.toFixed(1)} km`);
-    
-    // Atualizar ordem dos pedidos na lista
-    setPedidosEmRota(rotaOtimizada);
 
 
 
