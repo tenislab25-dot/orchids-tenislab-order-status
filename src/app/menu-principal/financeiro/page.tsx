@@ -69,6 +69,7 @@ interface Order {
   discount_percent: number;
   discount_amount: number;
   card_discount: number;
+  manual_discount: number;
   delivery_fee: number;
   coupon_code: string | null;
   mp_payment_id: string | null;
@@ -143,6 +144,7 @@ export default function FinanceiroPage() {
           discount_percent,
           discount_amount,
           card_discount,
+          manual_discount,
           delivery_fee,
           coupon_code,
           mp_payment_id,
@@ -197,7 +199,8 @@ export default function FinanceiroPage() {
     const totalReceived = confirmedOrders.reduce((acc, o) => {
       const fees = Number(o.machine_fee || 0) + Number(o.card_discount || 0);
       const coupons = Number(o.discount_amount || 0);
-      return acc + (Number(o.total || 0) - fees - coupons);
+      const manual = Number(o.manual_discount || 0);
+      return acc + (Number(o.total || 0) - fees - coupons - manual);
     }, 0);
 
     // Este Mês (confirmados - líquido)
@@ -932,8 +935,9 @@ export default function FinanceiroPage() {
                           {allPayments.map((order) => {
                             const total = Number(order.total || 0);
                             const cupomDiscount = Number(order.discount_amount || 0);
+                            const manualDiscount = Number(order.manual_discount || 0);
                             const taxa = Number(order.machine_fee || 0) + Number(order.card_discount || 0);
-                            const valorLiquido = total - cupomDiscount - taxa;
+                            const valorLiquido = total - cupomDiscount - manualDiscount - taxa;
                             
                             return (
                               <TableRow key={order.id}>

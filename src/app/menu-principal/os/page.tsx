@@ -147,6 +147,7 @@ interface OSItem {
   
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [manualDiscount, setManualDiscount] = useState(0);
   // Desconto removido - apenas cupons agora
     const [paymentMethod, setPaymentMethod] = useState("Pix");
     const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -525,7 +526,7 @@ interface OSItem {
 
   const globalSubtotal = items.reduce((acc, curr) => acc + Number(curr.subtotal), 0);
   const soldProductsTotal = soldProducts.reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.quantity)), 0);
-  const finalTotal = globalSubtotal + soldProductsTotal + Number(deliveryFee);
+  const finalTotal = globalSubtotal + soldProductsTotal + Number(deliveryFee) - Number(manualDiscount);
 
     const addBusinessDays = (date: Date, days: number) => {
       let count = 0;
@@ -628,6 +629,7 @@ interface OSItem {
               delivery_date: deliveryDate || null,
               delivery_fee: deliveryFee,
               discount_percent: 0,
+              manual_discount: Number(manualDiscount) || 0,
               payment_method: paymentMethod,
               payment_confirmed: paymentConfirmed,
               machine_fee: Number(machineFee) || 0,
@@ -653,6 +655,7 @@ interface OSItem {
               delivery_date: deliveryDate || null,
               delivery_fee: deliveryFee,
               discount_percent: 0,
+              manual_discount: Number(manualDiscount) || 0,
               payment_method: paymentMethod,
               payment_confirmed: paymentConfirmed,
               machine_fee: Number(machineFee) || 0,
@@ -1235,6 +1238,26 @@ interface OSItem {
                     A taxa de entrega NÃO sofre desconto e é adicionada ao total.
                   </p>
                 </div>
+
+                {role === "admin" && (
+                  <div className="space-y-2 pt-2 border-t border-orange-100">
+                    <Label className="text-xs flex items-center gap-2">
+                      <span className="text-orange-600 font-bold">⚠️ Desconto Manual (R$)</span>
+                      <Badge variant="destructive" className="text-[8px] px-1.5 py-0">ADMIN</Badge>
+                    </Label>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      placeholder="0.00"
+                      value={manualDiscount || ""}
+                      onChange={(e) => setManualDiscount(Number(e.target.value))}
+                      className="h-12 bg-orange-50 border-orange-200 rounded-xl font-bold text-orange-700"
+                    />
+                    <p className="text-[9px] text-orange-500 font-medium px-1">
+                      🔒 Desconto especial aplicado manualmente. Apenas administradores.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </section>
@@ -1256,13 +1279,18 @@ interface OSItem {
                     <span>+ R$ {Number(soldProductsTotal).toFixed(2)}</span>
                   </div>
                 )}
-                {/* Desconto manual removido - use cupons */}
                 {deliveryFee > 0 && (
                 <div className="flex justify-between items-center text-sm text-green-400 font-bold pt-2">
                   <span>Taxa de Entrega</span>
                   <span>+ R$ {Number(deliveryFee).toFixed(2)}</span>
                 </div>
               )}
+                {manualDiscount > 0 && role === "admin" && (
+                  <div className="flex justify-between items-center text-sm text-orange-400 font-bold pt-2">
+                    <span>⚠️ Desconto Manual (Admin)</span>
+                    <span>- R$ {Number(manualDiscount).toFixed(2)}</span>
+                  </div>
+                )}
             </div>
 
             <Separator className="bg-white/10" />
