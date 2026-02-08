@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Phone, MessageCircle, Package, Loader2, CheckCircle2, XCircle, AlertCircle, Edit, Save, X as XIcon, Route } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 
 export default function RotaAtivaPage() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -25,6 +26,7 @@ export default function RotaAtivaPage() {
   const [endPointType, setEndPointType] = useState<'current' | 'tenislab' | 'custom' | 'none'>('none');
   const [customEndPoint, setCustomEndPoint] = useState('');
   const [ordemOtimizada, setOrdemOtimizada] = useState<string[]>([]);
+  const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
 
   const fetchPedidos = async () => {
     try {
@@ -123,23 +125,27 @@ export default function RotaAtivaPage() {
     };
   }, [role]);
 
-  const atualizarStatus = async (pedido: any, novoStatus: string) => {
-    // Confirmação antes de mudar status
+  const atualizarStatus = (pedido: any, novoStatus: string) => {
     const isColeta = pedido.status === "Coleta";
-    const confirmMessage = novoStatus === "Em Rota" 
-      ? (isColeta 
-          ? `🚚 Confirmar que está A CAMINHO para COLETAR os tênis de ${pedido.clients?.name}?\n\nUma mensagem será enviada via WhatsApp.`
-          : `🚚 Confirmar que está A CAMINHO para ENTREGAR os tênis de ${pedido.clients?.name}?\n\nUma mensagem será enviada via WhatsApp.`)
+    const title = novoStatus === "Em Rota"
+      ? (isColeta ? "A Caminho para Coletar" : "A Caminho para Entregar")
+      : novoStatus === "Recebido" ? "Confirmar Coleta"
+      : novoStatus === "Entregue" ? "Confirmar Entrega"
+      : "Confirmar";
+    const message = novoStatus === "Em Rota"
+      ? (isColeta
+          ? `Confirmar que está A CAMINHO para COLETAR os tênis de ${pedido.clients?.name}?\n\nUma mensagem será enviada via WhatsApp.`
+          : `Confirmar que está A CAMINHO para ENTREGAR os tênis de ${pedido.clients?.name}?\n\nUma mensagem será enviada via WhatsApp.`)
       : novoStatus === "Recebido"
-      ? `✅ Confirmar que os tênis de ${pedido.clients?.name} foram COLETADOS?`
+      ? `Confirmar que os tênis de ${pedido.clients?.name} foram COLETADOS?`
       : novoStatus === "Entregue"
-      ? `✅ Confirmar que os tênis de ${pedido.clients?.name} foram ENTREGUES?`
+      ? `Confirmar que os tênis de ${pedido.clients?.name} foram ENTREGUES?`
       : `Confirmar mudança de status para ${novoStatus}?`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-    
+    const confirmColor = novoStatus === "Em Rota" ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700";
+    setConfirmModal({ show: true, title, message, confirmText: "Confirmar", confirmColor, onConfirm: () => executarAtualizarStatus(pedido, novoStatus) });
+  };
+
+  const executarAtualizarStatus = async (pedido: any, novoStatus: string) => {
     try {
       setUpdating(pedido.id);
 
@@ -193,17 +199,16 @@ export default function RotaAtivaPage() {
     }
   };
 
-  const marcarComoFalhou = async (pedido: any) => {
-    // Confirmação antes de marcar como falhou
+  const marcarComoFalhou = (pedido: any) => {
     const isColeta = pedido.previous_status === "Coleta";
-    const confirmMessage = isColeta
-      ? `⚠️ Confirmar que a COLETA FALHOU?\n\nO pedido voltará para o status "${pedido.previous_status || "Pronto"}" e ficará marcado para nova tentativa.`
-      : `⚠️ Confirmar que a ENTREGA FALHOU?\n\nO pedido voltará para o status "${pedido.previous_status || "Pronto"}" e ficará marcado para nova tentativa.`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-    
+    const title = isColeta ? "Coleta Falhou?" : "Entrega Falhou?";
+    const message = isColeta
+      ? `Confirmar que a COLETA FALHOU?\n\nO pedido voltará para o status "${pedido.previous_status || "Pronto"}" e ficará marcado para nova tentativa.`
+      : `Confirmar que a ENTREGA FALHOU?\n\nO pedido voltará para o status "${pedido.previous_status || "Pronto"}" e ficará marcado para nova tentativa.`;
+    setConfirmModal({ show: true, title, message, confirmText: "Confirmar Falha", confirmColor: "bg-red-600 hover:bg-red-700", onConfirm: () => executarMarcarComoFalhou(pedido) });
+  };
+
+  const executarMarcarComoFalhou = async (pedido: any) => {
     try {
       setUpdating(pedido.id);
 
@@ -248,10 +253,17 @@ export default function RotaAtivaPage() {
   };
 
   const finalizarRota = async () => {
-    if (!confirm("Finalizar rota? Pedidos não concluídos voltarão para aguardando.")) {
-      return;
-    }
-    
+    setConfirmModal({
+      show: true,
+      title: "Finalizar Rota?",
+      message: "Pedidos não concluídos voltarão para aguardando.",
+      confirmText: "Finalizar",
+      confirmColor: "bg-orange-600 hover:bg-orange-700",
+      onConfirm: () => executarFinalizarRota()
+    });
+  };
+
+  const executarFinalizarRota = async () => {
     try {
       // Voltar pedidos "Em Rota" para status anterior
       const pedidosEmRota = pedidos.filter(p => p.status === "Em Rota");
@@ -786,10 +798,7 @@ export default function RotaAtivaPage() {
                           size="default"
                           onClick={() => {
                             const isColeta = pedido.previous_status === "Coleta";
-                            const action = isColeta ? "COLETADO" : "ENTREGUE";
-                            if (confirm(`Confirmar que o pedido foi ${action}?`)) {
-                              atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
-                            }
+                            atualizarStatus(pedido, isColeta ? "Recebido" : "Entregue");
                           }}
                           className="w-full h-12 text-base font-bold bg-green-600 hover:bg-green-700 text-white"
                           disabled={updating === pedido.id}
@@ -1091,6 +1100,17 @@ export default function RotaAtivaPage() {
           </div>
         </div>
       )}
+
+      {/* Bottom Sheet de Confirmação */}
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

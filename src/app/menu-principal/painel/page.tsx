@@ -47,6 +47,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { toast } from "sonner";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 import { formatDateTime, formatDateShort } from "@/lib/date-utils";
 import {
   playNotificationSound,
@@ -139,6 +140,7 @@ export default function PainelPage() {
     direction: 'asc'
   });
   const [manualAlertsByOrder, setManualAlertsByOrder] = useState<Record<string, any[]>>({});
+  const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
 
   const sortOptions = [
     { label: "✨ Inteligente", value: "smart", icon: "sparkles" },
@@ -348,48 +350,30 @@ export default function PainelPage() {
     }
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: Status) => {
-    // Buscar o status atual da OS
+  const executarStatusChange = async (orderId: string, newStatus: Status) => {
     const currentOrder = orders.find(o => o.id === orderId);
     
-    // Confirmação antes de cancelar
-    if (newStatus === 'Cancelado') {
-      if (!window.confirm('⚠️ Tem certeza que deseja CANCELAR este pedido?\n\nEsta ação não pode ser desfeita.')) {
-        return;
-      }
-    }
-    
-    // Bloquear OPERACIONAL de alterar OS que já estão Pronto ou Entregue
     if (role === 'OPERACIONAL' && currentOrder && ['Pronto', 'Entregue'].includes(currentOrder.status)) {
-      toast.error("Você não pode alterar o status de uma OS que já está Pronta ou Entregue");
+      toast.error("Voc\u00ea n\u00e3o pode alterar o status de uma OS que j\u00e1 est\u00e1 Pronta ou Entregue");
       return;
     }
-    
-    // Bloquear OPERACIONAL de mudar para status que não são permitidos
-    if (role === 'OPERACIONAL' && !['Recebido', 'Em espera', 'Em serviço', 'Em finalização'].includes(newStatus)) {
-      toast.error("Você não tem permissão para alterar para este status");
+    if (role === 'OPERACIONAL' && !['Recebido', 'Em espera', 'Em servi\u00e7o', 'Em finaliza\u00e7\u00e3o'].includes(newStatus)) {
+      toast.error("Voc\u00ea n\u00e3o tem permiss\u00e3o para alterar para este status");
       return;
     }
     setChangedOrderId(orderId);
-    
-    // Preparar dados para atualização
     const updateData: any = { status: newStatus };
-    
-    // Se mudar para "Pronto", atualizar delivery_date para hoje
     if (newStatus === "Pronto") {
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       updateData.delivery_date = todayStr;
     }
-    
     const { error, data: dataArray } = await supabase
       .from("service_orders")
       .update(updateData)
       .eq("id", orderId)
       .select(`*, clients(name, phone)`);
-    
     const data = dataArray && dataArray.length > 0 ? dataArray[0] : null;
-
     if (error || !data) {
       toast.error("Erro ao atualizar status: " + (error?.message || "Erro desconhecido"));
     } else {
@@ -399,7 +383,6 @@ export default function PainelPage() {
         )
       );
       toast.success("Status atualizado!");
-
       fetch("/api/notifications/status-change", { method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -408,33 +391,45 @@ export default function PainelPage() {
           osNumber: data?.os_number,
         }),
       }).catch(console.error);
-
       if (newStatus === "Pronto" && data?.clients) {
         const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
         const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
         const message = encodeURIComponent(
-          `Olá ${data.clients.name}! Seus tênis estão prontinhos e limpos na Tenislab. ✨\n\n` +
-          `Já estão aguardando sua retirada ou serão entregues pelo nosso entregador em breve.\n\n` +
-          `Qualquer dúvida, estamos à disposição!`
+          `Ol\u00e1 ${data.clients.name}! Seus t\u00eanis est\u00e3o prontinhos e limpos na Tenislab. \u2728\n\n` +
+          `J\u00e1 est\u00e3o aguardando sua retirada ou ser\u00e3o entregues pelo nosso entregador em breve.\n\n` +
+          `Qualquer d\u00favida, estamos \u00e0 disposi\u00e7\u00e3o!`
         );
         window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
       } else if (newStatus === "Entregue" && data?.clients) {
         const cleanPhone = data.clients.phone?.replace(/\D/g, "") || "";
         const whatsappPhone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
         const paymentLink = `${window.location.origin}/pagamento/${data.id}`;
-        
         const message = encodeURIComponent(
-          `Olá ${data.clients.name}! Seu pedido #${data.os_number} foi entregue! 📦\n\n` +
+          `Ol\u00e1 ${data.clients.name}! Seu pedido #${data.os_number} foi entregue! \ud83d\udce6\n\n` +
           `Valor total: R$ ${Number(data.total).toFixed(2)}\n\n` +
           `Para realizar o pagamento, acesse o link abaixo:\n${paymentLink}\n\n` +
-          `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laboratório:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
-          `Obrigado pela preferência!`
+          `Gostou do resultado? Se puder nos avaliar no Google, ajuda muito nosso laborat\u00f3rio:\nhttps://g.page/r/CWIZ5KPcIIJVEBM/review\n\n` +
+          `Obrigado pela prefer\u00eancia!`
         );
         window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
       }
     }
-    
     setTimeout(() => setChangedOrderId(null), 600);
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: Status) => {
+    if (newStatus === 'Cancelado') {
+      setConfirmModal({
+        show: true,
+        title: "Cancelar Pedido?",
+        message: "Tem certeza que deseja CANCELAR este pedido? Esta ação não pode ser desfeita.",
+        confirmText: "Cancelar Pedido",
+        confirmColor: "bg-red-600 hover:bg-red-700",
+        onConfirm: () => executarStatusChange(orderId, newStatus)
+      });
+      return;
+    }
+    await executarStatusChange(orderId, newStatus);
   };
 
   const sortedAndFilteredOrders = useMemo(() => {
@@ -1154,6 +1149,16 @@ export default function PainelPage() {
           tenislab o laboratorio do seu tenis
         </p>
       </footer>
+
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

@@ -39,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 
 interface ClientWithStats {
   id: string;
@@ -65,6 +66,7 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<ClientWithStats | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [showAllClients, setShowAllClients] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
   
   const [formData, setFormData] = useState({
     name: "",
@@ -251,9 +253,18 @@ export default function ClientsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
+  const handleDelete = (id: string) => {
+    setConfirmModal({
+      show: true,
+      title: "Excluir Cliente?",
+      message: "Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.",
+      confirmText: "Excluir",
+      confirmColor: "bg-red-600 hover:bg-red-700",
+      onConfirm: () => executarDeleteCliente(id)
+    });
+  };
 
+  const executarDeleteCliente = async (id: string) => {
     try {
       const { error } = await supabase
         .from("clients")
@@ -621,6 +632,16 @@ export default function ClientsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

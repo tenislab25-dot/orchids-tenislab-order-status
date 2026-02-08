@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ export default function CuponsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
 
   // Form state
   const [formData, setFormData] = useState({
@@ -203,9 +205,18 @@ export default function CuponsPage() {
     }
   }
 
-  async function deleteCoupon(coupon: Coupon) {
-    if (!confirm(`Tem certeza que deseja deletar o cupom ${coupon.code}?`)) return;
+  function deleteCoupon(coupon: Coupon) {
+    setConfirmModal({
+      show: true,
+      title: "Deletar Cupom?",
+      message: `Tem certeza que deseja deletar o cupom ${coupon.code}?`,
+      confirmText: "Deletar",
+      confirmColor: "bg-red-600 hover:bg-red-700",
+      onConfirm: () => executarDeleteCoupon(coupon)
+    });
+  }
 
+  async function executarDeleteCoupon(coupon: Coupon) {
     try {
       // Verificar se o cupom já foi usado
       const { data: usageData, error: usageError } = await supabase
@@ -545,6 +556,16 @@ export default function CuponsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

@@ -50,6 +50,7 @@ import { INITIAL_SERVICES } from "@/lib/services-data";
 import { supabase, ensureValidSession } from "@/lib/supabase";
 import { compressImage } from "@/lib/image-utils";
 import { toast } from "sonner";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 
 const SERVICE_CATALOG = INITIAL_SERVICES.reduce((acc, service) => {
   if (service.status === "Inactive") return acc;
@@ -155,6 +156,7 @@ interface OSItem {
     
     const [createdOS, setCreatedOS] = useState<any>(null);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
 
      // 1. Primeiro definimos as funções
   const fetchServices = useCallback(async () => {
@@ -952,14 +954,21 @@ interface OSItem {
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      if (confirm('Deseja realmente deletar esta foto DEPOIS?')) {
-                                        setItems(items.map(it => {
-                                          if (it.id === item.id) {
-                                            return { ...it, photosAfter: it.photosAfter?.filter((_, i) => i !== pIdx) };
-                                          }
-                                          return it;
-                                        }));
-                                      }
+                                      setConfirmModal({
+                                        show: true,
+                                        title: "Deletar Foto?",
+                                        message: "Deseja realmente deletar esta foto DEPOIS?",
+                                        confirmText: "Deletar",
+                                        confirmColor: "bg-red-600 hover:bg-red-700",
+                                        onConfirm: () => {
+                                          setItems(items.map(it => {
+                                            if (it.id === item.id) {
+                                              return { ...it, photosAfter: it.photosAfter?.filter((_, i) => i !== pIdx) };
+                                            }
+                                            return it;
+                                          }));
+                                        }
+                                      });
                                     }}
                                     className="bg-red-500 text-white p-4 rounded-full shadow-2xl transform scale-75 group-hover:scale-100 group-active:scale-100 transition-transform flex items-center justify-center"
                                   >
@@ -1447,6 +1456,16 @@ interface OSItem {
         </main>
 
       <div className="h-10" />
+
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

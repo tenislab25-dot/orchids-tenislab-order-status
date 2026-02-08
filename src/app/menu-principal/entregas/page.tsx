@@ -13,6 +13,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase, ensureValidSession } from "@/lib/supabase";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +85,7 @@ export default function EntregasPage() {
   
   // Estados para seleção de pedidos
   const [selectedPedidos, setSelectedPedidos] = useState<Set<string>>(new Set());
+  const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
   
   // Estados para observações
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
@@ -168,12 +170,18 @@ export default function EntregasPage() {
       return;
     }
 
-    // Confirmar ação
-    const confirmMessage = `🚀 Iniciar rota com ${selectedPedidos.size} pedido(s) selecionado(s)?\n\nTodos serão marcados como "Em Rota".`;
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+    // Confirmar ação via bottom sheet
+    setConfirmModal({
+      show: true,
+      title: "Iniciar Rota?",
+      message: `Iniciar rota com ${selectedPedidos.size} pedido(s) selecionado(s)?\n\nTodos serão marcados como "Em Rota".`,
+      confirmText: "Iniciar Rota",
+      confirmColor: "bg-blue-600 hover:bg-blue-700",
+      onConfirm: () => executarIniciarRota()
+    });
+  };
 
+  const executarIniciarRota = async () => {
     try {
       // Marcar pedidos selecionados como "Em Rota"
       toast.info(`Marcando ${selectedPedidos.size} pedido(s) como Em Rota...`);
@@ -583,10 +591,17 @@ export default function EntregasPage() {
   // Finalizar rota
   const handleFinalizarRota = async () => {
     // Confirmação antes de finalizar
-    if (!window.confirm('🚚 Tem certeza que deseja finalizar a rota?\n\nTodos os pedidos restantes serão mantidos para a próxima rota.')) {
-      return;
-    }
-    
+    setConfirmModal({
+      show: true,
+      title: "Finalizar Rota?",
+      message: "Tem certeza que deseja finalizar a rota?\n\nTodos os pedidos restantes serão mantidos para a próxima rota.",
+      confirmText: "Finalizar",
+      confirmColor: "bg-orange-600 hover:bg-orange-700",
+      onConfirm: () => executarFinalizarRota()
+    });
+  };
+
+  const executarFinalizarRota = async () => {
     try {
       toast.info('Finalizando rota...');
       
@@ -1272,9 +1287,15 @@ export default function EntregasPage() {
                           className="flex-1 h-12 rounded-xl border-2 border-red-100 text-red-600 font-bold text-sm hover:bg-red-50" 
                           onClick={() => {
                             const isColeta = pedido.status === 'Coleta';
-                            const mensagem = isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?";
                             const novoStatus = isColeta ? 'Coleta' : 'Pronto';
-                            confirm(mensagem) && atualizarStatus(pedido, novoStatus);
+                            setConfirmModal({
+                              show: true,
+                              title: isColeta ? "Coleta Falhou?" : "Entrega Falhou?",
+                              message: isColeta ? "Confirmar que a coleta não foi realizada?" : "Confirmar que a entrega não foi realizada?",
+                              confirmText: "Confirmar Falha",
+                              confirmColor: "bg-red-600 hover:bg-red-700",
+                              onConfirm: () => atualizarStatus(pedido, novoStatus)
+                            });
                           }}
                           disabled={updating === pedido.id}
                         >
@@ -1746,6 +1767,17 @@ export default function EntregasPage() {
           </div>
         </div>
       )}
+
+      {/* Bottom Sheet de Confirmação */}
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }

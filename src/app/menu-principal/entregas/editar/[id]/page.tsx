@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { BottomSheetConfirm } from "@/components/ui/bottom-sheet-confirm";
 
 export default function EditarEntregaPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function EditarEntregaPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{show: boolean, title: string, message: string, confirmText?: string, confirmColor?: string, onConfirm: () => void}>({show: false, title: '', message: '', onConfirm: () => {}});
   const [pedido, setPedido] = useState<any>(null);
   const [form, setForm] = useState({
     observations: '',
@@ -144,11 +146,18 @@ export default function EditarEntregaPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm(`Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
+  const handleDelete = () => {
+    setConfirmModal({
+      show: true,
+      title: "Excluir OS?",
+      message: `Confirmar exclusão da OS #${pedido.os_number}? Esta ação não pode ser desfeita.`,
+      confirmText: "Excluir",
+      confirmColor: "bg-red-600 hover:bg-red-700",
+      onConfirm: () => executarDeleteOS()
+    });
+  };
 
+  const executarDeleteOS = async () => {
     try {
       setDeleting(true);
       const { error } = await supabase
@@ -334,6 +343,16 @@ export default function EditarEntregaPage() {
           </Button>
         </div>
       </main>
+
+      <BottomSheetConfirm
+        show={confirmModal.show}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+      />
     </div>
   );
 }
