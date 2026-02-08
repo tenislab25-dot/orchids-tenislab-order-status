@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface BottomSheetConfirmProps {
   show: boolean;
@@ -23,43 +23,96 @@ export function BottomSheetConfirm({
   onConfirm,
   onCancel,
 }: BottomSheetConfirmProps) {
-  // Bloquear scroll do body quando o bottom sheet está aberto
+  const [visible, setVisible] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
   useEffect(() => {
     if (show) {
+      setVisible(true);
+      // Pequeno delay para trigger da animação
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setAnimating(true);
+        });
+      });
       document.body.style.overflow = "hidden";
     } else {
+      setAnimating(false);
+      const timer = setTimeout(() => setVisible(false), 300);
       document.body.style.overflow = "";
+      return () => clearTimeout(timer);
     }
     return () => {
       document.body.style.overflow = "";
     };
   }, [show]);
 
-  if (!show) return null;
+  if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 99999,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+      }}
+    >
       {/* Overlay escuro */}
       <div
-        className="absolute inset-0 bg-black/50 transition-opacity"
         onClick={onCancel}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: animating ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0)",
+          transition: "background-color 0.3s ease",
+          zIndex: 99999,
+        }}
       />
 
       {/* Bottom Sheet */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl p-6 pb-8 animate-slide-up safe-area-bottom">
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: "white",
+          borderTopLeftRadius: "1.5rem",
+          borderTopRightRadius: "1.5rem",
+          boxShadow: "0 -10px 40px rgba(0,0,0,0.15)",
+          padding: "1.5rem",
+          paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
+          transform: animating ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 0.3s ease-out",
+          zIndex: 100000,
+        }}
+      >
         {/* Indicador de arraste */}
-        <div className="flex justify-center mb-4">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+          <div style={{ width: "2.5rem", height: "0.25rem", backgroundColor: "#d1d5db", borderRadius: "9999px" }} />
         </div>
 
         {/* Título */}
-        <h3 className="text-xl font-black text-gray-900 mb-2">{title}</h3>
+        <h3 style={{ fontSize: "1.25rem", fontWeight: 900, color: "#111827", marginBottom: "0.5rem" }}>
+          {title}
+        </h3>
 
         {/* Mensagem */}
-        <p className="text-sm text-gray-600 mb-6 whitespace-pre-line">{message}</p>
+        <p style={{ fontSize: "0.875rem", color: "#4b5563", marginBottom: "1.5rem", whiteSpace: "pre-line" }}>
+          {message}
+        </p>
 
         {/* Botões */}
-        <div className="flex flex-col gap-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <button
             onClick={() => {
               onConfirm();
@@ -71,30 +124,22 @@ export function BottomSheetConfirm({
           </button>
           <button
             onClick={onCancel}
-            className="w-full py-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-base transition-all"
+            style={{
+              width: "100%",
+              padding: "1rem",
+              borderRadius: "0.75rem",
+              backgroundColor: "#f3f4f6",
+              color: "#374151",
+              fontWeight: 700,
+              fontSize: "1rem",
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             {cancelText}
           </button>
         </div>
       </div>
-
-      {/* Animação CSS */}
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
-        }
-        .animate-slide-up {
-          animation: slideUp 0.3s ease-out;
-        }
-        .safe-area-bottom {
-          padding-bottom: max(2rem, env(safe-area-inset-bottom));
-        }
-      `}</style>
     </div>
   );
 }
